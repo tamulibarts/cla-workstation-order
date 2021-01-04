@@ -1,0 +1,17 @@
+{
+    "name": "liberalarts-web/cla-workstation-order",
+    "description": "A WordPress plugin for ordering workstations for the Texas A&M College of Liberal Arts.",
+    "license": "GPL-2.0+",
+    "authors": [
+        {
+            "name": "Zachary Watkins",
+            "email": "zwatkins2@tamu.edu"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+    },
+    "require-dev": {
+        "wp-coding-standards/wpcs": "^1.0"
+    }
+}
