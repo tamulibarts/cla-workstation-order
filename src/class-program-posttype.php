@@ -19,7 +19,7 @@ namespace CLA_Workstation_Order;
  * @package cla-workstation-order
  * @since 1.0.0
  */
-class Product_PostType {
+class Program_PostType {
 
 	/**
 	 * Initialize the class.
@@ -47,13 +47,13 @@ class Product_PostType {
 
 		new \CLA_Workstation_Order\PostType(
 			array(
-				'singular' => 'Product',
-				'plural'   => 'Products',
+				'singular' => 'Program',
+				'plural'   => 'Programs',
 			),
-			'product',
-			array( 'category' ),
+			'program',
+			array(),
 			'dashicons-portfolio',
-			array( 'title', 'editor', 'thumbnail' )
+			array( 'title' )
 		);
 
 	}

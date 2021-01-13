@@ -1,0 +1,102 @@
+[
+    {
+        "key": "group_5fff6f3cebfc8",
+        "title": "IT Logistics Status",
+        "fields": [
+            {
+                "key": "field_5fff6f3cee555",
+                "label": "IT Logistics Status",
+                "name": "it_logistics_status",
+                "type": "group",
+                "instructions": "",
+                "required": 0,
+                "conditional_logic": 0,
+                "wrapper": {
+                    "width": "",
+                    "class": "",
+                    "id": ""
+                },
+                "layout": "block",
+                "sub_fields": [
+                    {
+                        "key": "field_5fff6f3cef757",
+                        "label": "Status",
+                        "name": "status",
+                        "type": "select",
+                        "instructions": "",
+                        "required": 0,
+                        "conditional_logic": 0,
+                        "wrapper": {
+                            "width": "",
+                            "class": "",
+                            "id": ""
+                        },
+                        "choices": {
+                            "Not confirmed": "Not confirmed",
+                            "Confirmed": "Confirmed"
+                        },
+                        "default_value": false,
+                        "allow_null": 0,
+                        "multiple": 0,
+                        "ui": 0,
+                        "return_format": "value",
+                        "ajax": 0,
+                        "placeholder": ""
+                    },
+                    {
+                        "key": "field_5fff6f3cef777",
+                        "label": "Date",
+                        "name": "date",
+                        "type": "date_time_picker",
+                        "instructions": "",
+                        "required": 0,
+                        "conditional_logic": [
+                            [
+                                {
+                                    "field": "field_5fff6f3cef757",
+                                    "operator": "==",
+                                    "value": "Confirmed"
+                                }
+                            ]
+                        ],
+                        "wrapper": {
+                            "width": "",
+                            "class": "",
+                            "id": ""
+                        },
+                        "display_format": "F j, Y g:i a",
+                        "return_format": "F j, Y g:i a",
+                        "first_day": 0
+                    }
+                ]
+            }
+        ],
+        "location": [
+            [
+                {
+                    "param": "current_user_role",
+                    "operator": "==",
+                    "value": "wso_logistics"
+                },
+                {
+                    "param": "current_user_role",
+                    "operator": "==",
+                    "value": "wso_it_rep"
+                },
+                {
+                    "param": "post_type",
+                    "operator": "==",
+                    "value": "wsorder"
+                }
+            ]
+        ],
+        "menu_order": 0,
+        "position": "normal",
+        "style": "default",
+        "label_placement": "top",
+        "instruction_placement": "label",
+        "hide_on_screen": "",
+        "active": true,
+        "description": ""
+    }
+]

@@ -44,9 +44,18 @@ class CLA_Workstation_Order {
 		// Add custom fields.
 		add_action( 'acf/init', array( $this, 'load_custom_fields' ) );
 
+		// Add user roles.
+		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-user-roles.php';
+		new \CLA_Workstation_Order\User_Roles();
+
 		// Handle GravityForms leads.
 		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-leads-helper.php';
 		new \CLA_Workstation_Order\Leads_Helper();
+
+		// Create shared taxonomies.
+		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-taxonomy.php';
+		$fiscal_year      = new CLA_Workstation_Order\Taxonomy();
+		$product_category = new CLA_Workstation_Order\Taxonomy();
 
 		// Create post types.
 		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-wsorder-posttype.php';
@@ -54,6 +63,9 @@ class CLA_Workstation_Order {
 
 		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-product-posttype.php';
 		new \CLA_Workstation_Order\Product_PostType();
+
+		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-program-posttype.php';
+		new \CLA_Workstation_Order\Program_PostType();
 
 	}
 
@@ -65,7 +77,13 @@ class CLA_Workstation_Order {
 	 */
 	public function load_custom_fields() {
 
+		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'fields/program-fields.php';
+		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'fields/product-fields.php';
 		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'fields/order-fields.php';
+		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'fields/it-rep-status-order-fields.php';
+		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'fields/business-staff-status-order-fields.php';
+		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'fields/it-logistics-status-order-fields.php';
+		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'fields/order-department-comments-fields.php';
 
 	}
 

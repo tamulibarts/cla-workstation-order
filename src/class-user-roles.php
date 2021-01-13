@@ -70,7 +70,7 @@ class User_Roles {
 			'edit_department' => false,
 			'edit_wsorder'    => false,
 		);
-		add_role( 'wso_program_it_rep', 'Program_IT_Rep', 'contributor', $program_it_rep_caps );
+		add_role( 'wso_program_it_rep', 'Program IT Rep', 'contributor', $program_it_rep_caps );
 
 		$wso_admin_caps = array(
 			'edit_department' => false,

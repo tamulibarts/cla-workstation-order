@@ -1,0 +1,61 @@
+[
+    {
+        "key": "group_5fff71a842549",
+        "title": "Order Department Comments",
+        "fields": [
+            {
+                "key": "field_5fff71b0097c3",
+                "label": "Department Comments",
+                "name": "department_comments",
+                "type": "textarea",
+                "instructions": "",
+                "required": 0,
+                "conditional_logic": 0,
+                "wrapper": {
+                    "width": "",
+                    "class": "",
+                    "id": ""
+                },
+                "default_value": "",
+                "placeholder": "",
+                "maxlength": "",
+                "rows": "",
+                "new_lines": ""
+            }
+        ],
+        "location": [
+            [
+                {
+                    "param": "current_user_role",
+                    "operator": "==",
+                    "value": "wso_department_it_rep"
+                },
+                {
+                    "param": "post_type",
+                    "operator": "==",
+                    "value": "wsorder"
+                }
+            ],
+            [
+                {
+                    "param": "current_user_role",
+                    "operator": "==",
+                    "value": "wso_department_business_admin"
+                },
+                {
+                    "param": "post_type",
+                    "operator": "==",
+                    "value": "wsorder"
+                }
+            ]
+        ],
+        "menu_order": 0,
+        "position": "normal",
+        "style": "default",
+        "label_placement": "top",
+        "instruction_placement": "label",
+        "hide_on_screen": "",
+        "active": true,
+        "description": ""
+    }
+]
