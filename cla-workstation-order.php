@@ -25,22 +25,22 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /* Define some useful constants */
-define( 'WORDPRESS_PLUGIN_DIRNAME', 'cla-workstation-order' );
-define( 'WORDPRESS_PLUGIN_TEXTDOMAIN', 'cla-workstation-order' );
-define( 'WORDPRESS_PLUGIN_DIR_PATH', plugin_dir_path( __FILE__ ) );
-define( 'WORDPRESS_PLUGIN_DIR_FILE', __FILE__ );
-define( 'WORDPRESS_PLUGIN_DIR_URL', plugin_dir_url( __FILE__ ) );
-define( 'WORDPRESS_PLUGIN_TEMPLATE_PATH', WORDPRESS_PLUGIN_DIR_PATH . 'templates' );
+define( 'CLA_WORKSTATION_ORDER_DIRNAME', 'cla-workstation-order' );
+define( 'CLA_WORKSTATION_ORDER_TEXTDOMAIN', 'cla-workstation-order-textdomain' );
+define( 'CLA_WORKSTATION_ORDER_DIR_PATH', plugin_dir_path( __FILE__ ) );
+define( 'CLA_WORKSTATION_ORDER_DIR_FILE', __FILE__ );
+define( 'CLA_WORKSTATION_ORDER_DIR_URL', plugin_dir_url( __FILE__ ) );
+define( 'CLA_WORKSTATION_ORDER_TEMPLATE_PATH', CLA_WORKSTATION_ORDER_DIR_PATH . 'templates' );
 
 /**
  * The core plugin class that is used to initialize the plugin.
  */
-require WORDPRESS_PLUGIN_DIR_PATH . 'src/class-cla-workstation-order.php';
-new WordPress_Plugin();
+require CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-cla-workstation-order.php';
+new CLA_Workstation_Order();
 
 /* Activation hooks */
-register_deactivation_hook( WORDPRESS_PLUGIN_DIR_FILE, 'flush_rewrite_rules' );
-register_activation_hook( WORDPRESS_PLUGIN_DIR_FILE, 'wordpress_plugin_activation' );
+register_deactivation_hook( CLA_WORKSTATION_ORDER_DIR_FILE, 'flush_rewrite_rules' );
+register_activation_hook( CLA_WORKSTATION_ORDER_DIR_FILE, 'wordpress_plugin_activation' );
 
 /**
  * Helper option flag to indicate rewrite rules need flushing
@@ -50,25 +50,23 @@ register_activation_hook( WORDPRESS_PLUGIN_DIR_FILE, 'wordpress_plugin_activatio
  */
 function wordpress_plugin_activation() {
 
+	flush_rewrite_rules();
+
 	// Check for missing dependencies.
 	$acf_pro       = is_plugin_active( 'advanced-custom-fields-pro/acf.php' );
-	$gravity_forms = is_plugin_active( 'advanced-custom-fields-pro/acf.php' );
+	$gravity_forms = is_plugin_active( 'gravityforms/gravityforms.php' );
 
-	if ( true === $plugin ) {
+	if ( false === $acf_pro || false === $gravity_forms ) {
 
 		$error = sprintf(
 			/* translators: %s: URL for plugins dashboard page */
 			__(
-				'Plugin NOT activated: The <strong>WordPress Plugin</strong> plugin needs the <strong>Akismet</strong> plugin to NOT be activated. <a href="%s">Back to plugins page</a>',
-				'cla-workstation-order-textdomain'
+				'Plugin NOT activated: The <strong>WordPress Plugin</strong> plugin needs the <strong>Advanced Custom Fields Pro</strong> and <strong>Gravity Forms</strong> plugins to be activated first. <a href="%s">Back to plugins page</a>',
+				'cla-workstation-order'
 			),
 			get_admin_url( null, '/plugins.php' )
 		);
 		wp_die( wp_kses_post( $error ) );
-
-	} else {
-
-		update_option( 'wordpress_plugin_permalinks_flushed', 0 );
 
 	}
 
