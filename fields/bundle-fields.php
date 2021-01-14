@@ -1,8 +1,8 @@
 <?php
 /**
- * The file that defines Advanced Custom Fields for the product post type.
+ * The file that defines Advanced Custom Fields for the bundle post type.
  *
- * @link       https://github.com/zachwatkins/cla-workstation-order/blob/master/fields/product-fields.php
+ * @link       https://github.com/zachwatkins/cla-workstation-order/blob/master/fields/bundle-fields.php
  * @since      1.0.0
  * @package    cla-workstation-order
  * @subpackage cla-workstation-order/fields
@@ -12,11 +12,11 @@ if ( function_exists( 'acf_add_local_field_group' ) ) :
 
 	acf_add_local_field_group(
 		array(
-			'key'                   => 'group_5fff75ac5fde3',
-			'title'                 => 'Product Fields',
+			'key'                   => 'group_60007d6701ec0',
+			'title'                 => 'Bundle Fields',
 			'fields'                => array(
 				array(
-					'key'               => 'field_5fff76371ba19',
+					'key'               => 'field_60007d6704a34',
 					'label'             => 'Program',
 					'name'              => 'program',
 					'type'              => 'post_object',
@@ -38,9 +38,9 @@ if ( function_exists( 'acf_add_local_field_group' ) ) :
 					'ui'                => 1,
 				),
 				array(
-					'key'               => 'field_6000acc75fa34',
+					'key'               => 'field_60007d784dd15',
 					'label'             => 'Category',
-					'name'              => 'product_category',
+					'name'              => 'category',
 					'type'              => 'post_object',
 					'instructions'      => '',
 					'required'          => 0,
@@ -51,7 +51,7 @@ if ( function_exists( 'acf_add_local_field_group' ) ) :
 						'id'    => '',
 					),
 					'post_type'         => array(
-						0 => 'product-category',
+						0 => 'post',
 					),
 					'taxonomy'          => '',
 					'allow_null'        => 0,
@@ -60,7 +60,7 @@ if ( function_exists( 'acf_add_local_field_group' ) ) :
 					'ui'                => 1,
 				),
 				array(
-					'key'               => 'field_600070f84dfe4',
+					'key'               => 'field_60007d6704a3f',
 					'label'             => 'Description',
 					'name'              => 'description',
 					'type'              => 'textarea',
@@ -79,66 +79,7 @@ if ( function_exists( 'acf_add_local_field_group' ) ) :
 					'new_lines'         => '',
 				),
 				array(
-					'key'               => 'field_600071044dfe5',
-					'label'             => 'Vendor',
-					'name'              => 'vendor',
-					'type'              => 'text',
-					'instructions'      => '',
-					'required'          => 0,
-					'conditional_logic' => 0,
-					'wrapper'           => array(
-						'width' => '',
-						'class' => '',
-						'id'    => '',
-					),
-					'default_value'     => '',
-					'placeholder'       => '',
-					'prepend'           => '',
-					'append'            => '',
-					'maxlength'         => '',
-				),
-				array(
-					'key'               => 'field_600071124dfe6',
-					'label'             => 'SKU',
-					'name'              => 'sku',
-					'type'              => 'text',
-					'instructions'      => '',
-					'required'          => 0,
-					'conditional_logic' => 0,
-					'wrapper'           => array(
-						'width' => '',
-						'class' => '',
-						'id'    => '',
-					),
-					'default_value'     => '',
-					'placeholder'       => '',
-					'prepend'           => '',
-					'append'            => '',
-					'maxlength'         => '',
-				),
-				array(
-					'key'               => 'field_5fff75b61ba16',
-					'label'             => 'Price',
-					'name'              => 'price',
-					'type'              => 'number',
-					'instructions'      => '',
-					'required'          => 0,
-					'conditional_logic' => 0,
-					'wrapper'           => array(
-						'width' => '',
-						'class' => '',
-						'id'    => '',
-					),
-					'default_value'     => '',
-					'placeholder'       => '',
-					'prepend'           => '$',
-					'append'            => '',
-					'min'               => '',
-					'max'               => '',
-					'step'              => '',
-				),
-				array(
-					'key'               => 'field_600071384dfe7',
+					'key'               => 'field_60007d6704a62',
 					'label'             => 'Visibility',
 					'name'              => 'visibility',
 					'type'              => 'checkbox',
@@ -151,9 +92,7 @@ if ( function_exists( 'acf_add_local_field_group' ) ) :
 						'id'    => '',
 					),
 					'choices'           => array(
-						'sticky'      => 'Sticky (will automatically be included new orders).',
-						'bundle_only' => 'This product is bundle-only and should not be shown.',
-						'archived'    => 'This product is archived and should no longer be used.',
+						'archived' => 'This product is archived and should no longer be used.',
 					),
 					'allow_custom'      => 0,
 					'default_value'     => array(),
@@ -163,7 +102,7 @@ if ( function_exists( 'acf_add_local_field_group' ) ) :
 					'save_custom'       => 0,
 				),
 				array(
-					'key'               => 'field_600071e74dfe8',
+					'key'               => 'field_60007d6704a8b',
 					'label'             => 'Descriptors',
 					'name'              => 'descriptors',
 					'type'              => 'repeater',
@@ -182,7 +121,7 @@ if ( function_exists( 'acf_add_local_field_group' ) ) :
 					'button_label'      => '+',
 					'sub_fields'        => array(
 						array(
-							'key'               => 'field_600071f64dfe9',
+							'key'               => 'field_60007d670e7ff',
 							'label'             => '',
 							'name'              => 'descriptor',
 							'type'              => 'text',
@@ -208,7 +147,7 @@ if ( function_exists( 'acf_add_local_field_group' ) ) :
 					array(
 						'param'    => 'post_type',
 						'operator' => '==',
-						'value'    => 'product',
+						'value'    => 'bundle',
 					),
 				),
 			),

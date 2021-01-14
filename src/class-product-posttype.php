@@ -1,11 +1,8 @@
 <?php
 /**
- * The file that defines css and js files loaded for the plugin
+ * The file that defines the Product post type
  *
- * A class definition that includes css and js files used across both the
- * public-facing side of the site and the admin area.
- *
- * @link       https://github.com/zachwatkins/cla-workstation-order/blob/master/src/class-order-posttype.php
+ * @link       https://github.com/zachwatkins/cla-workstation-order/blob/master/src/class-product-posttype.php
  * @since      1.0.0
  * @package    cla-workstation-order
  * @subpackage cla-workstation-order/src
@@ -31,6 +28,7 @@ class Product_PostType {
 
 		// Register_post_types.
 		add_action( 'init', array( $this, 'register_post_type' ) );
+		add_action( 'acf/init', array( $this, 'register_custom_fields' ) );
 
 	}
 
@@ -51,10 +49,24 @@ class Product_PostType {
 				'plural'   => 'Products',
 			),
 			'product',
-			array( 'category' ),
+			array(),
 			'dashicons-portfolio',
-			array( 'title', 'editor', 'thumbnail' )
+			array( 'title', 'thumbnail' )
 		);
 
+	}
+
+	/**
+	 * Register custom fields
+	 *
+	 * @since 1.0.0
+	 * @return void
+	 */
+	public function register_custom_fields() {
+		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'fields/product-fields.php';
+		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'fields/it-rep-status-order-fields.php';
+		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'fields/business-staff-status-order-fields.php';
+		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'fields/it-logistics-status-order-fields.php';
+		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'fields/order-department-comments-fields.php';
 	}
 }

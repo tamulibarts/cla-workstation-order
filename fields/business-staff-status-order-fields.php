@@ -5,7 +5,7 @@
  * @link       https://github.com/zachwatkins/cla-workstation-order/blob/master/fields/business-staff-status-order-fields.php
  * @since      1.0.0
  * @package    cla-workstation-order
- * @subpackage cla-workstation-order/src
+ * @subpackage cla-workstation-order/fields
  */
 
 if ( function_exists( 'acf_add_local_field_group' ) ) :

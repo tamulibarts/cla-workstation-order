@@ -41,8 +41,8 @@ class CLA_Workstation_Order {
 	 */
 	public function __construct() {
 
-		// Add custom fields.
-		add_action( 'acf/init', array( $this, 'load_custom_fields' ) );
+		// Create shared taxonomies.
+		add_action( 'init', array( $this, 'register_shared_taxonomies' ) );
 
 		// Add user roles.
 		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-user-roles.php';
@@ -52,11 +52,6 @@ class CLA_Workstation_Order {
 		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-leads-helper.php';
 		new \CLA_Workstation_Order\Leads_Helper();
 
-		// Create shared taxonomies.
-		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-taxonomy.php';
-		$fiscal_year      = new CLA_Workstation_Order\Taxonomy();
-		$product_category = new CLA_Workstation_Order\Taxonomy();
-
 		// Create post types.
 		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-wsorder-posttype.php';
 		new \CLA_Workstation_Order\WSOrder_PostType();
@@ -64,26 +59,30 @@ class CLA_Workstation_Order {
 		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-product-posttype.php';
 		new \CLA_Workstation_Order\Product_PostType();
 
+		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-bundle-posttype.php';
+		new \CLA_Workstation_Order\Bundle_PostType();
+
 		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-program-posttype.php';
 		new \CLA_Workstation_Order\Program_PostType();
+
+		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-department-posttype.php';
+		new \CLA_Workstation_Order\Department_PostType();
+
+		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-product-category-posttype.php';
+		new \CLA_Workstation_Order\Product_Category_PostType();
 
 	}
 
 	/**
-	 * Add custom fields.
+	 * Register shared taxonomies.
 	 *
 	 * @since 1.0.0
 	 * @return void
 	 */
-	public function load_custom_fields() {
+	public function register_shared_taxonomies() {
 
-		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'fields/program-fields.php';
-		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'fields/product-fields.php';
-		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'fields/order-fields.php';
-		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'fields/it-rep-status-order-fields.php';
-		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'fields/business-staff-status-order-fields.php';
-		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'fields/it-logistics-status-order-fields.php';
-		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'fields/order-department-comments-fields.php';
+		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-taxonomy.php';
+		new \CLA_Workstation_Order\Taxonomy( 'Fiscal Year', 'fiscal-year', array( 'wsorder', 'program' ) );
 
 	}
 

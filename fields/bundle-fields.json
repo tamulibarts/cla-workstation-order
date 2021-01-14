@@ -1,10 +1,10 @@
 [
     {
-        "key": "group_5fff75ac5fde3",
-        "title": "Product Fields",
+        "key": "group_60007d6701ec0",
+        "title": "Bundle Fields",
         "fields": [
             {
-                "key": "field_5fff76371ba19",
+                "key": "field_60007d6704a34",
                 "label": "Program",
                 "name": "program",
                 "type": "post_object",
@@ -26,9 +26,9 @@
                 "ui": 1
             },
             {
-                "key": "field_6000acc75fa34",
+                "key": "field_60007d784dd15",
                 "label": "Category",
-                "name": "product_category",
+                "name": "category",
                 "type": "post_object",
                 "instructions": "",
                 "required": 0,
@@ -39,7 +39,7 @@
                     "id": ""
                 },
                 "post_type": [
-                    "product-category"
+                    "post"
                 ],
                 "taxonomy": "",
                 "allow_null": 0,
@@ -48,7 +48,7 @@
                 "ui": 1
             },
             {
-                "key": "field_600070f84dfe4",
+                "key": "field_60007d6704a3f",
                 "label": "Description",
                 "name": "description",
                 "type": "textarea",
@@ -67,66 +67,7 @@
                 "new_lines": ""
             },
             {
-                "key": "field_600071044dfe5",
-                "label": "Vendor",
-                "name": "vendor",
-                "type": "text",
-                "instructions": "",
-                "required": 0,
-                "conditional_logic": 0,
-                "wrapper": {
-                    "width": "",
-                    "class": "",
-                    "id": ""
-                },
-                "default_value": "",
-                "placeholder": "",
-                "prepend": "",
-                "append": "",
-                "maxlength": ""
-            },
-            {
-                "key": "field_600071124dfe6",
-                "label": "SKU",
-                "name": "sku",
-                "type": "text",
-                "instructions": "",
-                "required": 0,
-                "conditional_logic": 0,
-                "wrapper": {
-                    "width": "",
-                    "class": "",
-                    "id": ""
-                },
-                "default_value": "",
-                "placeholder": "",
-                "prepend": "",
-                "append": "",
-                "maxlength": ""
-            },
-            {
-                "key": "field_5fff75b61ba16",
-                "label": "Price",
-                "name": "price",
-                "type": "number",
-                "instructions": "",
-                "required": 0,
-                "conditional_logic": 0,
-                "wrapper": {
-                    "width": "",
-                    "class": "",
-                    "id": ""
-                },
-                "default_value": "",
-                "placeholder": "",
-                "prepend": "$",
-                "append": "",
-                "min": "",
-                "max": "",
-                "step": ""
-            },
-            {
-                "key": "field_600071384dfe7",
+                "key": "field_60007d6704a62",
                 "label": "Visibility",
                 "name": "visibility",
                 "type": "checkbox",
@@ -139,8 +80,6 @@
                     "id": ""
                 },
                 "choices": {
-                    "sticky": "Sticky (will automatically be included new orders).",
-                    "bundle_only": "This product is bundle-only and should not be shown.",
                     "archived": "This product is archived and should no longer be used."
                 },
                 "allow_custom": 0,
@@ -151,7 +90,7 @@
                 "save_custom": 0
             },
             {
-                "key": "field_600071e74dfe8",
+                "key": "field_60007d6704a8b",
                 "label": "Descriptors",
                 "name": "descriptors",
                 "type": "repeater",
@@ -170,7 +109,7 @@
                 "button_label": "+",
                 "sub_fields": [
                     {
-                        "key": "field_600071f64dfe9",
+                        "key": "field_60007d670e7ff",
                         "label": "",
                         "name": "descriptor",
                         "type": "text",
@@ -196,7 +135,7 @@
                 {
                     "param": "post_type",
                     "operator": "==",
-                    "value": "product"
+                    "value": "bundle"
                 }
             ]
         ],
