@@ -66,7 +66,7 @@
             {
                 "key": "field_5ffcc16306826",
                 "label": "Account Number",
-                "name": "account_number",
+                "name": "contribution_account",
                 "type": "text",
                 "instructions": "",
                 "required": 0,
@@ -308,10 +308,10 @@
                 ]
             },
             {
-                "key": "field_5ffcc41c0682f",
-                "label": "IT Staff",
-                "name": "it_staff",
-                "type": "user",
+                "key": "field_60074b5ee982b",
+                "label": "Products Subtotal",
+                "name": "products_subtotal",
+                "type": "number",
                 "instructions": "",
                 "required": 0,
                 "conditional_logic": 0,
@@ -320,103 +320,13 @@
                     "class": "",
                     "id": ""
                 },
-                "role": "",
-                "allow_null": 1,
-                "multiple": 0,
-                "return_format": "array"
-            },
-            {
-                "key": "field_5ffcc46406830",
-                "label": "IT Staff Confirmed",
-                "name": "it_staff_confirmed",
-                "type": "true_false",
-                "instructions": "",
-                "required": 0,
-                "conditional_logic": 0,
-                "wrapper": {
-                    "width": "",
-                    "class": "",
-                    "id": ""
-                },
-                "message": "",
-                "default_value": 0,
-                "ui": 0,
-                "ui_on_text": "",
-                "ui_off_text": ""
-            },
-            {
-                "key": "field_5ffcc49606831",
-                "label": "Business Staff",
-                "name": "business_staff",
-                "type": "user",
-                "instructions": "",
-                "required": 0,
-                "conditional_logic": 0,
-                "wrapper": {
-                    "width": "",
-                    "class": "",
-                    "id": ""
-                },
-                "role": "",
-                "allow_null": 0,
-                "multiple": 0,
-                "return_format": "array"
-            },
-            {
-                "key": "field_5ffcc4a444a8d",
-                "label": "Business Staff Confirmed",
-                "name": "business_staff_confirmed",
-                "type": "true_false",
-                "instructions": "",
-                "required": 0,
-                "conditional_logic": 0,
-                "wrapper": {
-                    "width": "",
-                    "class": "",
-                    "id": ""
-                },
-                "message": "",
-                "default_value": 0,
-                "ui": 0,
-                "ui_on_text": "",
-                "ui_off_text": ""
-            },
-            {
-                "key": "field_5ffcc4cd44a8e",
-                "label": "IT Logistics",
-                "name": "it_logistics",
-                "type": "user",
-                "instructions": "",
-                "required": 0,
-                "conditional_logic": 0,
-                "wrapper": {
-                    "width": "",
-                    "class": "",
-                    "id": ""
-                },
-                "role": "",
-                "allow_null": 0,
-                "multiple": 0,
-                "return_format": "array"
-            },
-            {
-                "key": "field_5ffcc4db44a8f",
-                "label": "IT Logistics Confirmed",
-                "name": "it_logistics_confirmed",
-                "type": "true_false",
-                "instructions": "",
-                "required": 0,
-                "conditional_logic": 0,
-                "wrapper": {
-                    "width": "",
-                    "class": "",
-                    "id": ""
-                },
-                "message": "",
-                "default_value": 0,
-                "ui": 0,
-                "ui_on_text": "",
-                "ui_off_text": ""
+                "default_value": "",
+                "placeholder": "",
+                "prepend": "",
+                "append": "",
+                "min": "",
+                "max": "",
+                "step": ""
             }
         ],
         "location": [

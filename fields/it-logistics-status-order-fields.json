@@ -20,9 +20,9 @@
                 "sub_fields": [
                     {
                         "key": "field_5fff6f3cef757",
-                        "label": "Status",
-                        "name": "status",
-                        "type": "select",
+                        "label": "Confirmed",
+                        "name": "confirmed",
+                        "type": "true_false",
                         "instructions": "",
                         "required": 0,
                         "conditional_logic": 0,
@@ -31,21 +31,15 @@
                             "class": "",
                             "id": ""
                         },
-                        "choices": {
-                            "Not confirmed": "Not confirmed",
-                            "Confirmed": "Confirmed"
-                        },
-                        "default_value": false,
-                        "allow_null": 0,
-                        "multiple": 0,
+                        "message": "",
+                        "default_value": 0,
                         "ui": 0,
-                        "return_format": "value",
-                        "ajax": 0,
-                        "placeholder": ""
+                        "ui_on_text": "",
+                        "ui_off_text": ""
                     },
                     {
                         "key": "field_5fff6f3cef777",
-                        "label": "Date",
+                        "label": "Date Confirmed",
                         "name": "date",
                         "type": "date_time_picker",
                         "instructions": "",
@@ -55,7 +49,7 @@
                                 {
                                     "field": "field_5fff6f3cef757",
                                     "operator": "==",
-                                    "value": "Confirmed"
+                                    "value": "1"
                                 }
                             ]
                         ],
@@ -65,8 +59,52 @@
                             "id": ""
                         },
                         "display_format": "F j, Y g:i a",
-                        "return_format": "F j, Y g:i a",
+                        "return_format": "Y-m-d H:i:s",
                         "first_day": 0
+                    },
+                    {
+                        "key": "field_60074e2222cee",
+                        "label": "Ordered",
+                        "name": "ordered",
+                        "type": "true_false",
+                        "instructions": "",
+                        "required": 0,
+                        "conditional_logic": 0,
+                        "wrapper": {
+                            "width": "",
+                            "class": "",
+                            "id": ""
+                        },
+                        "message": "",
+                        "default_value": 0,
+                        "ui": 0,
+                        "ui_on_text": "",
+                        "ui_off_text": ""
+                    },
+                    {
+                        "key": "field_60074d7222ced",
+                        "label": "Date Ordered",
+                        "name": "ordered_at",
+                        "type": "date_time_picker",
+                        "instructions": "",
+                        "required": 0,
+                        "conditional_logic": [
+                            [
+                                {
+                                    "field": "field_60074e2222cee",
+                                    "operator": "==",
+                                    "value": "1"
+                                }
+                            ]
+                        ],
+                        "wrapper": {
+                            "width": "",
+                            "class": "",
+                            "id": ""
+                        },
+                        "display_format": "F j, Y g:i a",
+                        "return_format": "Y-m-d H:i:s",
+                        "first_day": 1
                     }
                 ]
             }
@@ -90,7 +128,7 @@
                 }
             ]
         ],
-        "menu_order": 0,
+        "menu_order": 3,
         "position": "normal",
         "style": "default",
         "label_placement": "top",
