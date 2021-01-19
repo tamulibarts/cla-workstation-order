@@ -48,9 +48,9 @@ class WSOrder_PostType {
 				'plural'   => 'Orders',
 			),
 			'wsorder',
-			array( 'category', 'fiscal-year' ),
+			array( 'fiscal-year' ),
 			'dashicons-portfolio',
-			array( 'title', 'editor' )
+			array( 'title' )
 		);
 
 	}
