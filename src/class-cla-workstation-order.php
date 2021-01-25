@@ -74,6 +74,8 @@ class CLA_Workstation_Order {
 		new \CLA_Workstation_Order\Order_Form_Mods();
 
 	}
+		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-shortcode-department-products.php';
+		new \CLA_Workstation_Order\Shortcode_Department_Products();
 
 	/**
 	 * Register shared taxonomies.
