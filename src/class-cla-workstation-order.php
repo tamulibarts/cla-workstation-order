@@ -70,6 +70,8 @@ class CLA_Workstation_Order {
 
 		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-product-category-posttype.php';
 		new \CLA_Workstation_Order\Product_Category_PostType();
+		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-order-form-mods.php';
+		new \CLA_Workstation_Order\Order_Form_Mods();
 
 	}
 
