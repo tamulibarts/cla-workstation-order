@@ -83,6 +83,8 @@ class CLA_Workstation_Order {
 
 		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-taxonomy.php';
 		new \CLA_Workstation_Order\Taxonomy( 'Fiscal Year', 'fiscal-year', array( 'wsorder', 'program' ) );
+		// Register settings page.
+		add_action( 'acf/init', array( $this, 'register_settings_page' ) );
 
 	}
 
