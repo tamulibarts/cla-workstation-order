@@ -142,4 +142,28 @@ class CLA_Workstation_Order {
 
 	}
 
+	/**
+	 * Register the settings page
+	 * @since 0.1.0
+	 * @return void
+	 */
+	public function register_settings_page() {
+
+		if ( function_exists( 'acf_add_options_page' ) ) {
+
+			require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'fields/settings-fields.php';
+
+			acf_add_options_page(
+				array(
+					'page_title' => 'Workstation Order Settings',
+					'menu_title' => 'WSO Settings',
+					'menu_slug'  => 'wsorder-settings',
+					'capability' => 'manage_options',
+					'redirect'   => false,
+				)
+			);
+
+		}
+	}
+
 }
