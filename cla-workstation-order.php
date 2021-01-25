@@ -39,8 +39,8 @@ require CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-cla-workstation-order.php';
 new CLA_Workstation_Order();
 
 /* Activation hooks */
-register_deactivation_hook( CLA_WORKSTATION_ORDER_DIR_FILE, 'flush_rewrite_rules' );
-register_activation_hook( CLA_WORKSTATION_ORDER_DIR_FILE, 'wordpress_plugin_activation' );
+register_deactivation_hook( CLA_WORKSTATION_ORDER_DIR_FILE, 'cla_workstation_deactivation' );
+register_activation_hook( CLA_WORKSTATION_ORDER_DIR_FILE, 'cla_workstation_activation' );
 
 /**
  * Helper option flag to indicate rewrite rules need flushing
@@ -48,9 +48,7 @@ register_activation_hook( CLA_WORKSTATION_ORDER_DIR_FILE, 'wordpress_plugin_acti
  * @since 1.0.0
  * @return void
  */
-function wordpress_plugin_activation() {
-
-	flush_rewrite_rules();
+function cla_workstation_activation() {
 
 	// Check for missing dependencies.
 	$acf_pro       = is_plugin_active( 'advanced-custom-fields-pro/acf.php' );
@@ -68,6 +66,30 @@ function wordpress_plugin_activation() {
 		);
 		wp_die( wp_kses_post( $error ) );
 
+	} else {
+
+		flush_rewrite_rules();
+
+		// Add user roles.
+		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-user-roles.php';
+		$new_roles = new \CLA_Workstation_Order\User_Roles();
+		$new_roles->register();
+
 	}
 
+}
+
+/**
+ * Unregister user roles and flush rewrite rules.
+ *
+ * @since 0.1.0
+ * @return void
+ */
+function cla_workstation_deactivation() {
+	flush_rewrite_rules();
+
+	// Add user roles.
+		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-user-roles.php';
+		$new_roles = new \CLA_Workstation_Order\User_Roles();
+		$new_roles->unregister();
 }
