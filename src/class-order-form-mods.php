@@ -32,12 +32,9 @@ class Order_Form_Mods {
 	 * @return void
 	 */
 	public function __construct() {
-		if ( ! is_admin() ) {
-			add_filter( 'gform_pre_render_1', array( $this, 'populate_posts' ) );
-			add_filter( 'gform_pre_validation_1', array( $this, 'populate_posts' ) );
-			add_filter( 'gform_pre_submission_filter_1', array( $this, 'populate_posts' ) );
-			add_filter( 'gform_admin_pre_render_1', array( $this, 'populate_posts' ) );
-		}
+		add_filter( 'gform_pre_render_1', array( $this, 'populate_posts' ) );
+		add_filter( 'gform_pre_validation_1', array( $this, 'populate_posts' ) );
+		add_filter( 'gform_pre_submission_filter_1', array( $this, 'populate_posts' ) );
 	}
 
 	/**
