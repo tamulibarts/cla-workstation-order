@@ -83,6 +83,25 @@
                 "maxlength": ""
             },
             {
+                "key": "field_6009bcb19bba2",
+                "label": "Building",
+                "name": "building",
+                "type": "text",
+                "instructions": "",
+                "required": 0,
+                "conditional_logic": 0,
+                "wrapper": {
+                    "width": "",
+                    "class": "",
+                    "id": ""
+                },
+                "default_value": "",
+                "placeholder": "",
+                "prepend": "",
+                "append": "",
+                "maxlength": ""
+            },
+            {
                 "key": "field_5ffcc21406828",
                 "label": "Office Location",
                 "name": "office_location",
@@ -145,7 +164,7 @@
                 "key": "field_5ffcc2590682b",
                 "label": "Program",
                 "name": "program",
-                "type": "select",
+                "type": "post_object",
                 "instructions": "",
                 "required": 1,
                 "conditional_logic": 0,
@@ -154,17 +173,14 @@
                     "class": "",
                     "id": ""
                 },
-                "choices": {
-                    "FY21": "FY21",
-                    "FY19": "FY19"
-                },
-                "default_value": false,
+                "post_type": [
+                    "program"
+                ],
+                "taxonomy": "",
                 "allow_null": 0,
                 "multiple": 0,
-                "ui": 0,
-                "return_format": "value",
-                "ajax": 0,
-                "placeholder": ""
+                "return_format": "object",
+                "ui": 1
             },
             {
                 "key": "field_5ffcc2b90682c",
@@ -189,7 +205,7 @@
                         "key": "field_5ffdfc23d5e87",
                         "label": "SKU",
                         "name": "sku",
-                        "type": "number",
+                        "type": "text",
                         "instructions": "",
                         "required": 0,
                         "conditional_logic": 0,
@@ -202,9 +218,7 @@
                         "placeholder": "",
                         "prepend": "",
                         "append": "",
-                        "min": "",
-                        "max": "",
-                        "step": ""
+                        "maxlength": ""
                     },
                     {
                         "key": "field_5ffdfcbcbaaa3",
@@ -229,7 +243,7 @@
                         "key": "field_5ffdfcfabaaa4",
                         "label": "Requisition Number",
                         "name": "requisition_number",
-                        "type": "number",
+                        "type": "text",
                         "instructions": "",
                         "required": 0,
                         "conditional_logic": 0,
@@ -242,9 +256,7 @@
                         "placeholder": "",
                         "prepend": "",
                         "append": "",
-                        "min": "",
-                        "max": "",
-                        "step": ""
+                        "maxlength": ""
                     },
                     {
                         "key": "field_5ffdfd04baaa5",
@@ -267,7 +279,7 @@
                         "key": "field_5ffdfd0ebaaa6",
                         "label": "Asset #",
                         "name": "asset_number",
-                        "type": "number",
+                        "type": "text",
                         "instructions": "",
                         "required": 0,
                         "conditional_logic": 0,
@@ -280,9 +292,7 @@
                         "placeholder": "",
                         "prepend": "",
                         "append": "",
-                        "min": "",
-                        "max": "",
-                        "step": ""
+                        "maxlength": ""
                     },
                     {
                         "key": "field_5ffdfd1abaaa7",
@@ -327,6 +337,25 @@
                 "min": "",
                 "max": "",
                 "step": ""
+            },
+            {
+                "key": "field_600858275c27f",
+                "label": "Quote",
+                "name": "quote",
+                "type": "file",
+                "instructions": "",
+                "required": 0,
+                "conditional_logic": 0,
+                "wrapper": {
+                    "width": "",
+                    "class": "",
+                    "id": ""
+                },
+                "return_format": "array",
+                "library": "all",
+                "min_size": "",
+                "max_size": "",
+                "mime_types": ""
             }
         ],
         "location": [
@@ -341,7 +370,7 @@
         "menu_order": 0,
         "position": "normal",
         "style": "default",
-        "label_placement": "top",
+        "label_placement": "left",
         "instruction_placement": "label",
         "hide_on_screen": "",
         "active": true,
