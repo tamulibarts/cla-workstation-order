@@ -49,7 +49,10 @@ class Department_PostType {
 			'department',
 			array(),
 			'dashicons-portfolio',
-			array( 'title' )
+			array( 'title' ),
+			array(
+				'capability_type' => array( 'department', 'departments' ),
+			)
 		);
 
 	}

@@ -50,7 +50,10 @@ class WSOrder_PostType {
 			'wsorder',
 			array( 'fiscal-year' ),
 			'dashicons-portfolio',
-			array( 'title' )
+			array( 'title' ),
+			array(
+				'capability_type' => array( 'wsorder', 'wsorders' ),
+			)
 		);
 
 	}

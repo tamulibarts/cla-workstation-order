@@ -49,7 +49,10 @@ class Bundle_PostType {
 			'bundle',
 			array(),
 			'dashicons-portfolio',
-			array( 'title', 'editor', 'thumbnail' )
+			array( 'title', 'editor', 'thumbnail' ),
+			array(
+				'capability_type' => array( 'bundle', 'bundles' ),
+			)
 		);
 
 	}

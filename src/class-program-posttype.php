@@ -41,7 +41,6 @@ class Program_PostType {
 	public function register_post_type() {
 
 		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-posttype.php';
-		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-taxonomy.php';
 
 		new \CLA_Workstation_Order\PostType(
 			array(
@@ -51,7 +50,10 @@ class Program_PostType {
 			'program',
 			array(),
 			'dashicons-portfolio',
-			array( 'title' )
+			array( 'title' ),
+			array(
+				'capability_type' => array( 'program', 'programs' ),
+			)
 		);
 
 	}
