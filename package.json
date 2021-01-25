@@ -5,8 +5,8 @@
   "main": "cla-workstation-order.php",
   "scripts": {
     "start": "git config core.hooksPath hooks && chmod u+x ./hooks/pre-commit && composer install && npm install && grunt",
-    "checkphp": "npm run configphpcs && vendor/bin/phpcs --standard=WordPress ./*.php ./src ./fields ./templates",
-    "fixphp": "npm run configphpcs && vendor/bin/phpcbf --standard=WordPress ./*.php ./src ./fields ./templates",
+    "checkphp": "npm run configphpcs && vendor/bin/phpcs --standard=WordPress ./cla-workstation-order.php ./src ./fields ./templates",
+    "fixphp": "npm run configphpcs && vendor/bin/phpcbf --standard=WordPress ./cla-workstation-order.php ./src ./fields ./templates",
     "configphpcs": "vendor/bin/phpcs --config-set installed_paths vendor/wp-coding-standards/wpcs"
   },
   "author": "Zachary Watkins",
