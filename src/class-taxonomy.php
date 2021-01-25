@@ -74,9 +74,10 @@ class Taxonomy {
 	 * @param array        $meta      Array (single or multidimensional) of custom fields to add to a
 	 *                                taxonomy item edit page. Requires 'name', 'slug', and 'type'.
 	 * @param string       $template  The template file path for the taxonomy archive page.
+	 * @param boolean      $sortable  Make the taxonomy sortable. Default false.
 	 * @return void
 	 */
-	public function __construct( $name, $slug, $post_slug = null, $user_args = array(), $meta = array(), $template = '' ) {
+	public function __construct( $name, $slug, $post_slug = null, $user_args = array(), $meta = array(), $template = '', $sortable = false ) {
 
 		$this->slug          = $slug;
 		$this->post_slug     = $post_slug;
@@ -140,14 +141,16 @@ class Taxonomy {
 		}
 
 		// Make taxonomy sortable.
-		if ( ! is_array( $post_slug ) ) {
-			add_filter( "manage_edit-{$post_slug}_sortable_columns", array( $this, 'register_sortable_columns' ) );
-		} else {
-			foreach ( $post_slug as $slug ) {
-				add_filter( "manage_edit-{$slug}_sortable_columns", array( $this, 'register_sortable_columns' ) );
+		if ( $sortable ) {
+			if ( ! is_array( $post_slug ) ) {
+				add_filter( "manage_edit-{$post_slug}_sortable_columns", array( $this, 'register_sortable_columns' ) );
+			} else {
+				foreach ( $post_slug as $slug ) {
+					add_filter( "manage_edit-{$slug}_sortable_columns", array( $this, 'register_sortable_columns' ) );
+				}
 			}
+			add_filter( 'posts_orderby', array( $this, 'taxonomy_orderby' ), 10, 2 );
 		}
-		add_filter( 'posts_orderby', array( $this, 'taxonomy_orderby' ), 10, 2 );
 
 	}
 
@@ -352,7 +355,8 @@ class Taxonomy {
 		global $wpdb;
 
 		// If this taxonomy is the orderby parameter, then update the SQL query.
-		if ( isset( $wp_query->query['orderby'] ) && "taxonomy-{$this->slug}" === $wp_query->query['orderby'] ) {
+		$slug = $this->slug;
+		if ( isset( $wp_query->query['orderby'] ) && "taxonomy-{$slug}" === $wp_query->query['orderby'] ) {
 
 			$orderby  = "(
 	      SELECT GROUP_CONCAT(name ORDER BY name ASC)
