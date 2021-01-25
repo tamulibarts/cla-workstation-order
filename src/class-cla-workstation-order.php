@@ -41,16 +41,9 @@ class CLA_Workstation_Order {
 	 */
 	public function __construct() {
 
-		// Create shared taxonomies.
-		add_action( 'init', array( $this, 'register_shared_taxonomies' ) );
-
-		// Add user roles.
-		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-user-roles.php';
-		new \CLA_Workstation_Order\User_Roles();
-
 		// Handle GravityForms leads.
-		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-leads-helper.php';
-		new \CLA_Workstation_Order\Leads_Helper();
+		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-leads-into-orders.php';
+		new \CLA_Workstation_Order\Leads_Into_Orders();
 
 		// Create post types.
 		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-wsorder-posttype.php';
@@ -68,25 +61,17 @@ class CLA_Workstation_Order {
 		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-department-posttype.php';
 		new \CLA_Workstation_Order\Department_PostType();
 
-		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-product-category-posttype.php';
-		new \CLA_Workstation_Order\Product_Category_PostType();
 		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-order-form-mods.php';
 		new \CLA_Workstation_Order\Order_Form_Mods();
 
-	}
 		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-shortcode-department-products.php';
 		new \CLA_Workstation_Order\Shortcode_Department_Products();
 
-	/**
-	 * Register shared taxonomies.
-	 *
-	 * @since 1.0.0
-	 * @return void
-	 */
-	public function register_shared_taxonomies() {
+		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-products-in-form.php';
+		new \CLA_Workstation_Order\Products_In_Form();
 
-		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-taxonomy.php';
-		new \CLA_Workstation_Order\Taxonomy( 'Fiscal Year', 'fiscal-year', array( 'wsorder', 'program' ) );
+		// require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-product-category-posttype.php';
+		// new \CLA_Workstation_Order\Product_Category_PostType();
 		// Register settings page.
 		add_action( 'acf/init', array( $this, 'register_settings_page' ) );
 
@@ -150,6 +135,7 @@ class CLA_Workstation_Order {
 
 	/**
 	 * Register the settings page
+	 *
 	 * @since 0.1.0
 	 * @return void
 	 */
