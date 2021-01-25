@@ -29,13 +29,34 @@ class Leads_Into_Orders {
 	private static $file = __FILE__;
 
 	/**
+	 * Array of post meta keys pointing to department post ids in program posts.
+	 *
+	 * @var program_meta_keys_departments
+	 */
+	private $program_meta_keys_departments = array(
+		'assign_political_science_department_post_id',
+		'assign_sociology_department_post_id',
+		'assign_philosophy_humanities_department_post_id',
+		'assign_performance_studies_department_post_id',
+		'assign_international_studies_department_post_id',
+		'assign_history_department_post_id',
+		'assign_hispanic_studies_department_post_id',
+		'assign_english_department_post_id',
+		'assign_economics_department_post_id',
+		'assign_communication_department_post_id',
+		'assign_anthropology_department_post_id',
+		'assign_psychology_department_post_id',
+		'assign_dean_department_post_id',
+	);
+
+	/**
 	 * Initialize the class
 	 *
 	 * @since 1.0.0
 	 * @return void
 	 */
 	public function __construct() {
-		add_action( 'gform_after_submission_1', array( $this, 'after_submission' ), 10, 2 );
+		add_action( 'gform_after_submission_1', array( $this, 'create_wsorder_post' ), 10, 2 );
 	}
 	/**
 	 * After submission action hook
@@ -45,38 +66,8 @@ class Leads_Into_Orders {
 	 *
 	 * @return void;
 	 */
-	public function after_submission( $entry, $form ) {
+	public function create_wsorder_post( $entry, $form ) {
 
-		// $sample_entry = array(
-		// [id] => 7
-		// [status] => active
-		// [form_id] => 1
-		// [ip] => 127.0.0.1
-		// [source_url] => http://workstationorder.local/new-order/
-		// [currency] => USD
-		// [post_id] =>
-		// [date_created] => 2021-01-12 16:39:20
-		// [date_updated] => 2021-01-12 16:39:20
-		// [is_starred] => 0
-		// [is_read] => 0
-		// [user_agent] => Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Safari/537.36
-		// [payment_status] =>
-		// [payment_date] =>
-		// [payment_amount] =>
-		// [payment_method] =>
-		// [transaction_id] =>
-		// [is_fulfilled] =>
-		// [created_by] => 1
-		// [transaction_type] =>
-		// [1] => Zachary Watkins
-		// [2] => Coke
-		// [3] => 404
-		// [4] => 021
-		// [6.1] =>
-		// [10] => 0
-		// [12] => Research
-		// [13] => Test
-		// );
 		// Get current user and user ID.
 		$user    = wp_get_current_user();
 		$user_id = $user->get( 'ID' );
@@ -87,13 +78,17 @@ class Leads_Into_Orders {
 			'posts_per_page' => 1,
 		);
 		$last_wsorder_post = wp_get_recent_posts( $args, OBJECT );
+		$wsorder_id        = 1;
 		if ( ! empty( $last_wsorder_post ) ) {
-			$last_wsorder_id = (int) get_post_meta( $last_wsorder_post->ID, 'order_id' );
+			$last_wsorder_id = (int) get_post_meta( $last_wsorder_post[0]->ID, 'order_id' );
 			$wsorder_id      = $last_wsorder_id + 1;
-		} else {
-			$wsorder_id = 1;
 		}
 
+		// Get current program meta.
+		$current_program_post      = get_field( 'current_program', 'option' );
+		$current_program_id        = $current_program_post->ID;
+		$current_program_post_meta = get_post_meta( $current_program_id );
+		$current_program_prefix    = $current_program_post_meta['prefix'][0];
 		// Insert post.
 		$postarr = array(
 			'post_author'    => $user_id,
@@ -124,33 +119,20 @@ class Leads_Into_Orders {
 
 		} else {
 
-			// Get current program meta.
-			$current_program_post      = get_field( 'current_program', 'option' );
-			$current_program_id        = $current_program_post->ID;
-			$current_program_post_meta = get_post_meta( $current_program_id );
-			$current_program_prefix    = $current_program_post_meta['prefix'];
-
 			// Get user's department.
 			$user_department_post    = get_field( 'department', "user_{$user_id}" );
 			$user_department_post_id = $user_department_post->ID;
 
-			// Get users assigned to active user's department for current program as array.
-			$users_length        = $current_program_post_meta['assignments'];
+			// Get users assigned to active user's department for current program, as array.
 			$dept_assigned_users = array();
-			$i                   = 0;
-			while ( $i <= $users_length ) {
-				$assigned_dept = $current_program_post_meta[ "assignments_{$i}_department" ];
+			foreach ( $this->program_meta_keys_departments as $meta_key ) {
+				$assigned_dept = (int) $current_program_post_meta[ $meta_key ][0];
 				if ( $user_department_post_id === $assigned_dept ) {
-					// We found an assignments index of the user's department.
-					// Now we need to get the user ID.
-					// This will repeat for all user roles.
-					$role    = $current_program_post_meta[ "assignments_{$i}_role" ];
-					$user_id = $current_program_post_meta[ "assignments_{$i}_user" ];
-					if ( ! array_key_exists( $role, $dept_assigned_users ) ) {
-						$dept_assigned_users[ $role ] = $user_id;
-					}
+					$base_key                              = preg_replace( '/_department_post_id$/', '', $meta_key );
+					$dept_assigned_users['it_rep']         = $current_program_post_meta[ "{$base_key}_it_reps" ][0];
+					$dept_assigned_users['business_admin'] = $current_program_post_meta[ "{$base_key}_business_admins" ][0];
+					break;
 				}
-				$i++;
 			}
 
 			/**
