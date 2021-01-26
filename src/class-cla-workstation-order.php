@@ -74,6 +74,10 @@ class CLA_Workstation_Order {
 		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-products-in-form.php';
 		new \CLA_Workstation_Order\Products_In_Form();
 
+		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-pagetemplate.php';
+		$order_form = new \CLA_Workstation_Order\PageTemplate( CLA_WORKSTATION_ORDER_TEMPLATE_PATH, 'order-form-template.php', 'Order Form' );
+		$order_form->register();
+
 		// require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-product-category-posttype.php';
 		// new \CLA_Workstation_Order\Product_Category_PostType();
 		// Register settings page.

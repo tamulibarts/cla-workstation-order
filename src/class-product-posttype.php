@@ -29,7 +29,8 @@ class Product_PostType {
 		// Register_post_types.
 		add_action( 'init', array( $this, 'register_post_type' ) );
 		add_action( 'acf/init', array( $this, 'register_custom_fields' ) );
-		add_action( 'transition_post_status', array( $this, 'insert_into_order_form' ), 10, 3 );
+		add_action( 'transition_post_status', array( $this, 'handle_order_form_field' ), 10, 3 );
+		add_action( 'save_post_product', array( $this, 'handle_save_post' ), 10, 3 );
 		add_filter( 'manage_product_posts_columns', array( $this, 'product_filter_posts_columns' ) );
 		add_action( 'manage_product_posts_custom_column', array( $this, 'product_column' ), 10, 2 );
 		add_filter( 'manage_edit-product_sortable_columns', array( $this, 'product_sortable_columns' ) );
@@ -71,11 +72,13 @@ class Product_PostType {
 	 * @return void
 	 */
 	public function register_custom_fields() {
+
 		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'fields/product-fields.php';
 		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'fields/it-rep-status-order-fields.php';
 		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'fields/business-staff-status-order-fields.php';
 		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'fields/it-logistics-status-order-fields.php';
 		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'fields/order-department-comments-fields.php';
+
 	}
 
 	/**
@@ -87,71 +90,30 @@ class Product_PostType {
 	 * @param WP_Post $post       The post object.
 	 * @return void
 	 */
-	public function insert_into_order_form( $new_status, $old_status, $post ) {
+	public function handle_order_form_field( $new_status, $old_status, $post ) {
 
+		// If this is not for a product post type, return.
 		if ( 'product' !== $post->post_type ) {
 			return;
 		}
 
+		// If this is becoming published, create the form field.
+		// Else if this is becoming unpublished, delete the form field.
 		if ( 'published' !== $old_status && 'published' === $new_status ) {
 
 			/**
 			 * Create the form field.
 			 */
-			// Get post meta.
-			$post_meta = get_post_meta( $post->ID, '', true );
 
-			// Get order form.
-			$form = \GFAPI::get_form( 1 );
+			// If program field is for current program, continue creating the field.
+			$current_program = get_field( 'current_program', 'option' );
+			$post_program    = get_post_meta( $post->ID, 'program', true );
 
-			// Get next form field ID.
-			$new_field_id = 0;
-			foreach ( $form['fields'] as $field ) {
-				if ( $field->id > $new_field_id ) {
-					$new_field_id = $field->id;
-				}
+			if ( $post_program !== $current_program ) {
+				return;
 			}
-			$new_field_id++;
 
-			// Create the new form field.
-			$properties = array(
-				'type'       => 'product',
-				'id'         => $new_field_id,
-				'label'      => $post->post_title,
-				'size'       => 'medium',
-				'visibility' => 'visible',
-				'inputs'     => array(
-					array(
-						'id'    => "{$new_field_id}.1",
-						'label' => 'Name',
-						'name'  => '',
-					),
-					array(
-						'id'    => "{$new_field_id}.2",
-						'label' => 'Price',
-						'name'  => '',
-					),
-					array(
-						'id'    => "{$new_field_id}.3",
-						'label' => 'Quantity',
-						'name'  => '',
-					),
-				),
-				'inputType'  => 'singleproduct',
-				'formId'     => 1,
-				'basePrice'  => '$' . $post_meta['price'],
-				'pageNumber' => 1,
-			);
-			$new_field  = \GF_Fields::create( $properties );
-
-			// Add the new field to the form.
-			$form['fields'][] = $new_field;
-
-			// Save the modified form.
-			\GFAPI::update_form( $form );
-
-			// Add post meta for the field ID.
-			update_post_meta( $post->ID, 'order_form_field_id', $new_field_id );
+			$this->create_form_field( $post->ID, $post );
 
 		} elseif ( 'published' === $old_status && 'published' !== $new_status ) {
 
@@ -159,30 +121,163 @@ class Product_PostType {
 			 * Delete the form field.
 			 */
 
-			$product_field_id = get_post_meta( $post->ID, 'order_form_field_id', $new_field_id );
-
-			if ( empty( $field_id ) ) {
-				return;
-			}
-
-			// Get order form.
-			$form = \GFAPI::get_form( 1 );
-
-			foreach ( $form['fields'] as $key => $field ) {
-				if ( $field->id === $product_field_id ) {
-					// Remove field from array.
-					unset( $form['fields'][ $key ] );
-					break;
-				}
-			}
-
-			// Remove empty array member.
-			$form['fields'] = array_values( $form['fields'] );
-
-			// Save the modified form.
-			\GFAPI::update_form( $form );
+			$this->remove_form_field( $post->ID );
 
 		}
+	}
+
+	/**
+	 * Remove the order form field when the post unassigns its program ID.
+	 *
+	 * @param int     $post_ID The post ID.
+	 * @param WP_Post $post    The post object.
+	 * @param bool    $update  Whether this is an existing post being updated.
+	 */
+	public function handle_save_post( $post_ID, $post, $update ) {
+
+		if ( false === $update ) {
+			return;
+		}
+
+		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+			return;
+		}
+
+		$current_program_post = get_field( 'current_program', 'option' );
+		$current_program_id   = $current_program_post->ID;
+		$new_program_id       = (int) $_POST['acf']['field_5fff76371ba19'];
+		$old_program_id       = (int) get_post_meta( $post_ID, 'program', true );
+		$message              = gettype( $current_program_id ) . '->' . $current_program_id . ' : ' . gettype( $old_program_id ) . '->' . $old_program_id . ' : ' . gettype( $new_program_id ) . '->' . $new_program_id;
+		error_log( $message );
+
+		// Remove the form field if the current program is being unassigned from the post during this save.
+		// Add it if the current program is being assigned to the post during this save.
+		if (
+		$old_program_id === $current_program_id
+		&& $new_program_id !== $current_program_id
+		) {
+
+			$this->remove_form_field( $post_ID );
+
+		} elseif (
+		$old_program_id !== $current_program_id
+		&& $new_program_id === $current_program_id
+		) {
+
+			$this->create_form_field( $post_ID, $post );
+
+		}
+
+	}
+
+	/**
+	 * Add the order form field.
+	 *
+	 * @return void
+	 */
+	private function create_form_field( $post_ID, $post ) {
+
+		error_log( 'create form field: ' . $post_ID . ', ' . $post->post_title );
+
+		// Get form field ID.
+		$product_field_id = get_post_meta( $post_ID, 'order_form_field_id', true );
+
+		// Return if field already exists.
+		if ( ! empty( $product_field_id ) ) {
+			return;
+		}
+
+		// Get post meta for form fields.
+		$price = get_post_meta( $post_ID, 'price', true );
+
+		// Get order form.
+		$form = \GFAPI::get_form( 1 );
+
+		// Get next form field ID.
+		$new_field_id = 0;
+		foreach ( $form['fields'] as $field ) {
+			if ( $field->id > $new_field_id ) {
+				$new_field_id = $field->id;
+			}
+		}
+		$new_field_id++;
+
+		// Create the new form field.
+		$properties = array(
+			'type'       => 'product',
+			'id'         => $new_field_id,
+			'label'      => $post->post_title,
+			'size'       => 'medium',
+			'visibility' => 'visible',
+			'inputs'     => array(
+				array(
+					'id'    => "{$new_field_id}.1",
+					'label' => 'Name',
+					'name'  => '',
+				),
+				array(
+					'id'    => "{$new_field_id}.2",
+					'label' => 'Price',
+					'name'  => '',
+				),
+				array(
+					'id'    => "{$new_field_id}.3",
+					'label' => 'Quantity',
+					'name'  => '',
+				),
+			),
+			'inputType'  => 'singleproduct',
+			'formId'     => 1,
+			'basePrice'  => '$' . $price,
+			'pageNumber' => 1,
+		);
+		$new_field  = \GF_Fields::create( $properties );
+
+		// Add the new field to the form.
+		$form['fields'][] = $new_field;
+
+		// Save the modified form.
+		\GFAPI::update_form( $form );
+
+		// Add post meta for the field ID.
+		update_post_meta( $post->ID, 'order_form_field_id', $new_field_id );
+
+	}
+
+	/**
+	 * Remove the order form field for this product if it has one.
+	 *
+	 * @return void
+	 */
+	private function remove_form_field( $post_ID ) {
+
+		error_log( 'remove form field: ' . $post_ID );
+
+		$product_field_id = get_post_meta( $post_ID, 'order_form_field_id', true );
+
+		if ( empty( $product_field_id ) ) {
+			return;
+		}
+
+		// Get order form.
+		$form = \GFAPI::get_form( 1 );
+
+		foreach ( $form['fields'] as $key => $field ) {
+			if ( $field->id === $product_field_id ) {
+				// Remove field from array.
+				unset( $form['fields'][ $key ] );
+				break;
+			}
+		}
+
+		// Remove empty array member.
+		$form['fields'] = array_values( $form['fields'] );
+
+		// Save the modified form.
+		\GFAPI::update_form( $form );
+
+		update_post_meta( $post_ID, 'order_form_field_id', '' );
+
 	}
 
 	/**

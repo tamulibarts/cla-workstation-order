@@ -67,7 +67,9 @@ class Leads_Into_Orders {
 	 * @return void;
 	 */
 	public function create_wsorder_post( $entry, $form ) {
-
+		echo '<pre>';
+		print_r( $entry );
+		echo '</pre>';
 		// Get current user and user ID.
 		$user    = wp_get_current_user();
 		$user_id = $user->get( 'ID' );

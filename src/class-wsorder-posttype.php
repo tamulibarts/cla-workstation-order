@@ -82,17 +82,16 @@ class WSOrder_PostType {
 		if ( 'wsorder' !== $post->post_type ) {
 			return;
 		}
-
+		$message              = '';
 		$message .= serialize( $_POST ); //phpcs:ignore
 		$message .= serialize( $post ); //phpcs:ignore
-
 		$it_rep_user_id       = $_POST['acf']['field_5fff6b46a22af']['field_5fff703a5289f']; //phpcs:ignore
 		$it_rep_user_id_saved = get_post_meta( $post->ID, 'it_rep_status_it_rep' );
 		$message             .= $it_rep_user_id . ' : ' . $it_rep_user_id_saved;
 		wp_mail( 'zwatkins2@tamu.edu', 'order published', $message );
 		if (
 			( 'publish' === $new_status && 'publish' !== $old_status )
-		&& 'wsorder' === $post->post_type
+			&& 'wsorder' === $post->post_type
 		) {
 			$message  = serialize( $_GET ); //phpcs:ignore
 			$message .= serialize( $_POST ); //phpcs:ignore
