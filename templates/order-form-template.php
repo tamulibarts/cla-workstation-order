@@ -29,34 +29,6 @@ function cla_workstation_order_form_styles() {
 }
 add_action( 'wp_enqueue_scripts', 'cla_workstation_order_form_styles', 1 );
 
-// response generation function
-$response = '';
-
-// function to generate response
-function my_contact_form_generate_response( $type, $message ) {
-
-	global $response;
-
-	if ( $type == 'success' ) {
-		$response = "<div class='success'>{$message}</div>";
-	} else {
-		$response = "<div class='error'>{$message}</div>";
-	}
-
-}
-
-// if ( ! isset( $_POST['the_superfluous_nonceity_n8me'] )
-// || ! wp_verify_nonce( $_POST['the_superfluous_nonceity_n8me'], 'verify_order_form_nonce8' )
-// ) {
-// Nonce didn't verify or isn't created.
-// exit;
-// } else {
-// Create our Order post and notify users.
-// echo '<pre>';
-// print_r($_POST);
-// echo '</pre>';
-// $response = 'Success!';
-// }
 get_header();
 
 ?><div id="primary" class="content-area"><main id="main" class="site-main">
@@ -229,6 +201,61 @@ Your cart calculations will include this amount. It's also required if your cart
 							);
 							echo wp_kses( $search_form, $allowed_html );
 						}
+
+						/**
+						 * Display products.
+						 */
+
+						// Get current user and user ID.
+						$user    = wp_get_current_user();
+						$user_id = $user->get( 'ID' );
+
+						// Get user's department.
+						$user_department_post    = get_field( 'department', "user_{$user_id}" );
+						$user_department_post_id = $user_department_post->ID;
+
+						// Retrieve products for the current program year.
+						$current_program_post      = get_field( 'current_program', 'option' );
+						$current_program_id        = $current_program_post->ID;
+						$current_program_post_meta = get_post_meta( $current_program_id );
+
+						$args          = array(
+							'post_type'  => 'product',
+							'nopaging'   => true,
+							'meta_key'   => 'program', //phpcs:ignore
+							'meta_value' => $current_program_id, //phpcs:ignore
+						);
+						$products      = new \WP_Query( $args );
+						$product_posts = $products->posts;
+
+						// Filter out hidden products for department.
+						$hidden_products = get_post_meta( $user_department_post_id, 'hidden_products', true );
+						foreach ( $product_posts as $key => $post ) {
+							// unset posts.
+							if ( in_array( $post->ID, $hidden_products, true ) ) {
+								unset( $product_posts[ $key ] );
+							}
+						}
+						$product_posts = array_values( $product_posts );
+
+						// Output posts.
+						$output = '';
+						foreach ( $product_posts as $key => $post ) {
+							$price = (int) get_post_meta( $post->ID, 'price', true );
+							$price = number_format( $price, 2, '.', ',' );
+							$output .= sprintf(
+								'<div class="card"><a title="%s" href="%s">%s</a>%s<p>%s</p><div>$%s</div></div>',
+								$post->ID,
+								get_permalink($post->ID),
+								$post->post_title,
+								get_the_post_thumbnail( $post ),
+								get_post_meta( $post->ID, 'description', true ),
+								$price
+							);
+						}
+
+						$return = wp_kses_post( $output );
+						echo $return;
 						?>
 </main></div>
 <?php
