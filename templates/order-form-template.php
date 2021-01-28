@@ -74,23 +74,38 @@ function get_product_post_objects_for_program_by_user_dept() {
 	$args          = array(
 		'post_type'  => 'product',
 		'nopaging'   => true,
-		'meta_key'   => 'program', //phpcs:ignore
-		'meta_value' => $current_program_id, //phpcs:ignore
-		'post__not_in' => $hidden_products
+		'post__not_in' => $hidden_products,
+		'meta_query' => array( //phpcs:ignore
+			'relation' => 'AND',
+			array(
+				'key'   => 'program', //phpcs:ignore
+				'value' => $current_program_id, //phpcs:ignore
+				'compare' => '=',
+			),
+			array(
+				'relation' => 'OR',
+				array(
+					'key'     => 'visibility',
+					'compare' => 'NOT EXISTS',
+				),
+				array(
+					'relation' => 'AND',
+					array(
+						'key'     => 'visibility_archived',
+						'value'   => '1',
+						'compare' => '!='
+					),
+					array(
+						'key'     => 'visibility_bundle_only',
+						'value'   => '1',
+						'compare' => '!='
+					),
+				),
+			),
+		),
 	);
 	$products      = new \WP_Query( $args );
 	$product_posts = $products->posts;
-
-	// echo '<pre>';
-	// print_r($hidden_products);
-	// echo '</pre>';
-	// foreach ( $product_posts as $key => $post ) {
-	// 	// unset posts.
-	// 	if ( in_array( $post->ID, $hidden_products, true ) ) {
-	// 		unset( $product_posts[ $key ] );
-	// 	}
-	// }
-	// $product_posts = array_values( $product_posts );
 
 	return $product_posts;
 

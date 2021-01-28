@@ -129,7 +129,7 @@
                 "key": "field_600071384dfe7",
                 "label": "Visibility",
                 "name": "visibility",
-                "type": "checkbox",
+                "type": "group",
                 "instructions": "",
                 "required": 0,
                 "conditional_logic": 0,
@@ -138,17 +138,47 @@
                     "class": "",
                     "id": ""
                 },
-                "choices": {
-                    "sticky": "Sticky (will automatically be included new orders).",
-                    "bundle_only": "This product is bundle-only and should not be shown.",
-                    "archived": "This product is archived and should no longer be used."
-                },
-                "allow_custom": 0,
-                "default_value": [],
-                "layout": "vertical",
-                "toggle": 0,
-                "return_format": "value",
-                "save_custom": 0
+                "layout": "block",
+                "sub_fields": [
+                    {
+                        "key": "field_6012cfb50d556",
+                        "label": "",
+                        "name": "bundle_only",
+                        "type": "true_false",
+                        "instructions": "",
+                        "required": 0,
+                        "conditional_logic": 0,
+                        "wrapper": {
+                            "width": "",
+                            "class": "",
+                            "id": ""
+                        },
+                        "message": "This product is bundle-only and should not be shown.",
+                        "default_value": 0,
+                        "ui": 0,
+                        "ui_on_text": "",
+                        "ui_off_text": ""
+                    },
+                    {
+                        "key": "field_6012cfcb0d557",
+                        "label": "",
+                        "name": "archived",
+                        "type": "true_false",
+                        "instructions": "",
+                        "required": 0,
+                        "conditional_logic": 0,
+                        "wrapper": {
+                            "width": "",
+                            "class": "",
+                            "id": ""
+                        },
+                        "message": "This product is archived and should no longer be used.",
+                        "default_value": 0,
+                        "ui": 0,
+                        "ui_on_text": "",
+                        "ui_off_text": ""
+                    }
+                ]
             },
             {
                 "key": "field_600071e74dfe8",
