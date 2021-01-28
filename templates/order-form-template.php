@@ -52,7 +52,7 @@ add_action( 'wp_enqueue_scripts', 'cla_workstation_order_form_scripts', 1 );
 
 get_header();
 
-function get_product_post_objects_for_program_by_user_dept() {
+function get_product_post_objects_for_program_by_user_dept( $category = false ) {
 
 	// Get current user and user ID.
 	$user    = wp_get_current_user();
@@ -104,6 +104,17 @@ function get_product_post_objects_for_program_by_user_dept() {
 			),
 		),
 	);
+
+	// Return product category only, if chosen.
+	if ( false !== $category ) {
+		$args['tax_query'] = array(
+			array(
+				'taxonomy' => 'product-category',
+				'field'    => 'slug',
+				'terms'    => $category,
+			)
+		);
+	}
 	$products      = new \WP_Query( $args );
 	$product_posts = $products->posts;
 
@@ -111,27 +122,29 @@ function get_product_post_objects_for_program_by_user_dept() {
 
 }
 
-function cla_get_products() {
+function cla_get_products( $category = false ) {
 
 	/**
 	 * Display products.
 	 */
-	$product_posts = get_product_post_objects_for_program_by_user_dept();
+	$product_posts = get_product_post_objects_for_program_by_user_dept( $category );
 
 	// Output posts.
-	$output = '<div id="products"><div class="grid-x grid-margin-x grid-margin-y">';
+	$output = '<div class="products grid-x grid-margin-x grid-margin-y">';
 	foreach ( $product_posts as $key => $post ) {
 		$price = (int) get_post_meta( $post->ID, 'price', true );
 		$price = number_format( $price, 2, '.', ',' );
 		$thumbnail = get_the_post_thumbnail( $post, 'post-thumbnail', 'style=""' );
 		$thumbnail = preg_replace( '/ style="[^"]*"/', '', $thumbnail );
 		$output .= sprintf(
-			'<div id="product-%s" class="card cell small-12 medium-3"><h5 class="card-header"><a href="%s">%s</a></h5><div class="card-body">%s<p>%s</p></div><div class="card-footer"><div class="grid-x grid-padding-x grid-padding-y"><div class="cell shrink align-left"><button data-product-id="%s" data-product-name="%s" data-product-price="$%s" type="button" class="add-product">Add</button></div><div class="cell auto align-right price price-%s">$%s</div></div></div></div>',
+			'<div id="product-%s" class="card cell small-12 medium-3"><h5 class="card-header"><a href="%s">%s</a></h5><div class="card-body">%s<p>%s</p></div><div class="card-footer"><div class="grid-x grid-padding-x grid-padding-y"><div class="more-details-wrap align-right cell small-12"><button class="more-details link" type="button">More Details<div class="info-wrap"><div class="info">%s</div></div></button></div><div class="cell shrink align-left"><button id="cart-btn-%s" data-product-id="%s" data-product-name="%s" data-product-price="$%s" type="button" class="add-product">Add</button></div><div class="cell auto align-right price price-%s">$%s</div></div></div></div>',
 			$post->ID,
 			get_permalink($post->ID),
 			$post->post_title,
 			$thumbnail,
 			get_post_meta( $post->ID, 'description', true ),
+			get_post_meta( $post->ID, 'descriptors', true ),
+			$post->ID,
 			$post->ID,
 			$post->post_title,
 			$price,
@@ -139,7 +152,7 @@ function cla_get_products() {
 			$price
 		);
 	}
-	$output .= '</div></div>';
+	$output .= '</div>';
 
 	$return = wp_kses_post( $output );
 	return $output;
@@ -207,8 +220,7 @@ function cla_get_products() {
 							/**
 							 * Additional Funding
 							 */
-							$additional_funding  = "<div id=\"cla_add_funding\"><h2>Additional Funding</h2><p>Enter any additional funds that you would like to contribute on top of your base allowance.
-Your cart calculations will include this amount. It's also required if your cart total exceeds the base allowance.</p>";
+							$additional_funding  = '<div id="cla_add_funding"><h2>Additional Funding</h2><p>Enter any additional funds that you would like to contribute on top of your base allowance.<br>Your cart calculations will include this amount. It\'s also required if your cart total exceeds the base allowance.</p>';
 							$additional_funding .= '<div><label for="cla_contribution_amount">Contribution Amount</label> <div class="grid-x"><div class="cell shrink dollar-field">$</div><div class="cell auto"><input id="cla_contribution_amount" name="cla_contribution_amount" type="number" min="0" step="any" required /></div></div></div>';
 							$additional_funding .= '<div><label for="cla_account_number">Account</label> <input id="cla_account_number" name="cla_account_number" type="text" required /><small><br>Research, Bursary, etc. or the Acct #</small></div>';
 							$additional_funding .= '</div>';
@@ -243,6 +255,13 @@ Your cart calculations will include this amount. It's also required if your cart
 							$it_rep_dropdown = wp_dropdown_users( $it_rep_args );
 
 							/**
+							 * Get product categories.
+							 */
+							$apple_list = cla_get_products('apple');
+							$pc_list = cla_get_products('pc');
+							$addons_list = cla_get_products('add-on');
+
+							/**
 							 * Purchased product IDs field.
 							 */
 							$purchase_field = '<input type="hidden" id="cla_product_ids" name="cla_product_ids" required />';
@@ -266,7 +285,7 @@ Your cart calculations will include this amount. It's also required if your cart
 							/**
 							 * Submit button.
 							 */
-							$submit_button = '<input type="submit" name="cla_submit" value="Submit Order">';
+							$submit_button = '<input type="submit" id="cla_submit" name="cla_submit" value="Place Order" disabled="disabled">';
 
 							/**
 							 * Nonce field.
@@ -276,11 +295,12 @@ Your cart calculations will include this amount. It's also required if your cart
 							/**
 							 * Form
 							 */
+							$permalink = get_permalink();
 							$search_form  = "<div id=\"cla_order_form_wrap\">
-	<form method=\"post\" enctype=\"multipart/form-data\" id=\"cla_order_form\" action=\"%s\">
-		<div class=\"grid-x grid-margin-x\"><div class=\"cell medium-6\">%s</div><div class=\"cell medium-6\">%s</div></div><hr />
+	<form method=\"post\" enctype=\"multipart/form-data\" id=\"cla_order_form\" action=\"{$permalink}\">
+		<div class=\"grid-x grid-margin-x\"><div class=\"cell medium-6\">{$order_info}</div><div class=\"cell medium-6\">{$additional_funding}</div></div><hr />
 		<div class=\"grid-x grid-margin-x\"><div class=\"cell medium-6\">
-				<div><label for=\"cla_it_rep_id\">IT Representative</label> %s<br><small>To whom in IT should your order be sent to for confirmation?</small></div>
+				<div><label for=\"cla_it_rep_id\">IT Representative</label> {$it_rep_dropdown}<br><small>To whom in IT should your order be sent to for confirmation?</small></div>
 				<div class=\"grid-x\"><div class=\"building-name cell medium-6\"><label for=\"cla_building_name\">Building</label> <input id=\"cla_building_name\" name=\"cla_building_name\" type=\"text\" required /><br><small>What building is your primary office located in?</small></div><div class=\"room-number cell medium-6\">
 					<label for=\"cla_room_number\">Room Number</label> <input id=\"cla_room_number\" name=\"cla_room_number\" type=\"text\" required /><br><small>What is the room number of your primary office?</small></div>
 				</div>
@@ -292,7 +312,11 @@ Your cart calculations will include this amount. It's also required if your cart
 			</div>
 		</div>
 		<div class=\"grid-x grid-margin-x\">
-			<div class=\"cell small-12 medium-auto\">%s</div>
+			<div id=\"products\" class=\"cell small-12 medium-auto\">
+				<div class=\"products-apple toggle\"><h3><a class=\"btn\">Apple</a></h3>{$apple_list}</div>
+				<div class=\"products-pc toggle\"><h3><a class=\"btn\">PC</a></h3>{$pc_list}</div>
+				<div class=\"products-addons toggle\"><h3><a class=\"btn\">Add Ons</a></h3>{$addons_list}</div>
+			</div>
 			<div id=\"shopping_cart\" class=\"cell small-12 medium-3\"><h3>Shopping Cart</h3>
 				%s%s%s<hr />
 				<div class=\"grid-x\">
@@ -310,8 +334,7 @@ Your cart calculations will include this amount. It's also required if your cart
 	</form>
 </div>";
 
-							$product_list = cla_get_products();
-							$search_form  = sprintf( $search_form, get_permalink(), $order_info, $additional_funding, $it_rep_dropdown, $product_list, $purchase_field, $total_purchase_field, $list_purchases, $allocation, $allocation_threshold, $submit_button, $nonce_field );
+							$search_form  = sprintf( $search_form, $purchase_field, $total_purchase_field, $list_purchases, $allocation, $allocation_threshold, $submit_button, $nonce_field );
 							$allowed_html = array(
 								'form'     => array(
 									'method'  => array(),
@@ -338,6 +361,7 @@ Your cart calculations will include this amount. It's also required if your cart
 									'type'     => array(),
 									'value'    => array(),
 									'required' => array(),
+									'disabled' => array(),
 								),
 								'div'      => array(
 									'class'                     => array(),
@@ -353,6 +377,7 @@ Your cart calculations will include this amount. It's also required if your cart
 								),
 								'button'   => array(
 									'type'               => array(),
+									'id'                 => array(),
 									'class'              => array(),
 									'data-product-id'    => array(),
 									'data-product-name'  => array(),

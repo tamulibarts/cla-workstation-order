@@ -66,7 +66,7 @@ class Taxonomy {
 	/**
 	 * Builds and registers the custom taxonomy.
 	 *
-	 * @param string       $name      The taxonomy name.
+	 * @param array        $names     The taxonomy names.
 	 * @param string       $slug      The taxonomy slug.
 	 * @param string|array $post_slug The slug of the post type where the taxonomy will be added.
 	 * @param array        $user_args The arguments for taxonomy registration. Accepts $args from
@@ -77,13 +77,14 @@ class Taxonomy {
 	 * @param boolean      $sortable  Make the taxonomy sortable. Default false.
 	 * @return void
 	 */
-	public function __construct( $name, $slug, $post_slug = null, $user_args = array(), $meta = array(), $template = '', $sortable = false ) {
+	public function __construct( $names, $slug, $post_slug = null, $user_args = array(), $meta = array(), $template = '' ) {
 
+		$name = $names[0];
 		$this->slug          = $slug;
 		$this->post_slug     = $post_slug;
 		$this->singular_name = $name;
 		$singular            = $name;
-		$plural              = $name . 's';
+		$plural              = $names[1];
 
 		// Taxonomy labels.
 		$labels = array(
@@ -106,7 +107,6 @@ class Taxonomy {
 			array(
 				'labels'             => $labels,
 				'show_ui'            => true,
-				'show_admin_column'  => true,
 				'rewrite'            => array(
 					'with_front' => false,
 					'slug'       => $slug,
@@ -138,18 +138,6 @@ class Taxonomy {
 		if ( ! empty( $template ) ) {
 			$this->template = $template;
 			add_filter( 'template_include', array( $this, 'custom_template' ) );
-		}
-
-		// Make taxonomy sortable.
-		if ( $sortable ) {
-			if ( ! is_array( $post_slug ) ) {
-				add_filter( "manage_edit-{$post_slug}_sortable_columns", array( $this, 'register_sortable_columns' ) );
-			} else {
-				foreach ( $post_slug as $slug ) {
-					add_filter( "manage_edit-{$slug}_sortable_columns", array( $this, 'register_sortable_columns' ) );
-				}
-			}
-			add_filter( 'posts_orderby', array( $this, 'taxonomy_orderby' ), 10, 2 );
 		}
 
 	}
@@ -327,52 +315,6 @@ class Taxonomy {
 		}
 
 		return $template;
-	}
-
-	/**
-	 * Make this taxonomy sortable from the post type dashboard list page.
-	 *
-	 * @param array $columns The list of taxonomy columns sortable on this post type's list page.
-	 * @return array
-	 */
-	public static function register_sortable_columns( $columns ) {
-
-		$columns[ "taxonomy-{$this->slug}" ] = "taxonomy-{$this->slug}";
-
-		return $columns;
-	}
-
-
-	/**
-	 * Sort this taxonomy in the dashboard by the taxonomy text value.
-	 *
-	 * @param string $orderby The SQL query which orders posts.
-	 * @param object $wp_query The query object.
-	 * @return array
-	 */
-	public static function taxonomy_orderby( $orderby, $wp_query ) {
-
-		global $wpdb;
-
-		// If this taxonomy is the orderby parameter, then update the SQL query.
-		$slug = $this->slug;
-		if ( isset( $wp_query->query['orderby'] ) && "taxonomy-{$slug}" === $wp_query->query['orderby'] ) {
-
-			$orderby  = "(
-	      SELECT GROUP_CONCAT(name ORDER BY name ASC)
-	      FROM $wpdb->term_relationships
-	      INNER JOIN $wpdb->term_taxonomy USING (term_taxonomy_id)
-	      INNER JOIN $wpdb->terms USING (term_id)
-	      WHERE $wpdb->posts.ID = object_id
-	      AND taxonomy = '{$this->slug}'
-	      GROUP BY object_id
-	    ) ";
-			$orderby .= ( 'ASC' === strtoupper( $wp_query->get( 'order' ) ) ) ? 'ASC' : 'DESC';
-
-		}
-
-		return $orderby;
-
 	}
 
 }

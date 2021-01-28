@@ -142,7 +142,7 @@
                 "sub_fields": [
                     {
                         "key": "field_6012cfb50d556",
-                        "label": "",
+                        "label": "This product is bundle-only and should not be shown.",
                         "name": "bundle_only",
                         "type": "true_false",
                         "instructions": "",
@@ -153,7 +153,7 @@
                             "class": "",
                             "id": ""
                         },
-                        "message": "This product is bundle-only and should not be shown.",
+                        "message": "",
                         "default_value": 0,
                         "ui": 0,
                         "ui_on_text": "",
@@ -161,7 +161,7 @@
                     },
                     {
                         "key": "field_6012cfcb0d557",
-                        "label": "",
+                        "label": "This product is archived and should no longer be used.",
                         "name": "archived",
                         "type": "true_false",
                         "instructions": "",
@@ -172,7 +172,7 @@
                             "class": "",
                             "id": ""
                         },
-                        "message": "This product is archived and should no longer be used.",
+                        "message": "",
                         "default_value": 0,
                         "ui": 0,
                         "ui_on_text": "",
@@ -184,8 +184,8 @@
                 "key": "field_600071e74dfe8",
                 "label": "Descriptors",
                 "name": "descriptors",
-                "type": "repeater",
-                "instructions": "These will display as list items in the product description",
+                "type": "wysiwyg",
+                "instructions": "These will display in the product's More Info pop-up window",
                 "required": 0,
                 "conditional_logic": 0,
                 "wrapper": {
@@ -193,32 +193,11 @@
                     "class": "",
                     "id": ""
                 },
-                "collapsed": "",
-                "min": 0,
-                "max": 0,
-                "layout": "table",
-                "button_label": "+",
-                "sub_fields": [
-                    {
-                        "key": "field_600071f64dfe9",
-                        "label": "",
-                        "name": "descriptor",
-                        "type": "text",
-                        "instructions": "",
-                        "required": 0,
-                        "conditional_logic": 0,
-                        "wrapper": {
-                            "width": "",
-                            "class": "",
-                            "id": ""
-                        },
-                        "default_value": "",
-                        "placeholder": "",
-                        "prepend": "",
-                        "append": "",
-                        "maxlength": 144
-                    }
-                ]
+                "default_value": "",
+                "tabs": "visual",
+                "toolbar": "basic",
+                "media_upload": 0,
+                "delay": 0
             }
         ],
         "location": [

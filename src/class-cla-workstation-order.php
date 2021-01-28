@@ -78,66 +78,32 @@ class CLA_Workstation_Order {
 		$order_form = new \CLA_Workstation_Order\PageTemplate( CLA_WORKSTATION_ORDER_TEMPLATE_PATH, 'order-form-template.php', 'Order Form' );
 		$order_form->register();
 
-		// require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-product-category-posttype.php';
-		// new \CLA_Workstation_Order\Product_Category_PostType();
 		// Register settings page.
 		add_action( 'acf/init', array( $this, 'register_settings_page' ) );
+
+		add_action( 'init', array( $this, 'init' ) );
 
 	}
 
 	/**
-	 * Initialize page templates
+	 * Initialization hook.
 	 *
 	 * @since 0.1.0
 	 * @return void
 	 */
-	private function register_templates() {
+	public function init() {
 
-		// Register page templates.
-		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-pagetemplate.php';
-		$landing = new \WordPress_Plugin\PageTemplate( CLA_WORKSTATION_ORDER_TEMPLATE_PATH, 'page-template.php', 'Landing Page' );
-		$landing->register();
-
-	}
-
-	/**
-	 * Init action hook
-	 *
-	 * @since 1.0.0
-	 *
-	 * @return void
-	 */
-	public static function init() {
-
-		$this->register_shortcodes();
-
-	}
-
-	/**
-	 * Register shortcodes.
-	 *
-	 * @since 1.0.1
-	 *
-	 * @return void
-	 */
-	public static function register_shortcodes() {
-
-		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-shortcode.php';
-		new \WordPress_Plugin\Shortcode();
-
-	}
-
-	/**
-	 * Register widgets
-	 *
-	 * @since 1.0.1
-	 * @return void
-	 */
-	public function register_widgets() {
-
-		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-widget.php';
-		$widget = new \WordPress_Plugin\Widget();
-		register_widget( $widget );
+		// Create product category taxonomy.
+		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-taxonomy.php';
+		new \CLA_Workstation_Order\Taxonomy(
+			array('Product Category', 'Product Categories'),
+			'product-category',
+			array('product', 'bundle'),
+			array(),
+			array(),
+			'',
+			true
+		);
 
 	}
 
