@@ -232,8 +232,8 @@ function cla_get_products( $category = false ) {
 							 * Additional Funding
 							 */
 							$additional_funding  = '<div id="cla_add_funding"><h2>Additional Funding</h2><p>Enter any additional funds that you would like to contribute on top of your base allowance.<br>Your cart calculations will include this amount. It\'s also required if your cart total exceeds the base allowance.</p>';
-							$additional_funding .= '<div><label for="cla_contribution_amount">Contribution Amount</label> <div class="grid-x"><div class="cell shrink dollar-field">$</div><div class="cell auto"><input id="cla_contribution_amount" name="cla_contribution_amount" type="number" min="0" step="any" required /></div></div></div>';
-							$additional_funding .= '<div><label for="cla_account_number">Account</label> <input id="cla_account_number" name="cla_account_number" type="text" required /><small><br>Research, Bursary, etc. or the Acct #</small></div>';
+							$additional_funding .= '<div><label for="cla_contribution_amount">Contribution Amount</label> <div class="grid-x"><div class="cell shrink dollar-field">$</div><div class="cell auto"><input id="cla_contribution_amount" name="cla_contribution_amount" type="number" min="0" step="any" /></div></div></div>';
+							$additional_funding .= '<div><label for="cla_account_number">Account</label> <input id="cla_account_number" name="cla_account_number" type="text" /><small><br>Research, Bursary, etc. or the Acct #</small></div>';
 							$additional_funding .= '</div>';
 
 							/**
@@ -275,7 +275,7 @@ function cla_get_products( $category = false ) {
 							/**
 							 * Purchased product IDs field.
 							 */
-							$purchase_field = '<input type="hidden" id="cla_product_ids" name="cla_product_ids" required />';
+							$purchase_field = '<input type="hidden" id="cla_product_ids" name="cla_product_ids" />';
 
 							/**
 							 * Total Purchase price field.
@@ -296,7 +296,7 @@ function cla_get_products( $category = false ) {
 							/**
 							 * Submit button.
 							 */
-							$submit_button = '<input type="submit" id="cla_submit" name="cla_submit" value="Place Order" disabled="disabled">';
+							$submit_button = '<input type="submit" id="cla_submit" name="cla_submit" value="Place Order">';
 
 							/**
 							 * Nonce field.
@@ -311,14 +311,14 @@ function cla_get_products( $category = false ) {
 	<form method=\"post\" enctype=\"multipart/form-data\" id=\"cla_order_form\" action=\"{$permalink}\">
 		<div class=\"grid-x grid-margin-x\"><div class=\"cell medium-6\">{$order_info}</div><div class=\"cell medium-6\">{$additional_funding}</div></div><hr />
 		<div class=\"grid-x grid-margin-x\"><div class=\"cell medium-6\">
-				<div><label for=\"cla_it_rep_id\">IT Representative</label> {$it_rep_dropdown}<br><small>To whom in IT should your order be sent to for confirmation?</small></div>
-				<div class=\"grid-x\"><div class=\"building-name cell medium-6\"><label for=\"cla_building_name\">Building</label> <input id=\"cla_building_name\" name=\"cla_building_name\" type=\"text\" required /><br><small>What building is your primary office located in?</small></div><div class=\"room-number cell medium-6\">
-					<label for=\"cla_room_number\">Room Number</label> <input id=\"cla_room_number\" name=\"cla_room_number\" type=\"text\" required /><br><small>What is the room number of your primary office?</small></div>
+				<div><label for=\"cla_it_rep_id\">IT Representative *</label> {$it_rep_dropdown}<br><small>To whom in IT should your order be sent to for confirmation?</small></div>
+				<div class=\"grid-x\"><div class=\"building-name cell medium-6\"><label for=\"cla_building_name\">Building *</label> <input id=\"cla_building_name\" name=\"cla_building_name\" type=\"text\" /><br><small>What building is your primary office located in?</small></div><div class=\"room-number cell medium-6\">
+					<label for=\"cla_room_number\">Room Number *</label> <input id=\"cla_room_number\" name=\"cla_room_number\" type=\"text\" /><br><small>What is the room number of your primary office?</small></div>
 				</div>
-				<div><label for=\"cla_current_asset_number\">Current Workstation Asset Number</label> <input id=\"cla_current_asset_number\" name=\"cla_current_asset_number\" type=\"text\" /><br><small>What is the TAMU asset number of your current workstation computer? Example: 021500123456</small></div>
+				<div><label for=\"cla_current_asset_number\">Current Workstation Asset Number *</label> <input id=\"cla_current_asset_number\" name=\"cla_current_asset_number\" type=\"text\" /><br><small>What is the TAMU asset number of your current workstation computer? Example: 021500123456</small></div>
 				<div class=\"nobreak\"><input id=\"cla_no_computer_yet\" name=\"cla_no_computer_yet\" type=\"checkbox\" /><label for=\"cla_no_computer_yet\">I don't have a computer yet.</label></div>
 				</div><div class=\"cell medium-6\">
-				<div><label for=\"cla_order_comments\">Order Comment</label> <textarea id=\"cla_order_comment\" name=\"cla_order_comment\" rows=\"5\" required></textarea><br><small>Any additional information that would be helpful to pass along.
+				<div><label for=\"cla_order_comments\">Order Comment *</label> <textarea id=\"cla_order_comments\" name=\"cla_order_comments\" rows=\"5\"></textarea><br><small>Any additional information that would be helpful to pass along.
 </small></div>
 			</div>
 		</div>
@@ -340,6 +340,7 @@ function cla_get_products( $category = false ) {
 				</div>
 				<hr />
 				<div>%s%s</div>
+				<div class=\"flagged-instructions hidden\">Please address the flagged items.</div>
 			</div>
 		</div>
 	</form>
@@ -371,7 +372,6 @@ function cla_get_products( $category = false ) {
 									'name'     => array(),
 									'type'     => array(),
 									'value'    => array(),
-									'required' => array(),
 									'disabled' => array(),
 								),
 								'div'      => array(
@@ -384,7 +384,6 @@ function cla_get_products( $category = false ) {
 									'id'       => array(),
 									'name'     => array(),
 									'rows'     => array(),
-									'required' => array(),
 								),
 								'button'   => array(
 									'type'               => array(),

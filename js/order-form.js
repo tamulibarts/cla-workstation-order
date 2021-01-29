@@ -163,23 +163,6 @@
 
 		}
 
-		// Update submit button.
-		if ( isOverThreshold.allowed === false || total === 0 ) {
-
-			// Disable submit button.
-			if ( ! $('#cla_submit').is('[disabled]') ) {
-				$('#cla_submit').attr('disabled','disabled');
-			}
-
-		} else {
-
-			// Enable submit button.
-			if ( $('#cla_submit').is('[disabled]') ) {
-				$('#cla_submit').removeAttr('disabled');
-			}
-
-		}
-
 	};
 
 	var saveForm = function(){
@@ -202,26 +185,33 @@
 
 	};
 
-	var getForm = function(){
+	var getSavedForm = function(){
 
 		var lastForm = JSON.parse(localStorage.getItem("cla-order-form"));
 		$('#cla_order_form').html(lastForm);
 
 	}
 
-	var validateForm = function(){
+	var validateForm = function(e){
 
 		var valid = true;
 		var $form = $('#cla_order_form');
 
 		// Remove flags.
-		$form.find('label').removeClass('flagged');
+		$form.find('.flagged').removeClass('flagged');
 
 		// Account Number.
-		$accountNumber = $form.find('#cla_account_number');
-		$contributionAmount = $form.find('#cla_contribution_amount');
+		var $accountNumber = $form.find('#cla_account_number');
+		var $contributionAmount = $form.find('#cla_contribution_amount');
+		var isOverThreshold = isOverageTriggered();
 		if ( $contributionAmount.val() !== '' && $accountNumber.val() === '' ) {
+			// Contribution and account number don't match up.
 			valid = false;
+			$form.find('label[for="cla_account_number"]').addClass('flagged');
+		} else if ( isOverThreshold.allowed === false ) {
+			// Contribution still needed.
+			valid = false;
+			$form.find('label[for="cla_contribution_amount"]').addClass('flagged');
 			$form.find('label[for="cla_account_number"]').addClass('flagged');
 		}
 
@@ -242,7 +232,7 @@
 		// Current workstation.
 		$assetNumber = $form.find('#cla_current_asset_number');
 		$noComputer = $form.find('#cla_no_computer_yet');
-		if ( assetNumber.val() === '' ) {
+		if ( $assetNumber.val() === '' ) {
 			if ( ! $noComputer.is(':checked') ) {
 				valid = false;
 				$form.find('label[for="cla_current_asset_number"]').addClass('flagged');
@@ -259,21 +249,34 @@
 			$form.find('label[for="cla_order_comments"]').addClass('flagged');
 		}
 
-		// Enable or disable the submit button.
-		if ( valid ) {
-			$('#cla_submit').removeAttr('disabled');
-		} else {
-			$('#cla_submit').attr('disabled','disabled');
+		// Products purchased.
+		$products = $form.find('#list_purchases .cart-item');
+		if ( $products.length === 0 ) {
+			valid = false;
+			$form.find('#products .toggle .btn').addClass('flagged');
 		}
+
+		// Enable or disable the submit button.
+		if ( ! valid ) {
+			if ( typeof e === 'event' ) {
+				e.preventDefault();
+			} else {
+				return false;
+			}
+		}
+
 	};
 
-	getForm();
+	// getSavedForm();
+	// validateForm();
 
 	// Add event handlers.
+	$form = $('#cla_order_form');
 	$('.add-product').on('click', addProductToCart);
 	$('#cla_contribution_amount').on('keyup', updateTotals);
-	$('#cla_order_form').find('textarea, input[type="text"], input[type="number"]').on('blur', saveForm);
-	$('#cla_order_form').find('button[type="button"]').on('click', saveForm);
+	$form.find('textarea, input[type="text"], input[type="number"]').on('blur', saveForm);
+	$form.find('button[type="button"]').on('click', saveForm);
+	$form.on('submit', validateForm);
 
 })(jQuery);
 
