@@ -45,6 +45,7 @@ function cla_workstation_order_form_scripts() {
 		'screen'
 	);
 
+	wp_enqueue_script( 'jquery' );
 	wp_enqueue_script( 'cla-workstation-order-form-scripts' );
 
 }
@@ -132,25 +133,29 @@ function cla_get_products( $category = false ) {
 	// Output posts.
 	$output = '<div class="products grid-x grid-margin-x grid-margin-y">';
 	foreach ( $product_posts as $key => $post ) {
-		$price = (int) get_post_meta( $post->ID, 'price', true );
-		$price = number_format( $price, 2, '.', ',' );
-		$thumbnail = get_the_post_thumbnail( $post, 'post-thumbnail', 'style=""' );
-		$thumbnail = preg_replace( '/ style="[^"]*"/', '', $thumbnail );
-		$output .= sprintf(
-			'<div id="product-%s" class="card cell small-12 medium-3"><h5 class="card-header"><a href="%s">%s</a></h5><div class="card-body">%s<p>%s</p></div><div class="card-footer"><div class="grid-x grid-padding-x grid-padding-y"><div class="more-details-wrap align-right cell small-12"><button class="more-details link" type="button">More Details<div class="info-wrap"><div class="info">%s</div></div></button></div><div class="cell shrink align-left"><button id="cart-btn-%s" data-product-id="%s" data-product-name="%s" data-product-price="$%s" type="button" class="add-product">Add</button></div><div class="cell auto align-right price price-%s">$%s</div></div></div></div>',
-			$post->ID,
-			get_permalink($post->ID),
-			$post->post_title,
-			$thumbnail,
-			get_post_meta( $post->ID, 'description', true ),
-			get_post_meta( $post->ID, 'descriptors', true ),
-			$post->ID,
-			$post->ID,
-			$post->post_title,
-			$price,
-			$post->ID,
-			$price
-		);
+
+		// Define the card variables.
+		$post_id     = $post->ID;
+		$permalink   = get_permalink($post->ID);
+		$post_title  = $post->post_title;
+		$price       = (int) get_post_meta( $post->ID, 'price', true );
+		$price       = number_format( $price, 2, '.', ',' );
+		$thumbnail   = get_the_post_thumbnail( $post, 'post-thumbnail', 'style=""' );
+		$thumbnail   = preg_replace( '/ style="[^"]*"/', '', $thumbnail );
+		$description = get_post_meta( $post->ID, 'description', true );
+		$more_info   = get_post_meta( $post->ID, 'descriptors', true );
+
+		// Build the card output.
+		$output .= "<div id=\"product-{$post_id}\" class=\"card cell small-12 medium-3\">";
+		$output .= "<h5 class=\"card-header\"><a class=\"post-title post-title-{$post_id}\" href=\"{$permalink}\">{$post_title}</a></h5>";
+		$output .= "<div class=\"card-body\">{$thumbnail}<p>$description</p></div>";
+		$output .= "<div class=\"card-footer\"><div class=\"grid-x grid-padding-x grid-padding-y\">";
+		$output .= "<div class=\"more-details-wrap align-left cell shrink\"><button class=\"more-details link\" type=\"button\">More Details<div class=\"info\">$more_info</div></button></div>";
+		$output .= "<div class=\"cell auto align-right display-price price-{$post_id}\">\${$price}</div>";
+		$output .= "<div class=\"cart-cell cell small-12 align-left\"><button id=\"cart-btn-{$post_id}\" data-product-id=\"{$post_id}\" data-product-price=\"\${$price}\" type=\"button\" class=\"add-product\">Add</button></div>";
+		$output .= "</div></div>";
+		$output .= "</div>";
+
 	}
 	$output .= '</div>';
 
@@ -162,6 +167,12 @@ function cla_get_products( $category = false ) {
 ?><div id="primary" class="content-area"><main id="main" class="site-main">
 <h1><?php the_title(); ?></h1>
 					   <?php
+
+				  if ( ! is_user_logged_in() ) {
+
+				  	echo "You must be logged in to view this page.";
+
+				  } else {
 						the_content();
 
 						if ( isset( $_POST['cla_submit'] ) ) {
@@ -409,7 +420,8 @@ function cla_get_products( $category = false ) {
 							echo wp_kses( $search_form, $allowed_html );
 							// echo $search_form;
 						}
-						?>
+					}
+				?>
 </main></div>
 <?php
 

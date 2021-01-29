@@ -1,11 +1,4 @@
-(function(){
-	// Get elements.
-	var contributionField = document.querySelector('#cla_contribution_amount');
-	var productsTotalEl = document.querySelector('#products_total');
-	var productsTotalField = document.querySelector('#cla_total_purchase');
-	var productsListEl = document.querySelector('#list_purchases');
-	var productIDsField = document.querySelector('#cla_product_ids');
-	var productAdds = document.querySelectorAll('.add-product');
+(function($){
 
 	// Remove product from shopping cart.
 	var removeProduct = function(e){
@@ -15,19 +8,17 @@
 
 		// Get variables used to update the shopping cart.
 		var productID = this.getAttribute('data-product-id');
-		var newProductIDs = productIDsField.value.replace( productID, '' ).replace( /,+/g, ',' ).replace( /^,/, '' );
-		var shoppingCartEl = document.querySelector('.shopping-cart-' + productID);
 
-		// Update the field of product IDs.
-		productIDsField.value = newProductIDs;
+		// Remove product ID from form field.
+		var $productIDsField = $('#cla_product_ids');
+		var newProductIDs = $productIDsField.val().replace( productID, '' ).replace( /,+/g, ',' ).replace( /^,/, '' );
+		$productIDsField.val(newProductIDs);
 
 		// Remove the shopping cart element.
-		shoppingCartEl.remove();
+		$('.shopping-cart-'+productID).remove();
 
 		// Enable the Add to Cart button.
-		var cartButton = document.querySelector('#cart-btn-' + productID);
-		cartButton.removeAttribute('disabled');
-		cartButton.innerHTML = 'Add';
+		$('#cart-btn-'+productID).removeAttr('disabled').html('Add');
 
 		// Update total purchase price.
 		updateTotals();
@@ -40,43 +31,30 @@
 		// Prevent default behavior on click.
 		e.preventDefault();
 
-		// Get elements.
-		var productID = this.getAttribute('data-product-id');
-		var productName = this.getAttribute('data-product-name');
-		var productPrice = this.getAttribute('data-product-price');
+		// Get elements and values.
+		var $this = $(this);
+		var productID = $this.attr('data-product-id');
+		var productName = $('.post-title-' + productID).html();
+		var productPrice = $this.attr('data-product-price');
+		var thumbSrc = $('#product-'+productID+'.card .wp-post-image').attr('src');
 
 		// Add product ID to form field.
-		productIDsField.value += productID + ',';
+		var $productIDsField = $('#cla_product_ids');
+		var newProductIDs = $productIDsField.val() + productID + ',';
+		$productIDsField.val( newProductIDs );
 
-		// Generate HTML element for shopping cart.
-		var productListingEl = document.createElement('div');
-				productListingEl.className = 'cart-item shopping-cart-' + productID + ' grid-x';
-		var productImgElSrc = document.querySelector('#product-' + productID + '.card .wp-post-image').src;
-		var productImgEl = document.createElement('div');
-				productImgEl.className = 'cell shrink';
-				productImgEl.innerHTML = '<img width="50" src="' + productImgElSrc + '">';
-		var productNameEl = document.createElement('div');
-				productNameEl.className = 'cell auto';
-				productNameEl.innerHTML = productName;
-		var productPriceEl = document.createElement('div');
-				productPriceEl.className = 'cell shrink align-right bold';
+		// Generate HTML elements for shopping cart listing.
+		var listItem = '<div class="cart-item shopping-cart-'+productID+' grid-x">';
+				listItem += '<div class="cell shrink"><img width="50" src="'+thumbSrc+'"></div>';
+				listItem += '<div class="cell auto">'+productName+'</div>';
+				listItem += '<div class="cell shrink align-right bold"><button class="trash" type="button" data-product-id="'+productID+'" data-product-price="'+productPrice+'">Remove product from cart</button>'+productPrice+'</div>';
+				listItem += '</div>';
 
-		// Generate Trash HTML element for shopping cart.
-		var trash = document.createElement('button');
-				trash.type = 'button';
-				trash.className = 'trash';
-				trash.innerHTML = 'X';
-				trash.setAttribute('data-product-id', productID);
-				trash.setAttribute('data-product-price', productPrice);
-				trash.onclick = removeProduct;
+		// Append item.
+		$('#list_purchases').append(listItem);
 
-		// Add elements to page.
-		productPriceEl.appendChild(trash);
-		productPriceEl.appendChild(document.createTextNode(productPrice));
-		productListingEl.appendChild(productImgEl);
-		productListingEl.appendChild(productNameEl);
-		productListingEl.appendChild(productPriceEl);
-		productsListEl.appendChild(productListingEl);
+		// Add event handlers
+		$('#list_purchases').find('.shopping-cart-'+productID+' .trash').on('click', removeProduct);
 
 		// Disable button.
 		this.setAttribute('disabled','disabled');
@@ -90,7 +68,8 @@
 	var getTotal = function(){
 
 		// Get array of post IDs for product post type.
-		var ids = productIDsField.value;
+		var $productIDsField = $('#cla_product_ids');
+		var ids = $productIDsField.val();
 				ids = ids.replace(/^,|,$/g,'');
 
 		if ( ids.indexOf(',') >= 0 ) {
@@ -104,8 +83,7 @@
 		// Add price associated with each product to total.
 		var total = 0;
 		for ( var i=0; i < ids.length; i++ ) {
-			var selector  = '.price-' + ids[i];
-			var price = document.querySelector(selector).innerHTML;
+			var price = $('.price-' + ids[i]).html();
 					price = price.replace( /\$|,/g, '' );
 					price = parseFloat( price );
 			total += price;
@@ -115,31 +93,28 @@
 
 	};
 
-	var getContributionMade = function(){
-
-		var contributionField = document.querySelector('#cla_contribution_amount');
-		var contribution = contributionField.value;
-
-		return contribution;
-
-	};
-
 	var isOverageTriggered = function(){
 
-		var allocationDataEl = document.querySelector('#allocation-data');
+		var $allocationData = $('#allocation-data');
 
 		// Get numbers involved.
 		var total = getTotal();
-		var contributionMade = getContributionMade();
-		var allocation = parseFloat( allocationDataEl.getAttribute('data-allocation') );
-		var threshold = parseFloat( allocationDataEl.getAttribute('data-allocation-threshold') );
+		var contributionMade = $('#cla_contribution_amount').val();
+		var allocation = parseFloat( $allocationData.attr('data-allocation') );
+		var threshold = parseFloat( $allocationData.attr('data-allocation-threshold') );
+		var contributionAmountNeeded = total - contributionMade - allocation;
 		var returnVal = {};
 
 		if ( threshold < total ) {
 			// They have to pay everything beyond the allocation.
 			var contributionAmountNeeded = total - contributionMade - allocation;
-			returnVal.allowed = false;
 			returnVal.overage = contributionAmountNeeded;
+
+			if ( contributionAmountNeeded > 0 ) {
+				returnVal.allowed = false;
+			} else {
+				returnVal.allowed = true;
+			}
 		} else {
 			// They can make this purchase.
 			returnVal.allowed = true;
@@ -158,129 +133,181 @@
 
 		// Convert total to string and push to DOM elements.
 		var totalString = '$' + total.toFixed(2).replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1,");
-		productsTotalEl.innerHTML = totalString;
-		productsTotalField.value = total;
+		$('#products_total').html(totalString);
+		$('#cla_total_purchase').val(total);
 
 		// Check for contribution needed.
-		var allocationDataEl = document.querySelector('#allocation-data');
-		var contributionNeededEl = document.querySelector('#contribution_needed');
+		var $allocationData = $('#allocation-data');
+		var $contributionNeededEl = $('#contribution_needed');
 		var isOverThreshold = isOverageTriggered();
 
 		// Show or hide the contribution amount needed and disable the form.
 		if ( isOverThreshold.allowed === false ) {
 
 			// Contribution needed.
-			var contributionAmountNeeded = isOverThreshold.overage;
-			contributionNeededEl.innerHTML = '$' + contributionAmountNeeded.toFixed(2).replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1,");
+			var contributionAmountNeeded = isOverThreshold.overage.toFixed(2).replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1,");
+			$contributionNeededEl.html('$'+contributionAmountNeeded);
 
-			if ( allocationDataEl.className.indexOf('hidden') > 0 ) {
+			if ( $allocationData.hasClass('hidden') ) {
 				// Show contribution needed.
-				allocationDataEl.className = allocationDataEl.className.replace(' hidden', '');
-			}
-
-			// Disable submit button.
-			if ( ! document.querySelector('#cla_submit').hasAttribute('disabled') ) {
-				document.querySelector('#cla_submit').setAttribute('disabled','disabled');
+				$allocationData.removeClass('hidden');
 			}
 
 		} else {
 
 			// Contribution not needed. Hide element if visible.
-			if ( allocationDataEl.className.indexOf('hidden') < 0 ) {
-				allocationDataEl.className += ' hidden';
-				contributionNeededEl.innerHTML = '$0.00';
+			if ( ! $allocationData.hasClass('hidden') ) {
+				$allocationData.addClass('hidden');
+				$contributionNeededEl.html('$0.00');
 			}
 
+		}
+
+		// Update submit button.
+		if ( isOverThreshold.allowed === false || total === 0 ) {
+
+			// Disable submit button.
+			if ( ! $('#cla_submit').is('[disabled]') ) {
+				$('#cla_submit').attr('disabled','disabled');
+			}
+
+		} else {
+
 			// Enable submit button.
-			if ( document.querySelector('#cla_submit').hasAttribute('disabled') ) {
-				document.querySelector('#cla_submit').removeAttribute('disabled');
+			if ( $('#cla_submit').is('[disabled]') ) {
+				$('#cla_submit').removeAttr('disabled');
 			}
 
 		}
 
 	};
 
-	// Add event handlers.
-	for ( var i=0; i < productAdds.length; i++ ) {
-		productAdds[i].onclick = addProductToCart;
+	var saveForm = function(){
+
+		$form = $('#cla_order_form');
+		$form.find('input[type="text"],input[type="number"],input[type="hidden"]')
+			.not('#cla_account_number,#cla_current_asset_number').each(function() {
+		  $(this).attr('value', $(this).val());
+		});
+		$form.find('textarea').each(function(){
+			$(this).attr('value', $(this).val());
+		});
+		$form.find('select').each(function(){
+			var val = $(this).val();
+			$(this).find('option[value="'+val+'"]').attr('selected','selected');
+		});
+		var cloned = $form.clone(true);
+		console.log('cloned.html()',cloned.html());
+		localStorage.setItem("cla-order-form", JSON.stringify(cloned.html()));
+
+	};
+
+	var getForm = function(){
+
+		var lastForm = JSON.parse(localStorage.getItem("cla-order-form"));
+		$('#cla_order_form').html(lastForm);
+
 	}
 
-	contributionField.onkeyup = updateTotals;
+	var validateForm = function(){
 
-})();
+		var valid = true;
+		var $form = $('#cla_order_form');
+
+		// Remove flags.
+		$form.find('label').removeClass('flagged');
+
+		// Account Number.
+		$accountNumber = $form.find('#cla_account_number');
+		$contributionAmount = $form.find('#cla_contribution_amount');
+		if ( $contributionAmount.val() !== '' && $accountNumber.val() === '' ) {
+			valid = false;
+			$form.find('label[for="cla_account_number"]').addClass('flagged');
+		}
+
+		// Building name.
+		$buildingName = $form.find('#cla_building_name');
+		if ( $buildingName.val() === '' ) {
+			valid = false;
+			$form.find('label[for="cla_building_name"]').addClass('flagged');
+		}
+
+		// Room number.
+		$roomNumber = $form.find('#cla_room_number');
+		if ( $roomNumber.val() === '' ) {
+			valid = false;
+			$form.find('label[for="cla_room_number"]').addClass('flagged');
+		}
+
+		// Current workstation.
+		$assetNumber = $form.find('#cla_current_asset_number');
+		$noComputer = $form.find('#cla_no_computer_yet');
+		if ( assetNumber.val() === '' ) {
+			if ( ! $noComputer.is(':checked') ) {
+				valid = false;
+				$form.find('label[for="cla_current_asset_number"]').addClass('flagged');
+			}
+		} else if ( $noComputer.is(':checked') ) {
+			valid = false;
+			$form.find('label[for="cla_current_asset_number"]').addClass('flagged');
+		}
+
+		// Order comment.
+		$comments = $form.find('#cla_order_comments');
+		if ( $comments.val() === '' ) {
+			valid = false;
+			$form.find('label[for="cla_order_comments"]').addClass('flagged');
+		}
+
+		// Enable or disable the submit button.
+		if ( valid ) {
+			$('#cla_submit').removeAttr('disabled');
+		} else {
+			$('#cla_submit').attr('disabled','disabled');
+		}
+	};
+
+	getForm();
+
+	// Add event handlers.
+	$('.add-product').on('click', addProductToCart);
+	$('#cla_contribution_amount').on('keyup', updateTotals);
+	$('#cla_order_form').find('textarea, input[type="text"], input[type="number"]').on('blur', saveForm);
+	$('#cla_order_form').find('button[type="button"]').on('click', saveForm);
+
+})(jQuery);
 
 // Provide toggle feature for product categories.
-(function(){
-	var toggles = document.querySelectorAll('#products .toggle .btn');
+(function($){
+
 	var toggleActive = function(e) {
 
 		// Prevent default.
 		e.preventDefault();
 
-		// Toggle "active" class name on parent.
-		var element = this.parentNode.parentNode;
-
-		if (element.classList) {
-
-		  element.classList.toggle("active");
-
-		} else {
-
-		  // For IE9
-		  var classes = element.className.split(" ");
-		  var i = classes.indexOf("active");
-
-		  if (i >= 0)
-		    classes.splice(i, 1);
-		  else
-		    classes.push("active");
-
-	    element.className = classes.join(" ");
-
-		}
+		$(this).parent().parent().toggleClass('active');
 
 	}
 
 	// Attach event handlers.
-	for ( var i=0; i < toggles.length; i++ ) {
-		toggles[i].onclick = toggleActive;
-	}
-})();
+	$('#products .toggle .btn').on('click', toggleActive);
+
+})(jQuery);
 
 // Provide toggle feature for product details.
-(function(){
-	var toggles = document.querySelectorAll('#products .more-details');
+(function($){
+
 	var toggleActive = function(e) {
 
 		// Prevent default.
 		e.preventDefault();
 
 		// Toggle "active" class name on parent.
-		var element = this.parentNode;
-
-		if (element.classList) {
-
-		  element.classList.toggle("active");
-
-		} else {
-
-		  // For IE9
-		  var classes = element.className.split(" ");
-		  var i = classes.indexOf("active");
-
-		  if (i >= 0)
-		    classes.splice(i, 1);
-		  else
-		    classes.push("active");
-
-	    element.className = classes.join(" ");
-
-		}
+		var element = $(this).parent().toggleClass('active');
 
 	}
 
 	// Attach event handlers.
-	for ( var i=0; i < toggles.length; i++ ) {
-		toggles[i].onclick = toggleActive;
-	}
-})();
+	$('#products .more-details').on('click', toggleActive);
+
+})(jQuery);

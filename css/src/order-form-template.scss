@@ -13,6 +13,33 @@
 	$frame-grid: false
 );
 
+%button {
+	background-color: #007BFF;
+	color: #FFF;
+	border: none;
+	border-radius: 6px;
+	padding: 6px 12px;
+	font-size: 16px;
+	line-height: 24px;
+	width: auto;
+}
+
+%button-disabled {
+	background-color: #F8F9FA;
+	color: #212529;
+}
+
+.show-for-sr {
+	position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
 .align-left {
 	text-align: left;
 }
@@ -100,10 +127,23 @@
 
 #products {
 
+	.add-product {
+		@extend %button;
+
+		&[disabled] {
+			@extend %button-disabled;
+		}
+	}
+
+	h3 {
+		margin: 1rem 0;
+	}
+
 	.card {
 		position: relative;
 		display: flex;
 		flex-direction: column;
+		font-size: 16px;
 		min-width: 0;
 		word-wrap: break-word;
 		background-color: #FFF;
@@ -160,8 +200,77 @@
 		margin: auto;
 	}
 
-	.price {
-		font-weight: bold;
+	.display-price {
+		font-weight: 900;
+	}
+
+	.toggle {
+
+		.btn:before {
+			content: "";
+			display: inline-block;
+			position: relative;
+			width: 0;
+			height: 0;
+			border: 12px solid #000;
+			border-color: transparent transparent transparent #000;
+			margin-right: 8px;
+		}
+
+		&.active .btn:before {
+			border-color: #000 transparent transparent transparent;
+			top: 6px;
+			left: 0px;
+		}
+
+		&:not(.active) .products {
+			@extend .show-for-sr;
+		}
+	}
+
+	.more-details-wrap,
+	.cell.display-price {
+		padding-bottom: 0;
+	}
+
+	.cart-cell {
+		padding-top: 0;
+	}
+
+	.more-details {
+		position: relative;
+		color: #007BFF;
+		border: none;
+		background-color: transparent;
+		padding: 0;
+
+		&:focus,
+		&:hover {
+			text-decoration: underline;
+		}
+
+		&:focus {
+			outline: none;
+		}
+	}
+
+	.info {
+		display: none;
+		position: absolute;
+		top: -2px;
+		left: calc(100% + 4px);
+		border: 1px solid rgba(0, 0, 0, 0.2);
+		background-color: #FFF;
+		padding: 16px;
+		line-height: 1.1;
+		width: 350px;
+		max-height: 350px;
+		overflow-x: auto;
+		z-index: 1;
+	}
+
+	.more-details-wrap.active .info {
+		display: block;
 	}
 
 }
@@ -171,6 +280,15 @@
 	line-height: 1.5;
 	font-weight: 700;
 
+	input[type="submit"] {
+		@extend %button;
+		margin-top: 1rem;
+
+		&[disabled] {
+			@extend %button-disabled;
+		}
+	}
+
 	h3 {
 		margin: 1rem 0;
 		font-size: 28px;
@@ -178,12 +296,14 @@
 		text-align: center;
 	}
 
-	input[type="submit"] {
-		margin-top: 1rem;
-	}
-
 	.trash {
-		margin: 0 .5rem;
+		margin: 0 .25rem;
+    width: 27px;
+    background: transparent url(../images/trash-can.svg) center center/contain no-repeat;
+    overflow: hidden;
+    border: none;
+    text-indent: 300%;
+    white-space: nowrap;
 	}
 
 	#list_purchases {
