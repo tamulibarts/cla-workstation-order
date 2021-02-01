@@ -175,9 +175,9 @@ function cla_get_products( $category = false ) {
 				  } else {
 						the_content();
 
-						if ( isset( $_POST['cla_submit'] ) ) {
+						$output_form = true;
 
-							$output_form = false;
+						if ( isset( $_POST['cla_submit'] ) ) {
 
 							if (
 								isset( $_POST['the_superfluous_nonceity_n8me'] )
@@ -188,15 +188,58 @@ function cla_get_products( $category = false ) {
 								print_r( $_POST );
 								echo '</pre>';
 
+								$output_form = false;
+
+								/**
+								 * Validate file upload.
+								 */
+								// Throws a message if no file is selected
+								if ( ! $_FILES['cla_quote_0_file']['name'] ) {
+									echo esc_html__( 'Please choose a file', 'theme-text-domain' );
+									$output_form = true;
+								}
+
+								$allowed_extensions = array( 'pdf', 'doc', 'docx' );
+								$file_type = wp_check_filetype( $_FILES['cla_quote_0_file']['name'] );
+								$file_extension = $file_type['ext'];
+
+								// Check for valid file extension
+								if ( ! in_array( $file_extension, $allowed_extensions ) ) {
+									echo sprintf(  esc_html__( 'Invalid file extension, only allowed: %s', 'theme-text-domain' ), implode( ', ', $allowed_extensions ) );
+									$output_form = true;
+								}
+
+								$file_size = $_FILES['cla_quote_0_file']['size'];
+								$allowed_file_size = 512000; // Here we are setting the file size limit to 500 KB = 500 × 1024
+
+								// Check for file size limit
+								if ( $file_size >= $allowed_file_size ) {
+									echo sprintf( esc_html__( 'File size limit exceeded, file size should be smaller than %d KB', 'theme-text-domain' ), $allowed_file_size / 1000 );
+									$output_form = true;
+								}
+
+								// These files need to be included as dependencies when on the front end.
+								require_once( ABSPATH . 'wp-admin/includes/image.php' );
+								require_once( ABSPATH . 'wp-admin/includes/file.php' );
+								require_once( ABSPATH . 'wp-admin/includes/media.php' );
+
+								// Let WordPress handle the upload.
+								// Remember, 'cla_quote_0_file' is the name of our file input in our form above.
+								// Here post_id is 0 because we are not going to attach the media to any post.
+								$attachment_id = media_handle_upload( 'cla_quote_0_file', 0 );
+
+								if ( is_wp_error( $attachment_id ) ) {
+									// There was an error uploading the image.
+									error_log($attachment_id->get_error_message());
+									$output_form = true;
+								} else {
+									echo get_the_permalink( $attachment_id );
+								}
 								?>
 		<div id="respond">Validated.</div>
 								<?php
 
 							}
-						} else {
-
-							$output_form = true;
-
 						}
 
 						if ( $output_form ) {
@@ -294,6 +337,11 @@ function cla_get_products( $category = false ) {
 							$allocation_threshold = $current_program_post_meta['threshold'][0];
 
 							/**
+							 * Add advanced quote button.
+							 */
+							$button_add_quote = '<div class="products"><button type="button" id="cla_add_quote">Add an Advanced Teaching/Research Quote</button></div>';
+
+							/**
 							 * Submit button.
 							 */
 							$submit_button = '<input type="submit" id="cla_submit" name="cla_submit" value="Place Order">';
@@ -327,6 +375,7 @@ function cla_get_products( $category = false ) {
 				<div class=\"products-apple toggle\"><h3><a class=\"btn\">Apple</a></h3>{$apple_list}</div>
 				<div class=\"products-pc toggle\"><h3><a class=\"btn\">PC</a></h3>{$pc_list}</div>
 				<div class=\"products-addons toggle\"><h3><a class=\"btn\">Add Ons</a></h3>{$addons_list}</div>
+				<div class=\"products-custom-quote toggle\"><h3><a class=\"btn\">Advanced Teaching/Research Quote</a></h3>{$button_add_quote}</div>
 			</div>
 			<div id=\"shopping_cart\" class=\"cell small-12 medium-3\"><h3>Shopping Cart</h3>
 				%s%s%s<hr />

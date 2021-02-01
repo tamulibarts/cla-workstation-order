@@ -1,5 +1,7 @@
 (function($){
 
+	$form = $('#cla_order_form');
+
 	// Remove product from shopping cart.
 	var removeProduct = function(e){
 
@@ -62,6 +64,7 @@
 
 		// Update total purchase price.
 		updateTotals();
+
 	};
 
 	// Get total cost of products.
@@ -88,6 +91,20 @@
 					price = parseFloat( price );
 			total += price;
 		}
+
+		// Get quote items total.
+		var $quotePrices = $form.find('.products-custom-quote .cla-quote-price');
+		var quoteTotal = 0;
+		$quotePrices.each(function(){
+
+			if ( this.value === '' || this.value === '.' ) {
+				floatval = 0;
+			} else {
+				floatval = parseFloat( this.value.replace(/\$|,/g, '') );
+			}
+			quoteTotal += floatval;
+		});
+		total += quoteTotal;
 
 		return total;
 
@@ -165,6 +182,109 @@
 
 	};
 
+	var removeQuoteFieldset = function(){
+
+		// Remove this item from the DOM.
+		$this = $(this);
+		$item = $this.parents('.cla-quote-item');
+		$item.remove();
+
+		// Update all indexes on existing elements.
+		$form.find('.cla-quote-item').each(function( index ){
+
+			var $this = $(this);
+			$this.attr('data-quote-index', index);
+
+			$this.find('label[for="cla_quote_"]').each(function(){
+				this.for = this.for.replace(/\d+/, index);
+			});
+
+			$this.find('input[name="cla_quote_"],textarea[name="cla_quote_"]').each(function(){
+				var newid = this.id.replace(/\d+/, index);
+				this.id = newid;
+				this.name = newid;
+			});
+
+		});
+
+		updateTotals();
+
+	};
+
+	var formatDollars = function( value ) {
+
+		if ( typeof value === 'string' ) {
+			value = parseFloat( value.replace(/\$|,/g,'') );
+		}
+
+		if ( value.length === 0 ) {
+			value = 0;
+		}
+
+		value = '$' + value.toFixed(2).replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1,");
+
+		return value;
+
+	};
+
+	var updateQuoteCartItem = function(e) {
+		var $this = $(this); // The price form field.
+		var index = parseInt( $this.parents('.cla-quote-item').attr('data-quote-index') );
+		var $cartItem = $( '#list_purchases .quote-item-' + index );
+		var price = $this.val();
+		price = formatDollars( price );
+		$cartItem.find('.price').html( price );
+	}
+
+	var addQuoteFieldset = function(){
+
+		// Create HTML.
+		var newIndex = $form.find('.cla-quote-item').length;
+		var html = '<div class="cla-quote-item grid-x grid-margin-x" data-quote-index="'+newIndex+'">';
+				html += '<div class="cell small-12 medium-4"><label for="cla_quote_'+newIndex+'_name">Name</label><input name="cla_quote_'+newIndex+'_name" id="cla_quote_'+newIndex+'_name" class="cla-quote-name" type="text" />';
+				html += '<label for="cla_quote_'+newIndex+'_price">Price</label><input name="cla_quote_'+newIndex+'_price" id="cla_quote_'+newIndex+'_price" class="cla-quote-price" type="number" min="0" /></div>';
+				html += '<div class="cell small-12 medium-4"><label for="cla_quote_'+newIndex+'_description">Description</label><textarea name="cla_quote_'+newIndex+'_description" id="cla_quote_'+newIndex+'_description" class="cla-quote-description" name="cla_quote_'+newIndex+'_description"></textarea></div>'
+				html += '<div class="cell small-12 medium-auto"><label for="cla_quote_'+newIndex+'_file">File</label><input name="cla_quote_'+newIndex+'_file" id="cla_quote_'+newIndex+'_file" class="cla-quote-file" type="file" accept=".pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"/></div>';
+				html += '<div class="cell small-12 medium-shrink"><button type="button" class="remove">Remove this quote item</button></div>';
+				html += '</div>';
+
+		// Add to page.
+		$form.find('.products-custom-quote .products').append(html);
+
+		// Add event handlers.
+		$item = $form.find('.cla-quote-item[data-quote-index="'+newIndex+'"]');
+		$item.find('.remove').on('click', removeQuoteFieldset);
+		$item.find('.cla-quote-price').on('keyup', updateQuoteCartItem);
+		$item.find('.cla-quote-price').on('keyup', updateTotals);
+
+		// Add element to shopping cart.
+		// Get elements and values.
+		var productName = 'Advanced Teaching/Research Item';
+		var strProductPrice = $item.find('.cla-quote-price').val();
+		if ( strProductPrice.length === 0 || strProductPrice === '.' ) {
+			strProductPrice = '$0.00';
+		} else {
+			var intProductPrice = parseFloat( strProductPrice.replace( /\$|,/g, '' ) );
+			strProductPrice = '$' + intProductPrice.toFixed(2).replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1,");
+		}
+
+		// Generate HTML elements for shopping cart listing.
+		var listItem = '<div class="cart-item quote-item quote-item-'+newIndex+' grid-x">';
+				listItem += '<div class="cell auto">'+productName+'</div>';
+				listItem += '<div class="cell shrink align-right bold"><button class="trash" type="button" data-quote-id="'+newIndex+'" data-product-price="'+strProductPrice+'">Remove product from cart</button><span class="price">'+strProductPrice+'</span></div>';
+				listItem += '</div>';
+
+		// Append item.
+		$('#list_purchases').append(listItem);
+
+		// Add event handlers
+		$('#list_purchases').find('.quote-item-'+newIndex+' .trash').on('click', removeProduct);
+
+		// Update total purchase price.
+		updateTotals();
+
+	};
+
 	var saveForm = function(){
 
 		$form = $('#cla_order_form');
@@ -180,7 +300,7 @@
 			$(this).find('option[value="'+val+'"]').attr('selected','selected');
 		});
 		var cloned = $form.clone(true);
-		console.log('cloned.html()',cloned.html());
+		// console.log('cloned.html()',cloned.html());
 		localStorage.setItem("cla-order-form", JSON.stringify(cloned.html()));
 
 	};
@@ -195,7 +315,6 @@
 	var validateForm = function(e){
 
 		var valid = true;
-		var $form = $('#cla_order_form');
 
 		// Remove flags.
 		$form.find('.flagged').removeClass('flagged');
@@ -256,6 +375,14 @@
 			$form.find('#products .toggle .btn').addClass('flagged');
 		}
 
+		// Quote Items.
+		$form.find('.cla-quote-price,.cla-quote-name,.cla-quote-description,.cla-quote-file').each(function(){
+			if ( this.value.length === 0 ) {
+				valid = false;
+				$(this).parent().find('label[for="' + this.id + '"]').addClass('flagged');
+			}
+		});
+
 		// Enable or disable the submit button.
 		if ( ! valid ) {
 			if ( typeof e === 'event' ) {
@@ -271,9 +398,9 @@
 	// validateForm();
 
 	// Add event handlers.
-	$form = $('#cla_order_form');
 	$('.add-product').on('click', addProductToCart);
 	$('#cla_contribution_amount').on('keyup', updateTotals);
+	$form.find('#cla_add_quote').on('click', addQuoteFieldset);
 	$form.find('textarea, input[type="text"], input[type="number"]').on('blur', saveForm);
 	$form.find('button[type="button"]').on('click', saveForm);
 	$form.on('submit', validateForm);
