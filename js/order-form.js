@@ -185,11 +185,14 @@
 	var removeQuoteFieldset = function(){
 
 		// Remove this item from the DOM.
-		$this = $(this);
-		$item = $this.parents('.cla-quote-item');
+		var $this = $(this);
+		var $item = $this.parents('.cla-quote-item');
+		var index = $item.attr('data-quote-index');
+		var $cartItem = $form.find('.cart-item.quote-item-'+index);
 		$item.remove();
+		$cartItem.remove();
 
-		// Update all indexes on existing elements.
+		// Update all indexes on existing elements in the form fields.
 		$form.find('.cla-quote-item').each(function( index ){
 
 			var $this = $(this);
@@ -205,6 +208,12 @@
 				this.name = newid;
 			});
 
+		});
+
+		// Update all indexes on existing elements in the shopping cart.
+		$form.find('#list_purchases .quote-item').each(function( index ){
+			this.className = this.className.replace( /quote-item-\d+/, 'quote-item-'+index );
+			$(this).find('.trash').attr( 'data-quote-id', index );
 		});
 
 		updateTotals();
@@ -228,12 +237,14 @@
 	};
 
 	var updateQuoteCartItem = function(e) {
+
 		var $this = $(this); // The price form field.
 		var index = parseInt( $this.parents('.cla-quote-item').attr('data-quote-index') );
 		var $cartItem = $( '#list_purchases .quote-item-' + index );
 		var price = $this.val();
-		price = formatDollars( price );
+				price = formatDollars( price );
 		$cartItem.find('.price').html( price );
+
 	}
 
 	var addQuoteFieldset = function(){
