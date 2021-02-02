@@ -15,6 +15,7 @@ module.exports = (grunt) ->
           ]
           failOnError: true
         files:
+          'css/admin.css': 'css/admin.css'
           'css/styles.css': 'css/styles.css'
           'css/order-form-template.css': 'css/order-form-template.css'
       dev:
@@ -25,6 +26,7 @@ module.exports = (grunt) ->
           ]
           failOnError: true
         files:
+          'css/admin.css': 'css/admin.css'
           'css/styles.css': 'css/styles.css'
           'css/order-form-template.css': 'css/order-form-template.css'
     sass:
@@ -36,6 +38,7 @@ module.exports = (grunt) ->
           precision: 2
           includePaths: ['node_modules/foundation-sites/scss']
         files:
+          'css/admin.css': 'css/src/admin.scss'
           'css/styles.css': 'css/src/styles.scss'
           'css/order-form-template.css': 'css/src/order-form-template.scss'
       dev:
@@ -46,6 +49,7 @@ module.exports = (grunt) ->
           precision: 2
           includePaths: ['node_modules/foundation-sites/scss']
         files:
+          'css/admin.css': 'css/src/admin.scss'
           'css/styles.css': 'css/src/styles.scss'
           'css/order-form-template.css': 'css/src/order-form-template.scss'
     sasslint:
