@@ -30,6 +30,7 @@ class Assets {
 
 		// Register global styles used in the theme.
 		add_action( 'admin_enqueue_scripts', array( $this, 'register_admin_styles' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'register_admin_scripts' ) );
 
 		// Enqueue extension styles.
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_styles' ) );
@@ -50,6 +51,23 @@ class Assets {
 			false,
 			filemtime( CLA_WORKSTATION_ORDER_DIR_PATH . 'css/admin.css' ),
 			'screen'
+		);
+
+	}
+
+	/**
+	 * Registers all scripts used within the plugin
+	 *
+	 * @since 1.0.0
+	 * @return void
+	 */
+	public static function register_admin_scripts() {
+
+		wp_register_script(
+			'cla-workstation-order-admin-script',
+			CLA_WORKSTATION_ORDER_DIR_URL . 'js/admin-wsorder.js',
+			false,
+			filemtime( CLA_WORKSTATION_ORDER_DIR_PATH . 'js/admin-wsorder.js' )
 		);
 
 	}
