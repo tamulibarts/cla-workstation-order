@@ -29,12 +29,18 @@ class WSOrder_PostType {
 		// Register_post_types.
 		add_action( 'init', array( $this, 'register_post_type' ) );
 		add_action( 'acf/init', array( $this, 'register_custom_fields' ) );
-		add_action( 'post_submitbox_misc_actions', array( $this, 'add_to_post_status_dropdown' ) );
+		add_action( 'post_submitbox_misc_actions', array( $this, 'post_status_add_to_dropdown' ) );
 		add_filter( 'display_post_states', array( $this, 'display_status_state' ) );
 		add_action( 'admin_print_scripts-post-new.php', array( $this, 'admin_script' ), 11 );
 		add_action( 'admin_print_scripts-post.php', array( $this, 'admin_script' ), 11 );
+		// Manipulate post title to force it to a certain format.
+		add_filter( 'default_title', array( $this, 'default_post_title' ) );
+		add_action( 'new_wsorder', array( $this, 'new_wsorder' ) );
+		add_filter( 'wp_insert_post_data', array( $this, 'insert_post_data' ), 11, 2);
 
-		add_action( 'transition_post_status', array( $this, 'notify_published' ), 10, 3 );
+		// Notify parties of changes to order status.
+		// add_action( 'transition_post_status', array( $this, 'notify_published' ), 10, 3 );
+
 	}
 
 	/**
@@ -106,7 +112,7 @@ class WSOrder_PostType {
 		}
 	}
 
-	public function add_to_post_status_dropdown() {
+	public function post_status_add_to_dropdown() {
 
 		global $post;
 		if( $post->post_type != 'wsorder' ) {
@@ -189,7 +195,144 @@ class WSOrder_PostType {
 	 * @return void
 	 */
 	public function register_custom_fields() {
+
 		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'fields/wsorder-fields.php';
+
+	}
+	/**
+	 * Create new wsorder post type for the very first time.
+	 * We will create the "order_id" post meta.
+	 */
+	function new_wsorder( $post_id, $post ){
+
+		// Get current program meta.
+		$current_program_post      = get_field( 'current_program', 'option' );
+		$current_program_id        = $current_program_post->ID;
+		$current_program_post_meta = get_post_meta( $current_program_id );
+		$current_program_prefix    = $current_program_post_meta['prefix'][0];
+
+		// Make post title using current program ID and incremented order ID from last order.
+		$args              = array(
+			'post_type'      => 'wsorder',
+			'post_status'    => 'any',
+			'posts_per_page' => 1,
+			'fields'         => 'ids',
+			'meta_query'     => array(
+				array(
+					'key'     => 'order_id',
+					'compare' => 'EXISTS'
+				),
+				array(
+					'key'     => 'program',
+					'compare' => '=',
+					'value'   => $current_program_id,
+				)
+			),
+		);
+		$the_query = new \WP_Query( $args, OBJECT );
+		$last_wsorder_posts = $the_query->posts;
+
+		// Figure out order ID.
+		$wsorder_id = 1;
+		if ( ! empty( $last_wsorder_posts ) ) {
+			$last_wsorder_id = (int) get_post_meta( $last_wsorder_posts[0], 'order_id', true );
+			$test = get_post_meta( $last_wsorder_posts[0], 'order_id', true );
+			echo '<script>console.log("' . gettype($test) . '");</script>';
+			$wsorder_id      = $last_wsorder_id + 1;
+		}
+
+		// Push order ID value to post details.
+		update_post_meta( $post_id, 'order_id', $wsorder_id );
+		$args = array(
+			'ID' => $post->ID,
+			'post_title' => "{$current_program_prefix}-{$wsorder_id}",
+		);
+		wp_update_post( $args );
+
+	}
+
+	/**
+	 * Make post title using current program ID and incremented order ID from last order.
+	 */
+	public function default_post_title() {
+
+		global $post_type;
+
+		if ('wsorder' === $post_type) {
+
+			$args              = array(
+				'post_type'      => 'wsorder',
+				'posts_per_page' => 1,
+			);
+			$last_wsorder_post = wp_get_recent_posts( $args, OBJECT );
+			$wsorder_id        = 1;
+			if ( ! empty( $last_wsorder_post ) ) {
+				$last_wsorder_id = (int) get_post_meta( $last_wsorder_post[0]->ID, 'order_id' );
+				$wsorder_id      = $last_wsorder_id + 1;
+			}
+
+			// Get current program meta.
+			$current_program_post      = get_field( 'current_program', 'option' );
+			$current_program_id        = $current_program_post->ID;
+			$current_program_post_meta = get_post_meta( $current_program_id );
+			$current_program_prefix    = $current_program_post_meta['prefix'][0];
+
+			// Push order ID value to post details.
+			return "{$current_program_prefix}-{$wsorder_id}";
+		}
+	}
+
+	public function insert_post_data ( $data, $postarr ) {
+
+		if ( $data['post_type'] !== 'wsorder' ) return;
+    if ( defined('DOING_AUTOSAVE') && DOING_AUTOSAVE ) return;
+
+    $post_id = $postarr['ID'];
+
+    if ( $post_id === 0 ) {
+
+    	// Post doesn't exist yet, so get order ID from last saved order.
+			$args              = array(
+				'post_type'      => 'wsorder',
+				'post_status'    => 'any',
+				'posts_per_page' => 1,
+				'fields'         => 'ids',
+				'meta_query'     => array(
+					array(
+						'key'     => 'order_id',
+						'compare' => 'EXISTS'
+					),
+				),
+			);
+			$the_query = new \WP_Query( $args, OBJECT );
+			$last_wsorder_posts = $the_query->posts;
+			$wsorder_id = 1;
+			if ( ! empty( $last_wsorder_posts ) ) {
+				$last_wsorder_id = (int) get_post_meta( $last_wsorder_posts[0], 'order_id' );
+				$wsorder_id      = $last_wsorder_id + 1;
+			}
+
+    } else {
+
+    	// Post exists, get order ID from post meta.
+	    $wsorder_id = get_post_meta( $post_id, 'order_id', true );
+
+    	// Update post meta for order ID.
+    	update_post_meta( $post_id, 'order_id', $wsorder_id );
+
+	  }
+
+		// Get current program meta.
+		$current_program_post      = get_field( 'current_program', 'option' );
+		$current_program_id        = $current_program_post->ID;
+		$current_program_post_meta = get_post_meta( $current_program_id );
+		$current_program_prefix    = $current_program_post_meta['prefix'][0];
+
+		// Set the post title value.
+    $data['post_title'] = "{$current_program_prefix}-{$wsorder_id}";
+
+    return $data;
+
 	}
 
 	/**

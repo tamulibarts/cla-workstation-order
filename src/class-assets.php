@@ -67,7 +67,8 @@ class Assets {
 			'cla-workstation-order-admin-script',
 			CLA_WORKSTATION_ORDER_DIR_URL . 'js/admin-wsorder.js',
 			false,
-			filemtime( CLA_WORKSTATION_ORDER_DIR_PATH . 'js/admin-wsorder.js' )
+			filemtime( CLA_WORKSTATION_ORDER_DIR_PATH . 'js/admin-wsorder.js' ),
+			true
 		);
 
 	}
