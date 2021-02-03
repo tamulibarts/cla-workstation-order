@@ -33,6 +33,55 @@ class WSOrder_PostType {
 		add_filter( 'display_post_states', array( $this, 'display_status_state' ) );
 		add_action( 'admin_print_scripts-post-new.php', array( $this, 'admin_script' ), 11 );
 		add_action( 'admin_print_scripts-post.php', array( $this, 'admin_script' ), 11 );
+		// Add columns to dashboard post list screen.
+		add_filter( 'manage_wsorder_posts_columns', function( $columns ){
+
+  	  $columns['amount']    = 'Amount';
+  	  $columns['it_status'] = 'IT';
+  	  $columns['business_status'] = 'Business';
+  	  $columns['logistics_status'] = 'Logistics';
+	    return $columns;
+
+		});
+		add_action( 'manage_wsorder_posts_custom_column', function( $column_name, $post_id ) {
+	    if( 'amount' === $column_name ) {
+        $number = get_post_meta( $post_id, 'products_subtotal', true );
+        if ( class_exists('NumberFormatter') ) {
+					$formatter = new \NumberFormatter('en_US', \NumberFormatter::CURRENCY);
+					echo $formatter->formatCurrency($number, 'USD');
+				} else {
+					echo '$' . number_format($number, 2,'.', ',');
+				}
+	    } else if ( 'it_status' === $column_name ) {
+	    	$status = get_field( 'it_rep_status', $post_id );
+	    	if ( empty( $status['confirmed'] ) ) {
+	    		echo 'Not yet confirmed';
+	    	} else {
+	    		echo 'Confirmed<br>';
+	    		echo $status['it_rep']['display_name'];
+	    	}
+	    } else if ( 'business_status' === $column_name ) {
+	    	$status = get_field( 'business_staff_status', $post_id );
+	    	if ( empty( $status['confirmed'] ) ) {
+	    		echo 'Not yet confirmed';
+	    	} else {
+	    		echo 'Confirmed<br>';
+	    		echo $status['business_staff']['display_name'];
+	    	}
+	    } else if ( 'logistics_status' === $column_name ) {
+	    	$status = get_field( 'it_logistics_status', $post_id );
+	    	if ( empty( $status['confirmed'] ) ) {
+	    		echo 'Not yet confirmed';
+	    	} else {
+	    		echo 'Confirmed; ';
+		    	if ( empty( $status['ordered'] ) ) {
+		    		echo 'Not fully ordered';
+		    	} else {
+		    		echo 'Ordered';
+		    	}
+	    	}
+	    }
+		}, 10, 2 );
 		// Manipulate post title to force it to a certain format.
 		// add_filter( 'default_title', array( $this, 'default_post_title' ) );
 		// add_action( 'new_wsorder', array( $this, 'new_wsorder' ) );
