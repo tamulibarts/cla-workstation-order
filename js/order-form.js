@@ -186,8 +186,8 @@
 
 		// Remove this item from the DOM.
 		var $this = $(this);
-		var $item = $this.parents('.cla-quote-item');
-		var index = $item.attr('data-quote-index');
+		var index = $this.attr('data-quote-index');
+		var $item = $form.find('.cla-quote-item[data-quote-index="'+index+'"]');
 		var $cartItem = $form.find('.cart-item.quote-item-'+index);
 		$item.remove();
 		$cartItem.remove();
@@ -216,6 +216,11 @@
 			$(this).find('.trash').attr( 'data-quote-id', index );
 		});
 
+		// Decrement quote counter.
+		var count = parseInt( $form.find('#cla_quote_count').val() );
+		$form.find('#cla_quote_count').val( count - 1 );
+
+		// Update totals.
 		updateTotals();
 
 	};
@@ -256,7 +261,7 @@
 				html += '<label for="cla_quote_'+newIndex+'_price">Price</label><input name="cla_quote_'+newIndex+'_price" id="cla_quote_'+newIndex+'_price" class="cla-quote-price" type="number" min="0" /></div>';
 				html += '<div class="cell small-12 medium-4"><label for="cla_quote_'+newIndex+'_description">Description</label><textarea name="cla_quote_'+newIndex+'_description" id="cla_quote_'+newIndex+'_description" class="cla-quote-description" name="cla_quote_'+newIndex+'_description"></textarea></div>'
 				html += '<div class="cell small-12 medium-auto"><label for="cla_quote_'+newIndex+'_file">File</label><input name="cla_quote_'+newIndex+'_file" id="cla_quote_'+newIndex+'_file" class="cla-quote-file" type="file" accept=".pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"/></div>';
-				html += '<div class="cell small-12 medium-shrink"><button type="button" class="remove">Remove this quote item</button></div>';
+				html += '<div class="cell small-12 medium-shrink"><button type="button" class="remove" data-quote-index="'+newIndex+'">Remove this quote item</button></div>';
 				html += '</div>';
 
 		// Add to page.
@@ -282,14 +287,18 @@
 		// Generate HTML elements for shopping cart listing.
 		var listItem = '<div class="cart-item quote-item quote-item-'+newIndex+' grid-x">';
 				listItem += '<div class="cell auto">'+productName+'</div>';
-				listItem += '<div class="cell shrink align-right bold"><button class="trash" type="button" data-quote-id="'+newIndex+'" data-product-price="'+strProductPrice+'">Remove product from cart</button><span class="price">'+strProductPrice+'</span></div>';
+				listItem += '<div class="cell shrink align-right bold"><button class="trash" type="button" data-quote-index="'+newIndex+'" data-product-price="'+strProductPrice+'">Remove product from cart</button><span class="price">'+strProductPrice+'</span></div>';
 				listItem += '</div>';
 
 		// Append item.
 		$('#list_purchases').append(listItem);
 
 		// Add event handlers
-		$('#list_purchases').find('.quote-item-'+newIndex+' .trash').on('click', removeProduct);
+		$('#list_purchases').find('.quote-item-'+newIndex+' .trash').on('click', removeQuoteFieldset);
+
+		// Increment quote counter.
+		var count = parseInt( $form.find('#cla_quote_count').val() );
+		$form.find('#cla_quote_count').val( count + 1 );
 
 		// Update total purchase price.
 		updateTotals();

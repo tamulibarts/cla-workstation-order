@@ -269,7 +269,7 @@
 		}
 
 		&:not(.active) .products {
-			@extend .show-for-sr;
+			display: none;
 		}
 	}
 

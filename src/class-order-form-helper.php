@@ -26,27 +26,6 @@ class Order_Form_Helper {
 	private static $file = __FILE__;
 
 	/**
-	 * Array of post meta keys pointing to department post ids in program posts.
-	 *
-	 * @var program_meta_keys_departments
-	 */
-	private $program_meta_keys_departments = array(
-		'assign_political_science_department_post_id',
-		'assign_sociology_department_post_id',
-		'assign_philosophy_humanities_department_post_id',
-		'assign_performance_studies_department_post_id',
-		'assign_international_studies_department_post_id',
-		'assign_history_department_post_id',
-		'assign_hispanic_studies_department_post_id',
-		'assign_english_department_post_id',
-		'assign_economics_department_post_id',
-		'assign_communication_department_post_id',
-		'assign_anthropology_department_post_id',
-		'assign_psychology_department_post_id',
-		'assign_dean_department_post_id',
-	);
-
-	/**
 	 * Initialize the class
 	 *
 	 * @since 1.0.0
@@ -63,6 +42,11 @@ class Order_Form_Helper {
 			'passed' => true,
 			'message' => '',
 		);
+
+		// No files to validate.
+		if ( empty( $files ) ) {
+			return $return;
+		}
 
 		// Throws a message if no file is selected
 		if ( ! $files['cla_quote_0_file']['name'] ) {
@@ -91,6 +75,37 @@ class Order_Form_Helper {
 
 	}
 
+	private function get_last_order_id( $program_post_id ) {
+
+		$args              = array(
+			'post_type'      => 'wsorder',
+			'post_status'    => 'any',
+			'posts_per_page' => 1,
+			'fields'         => 'ids',
+			'meta_query'     => array(
+				array(
+					'key'     => 'order_id',
+					'compare' => 'EXISTS'
+				),
+				array(
+					'key'     => 'program',
+					'compare' => '=',
+					'value'   => $program_post_id,
+				)
+			),
+		);
+		$the_query = new \WP_Query( $args );
+		$posts = $the_query->posts;
+		if ( ! empty( $posts ) ) {
+			$last_wsorder_id = (int) get_post_meta( $posts[0], 'order_id', true );
+		} else {
+			$last_wsorder_id = 0;
+		}
+
+		return $last_wsorder_id;
+
+	}
+
 	/**
 	 * After submission action hook
 	 *
@@ -105,34 +120,26 @@ class Order_Form_Helper {
 		$user    = wp_get_current_user();
 		$user_id = $user->get( 'ID' );
 
-		// Make post title using current program ID and incremented order ID from last order.
-		$args              = array(
-			'post_type'      => 'wsorder',
-			'posts_per_page' => 1,
-		);
-		$last_wsorder_post = wp_get_recent_posts( $args, OBJECT );
-		$wsorder_id        = 1;
-		if ( ! empty( $last_wsorder_post ) ) {
-			$last_wsorder_id = (int) get_post_meta( $last_wsorder_post[0]->ID, 'order_id' );
-			$wsorder_id      = $last_wsorder_id + 1;
-		}
-
 		// Get current program meta.
 		$current_program_post      = get_field( 'current_program', 'option' );
 		$current_program_id        = $current_program_post->ID;
 		$current_program_post_meta = get_post_meta( $current_program_id );
 		$current_program_prefix    = $current_program_post_meta['prefix'][0];
 
+		// Get new order post's order ID meta.
+		$last_wsorder_id = $this->get_last_order_id( $current_program_id );
+		$new_wsorder_id  = $last_wsorder_id + 1;
+
 		// Insert post.
 		$postarr = array(
 			'post_author'    => $user_id,
-			'post_status'    => 'draft',
+			'post_status'    => 'action_required',
 			'post_type'      => 'wsorder',
 			'comment_status' => 'closed',
-			'post_title'     => "{$current_program_prefix}-{$wsorder_id}",
+			'post_title'     => "{$current_program_prefix}-{$new_wsorder_id}",
 			'post_content'   => '',
 			'meta_input'     => array(
-				'order_id' => $wsorder_id,
+				'order_id' => $new_wsorder_id,
 			),
 		);
 		$post_id = wp_insert_post( $postarr, true );
@@ -140,33 +147,38 @@ class Order_Form_Helper {
 		if ( is_wp_error( $post_id ) ) {
 
 			// Failed to generate a new post.
-			// Send email to developer.
-			$link     = get_bloginfo( 'url' );
-			$form_id  = $form['id'];
-			$entry_id = $entry['id'];
-			$link    .= '/wp-admin/admin.php?page=gf_entries&view=entry&id=' . $form_id . '&lid=' . $entry_id . '&order=ASC&filter&paged=1&pos=0&field_id&operator';
-			$message  = 'Gravity Form for new orders failed to generate a new order post from <a href="$link">entry #$entry_id</a>';
-
-			wp_mail( 'zwatkins2@tamu.edu', 'Failed: Gravity Form Lead to Order Conversion Failed', $message );
-
-			return false;
+			error_log( $post_id );
+			return 0;
 
 		} else {
-
-			return $post_id;
 
 			// Get user's department.
 			$user_department_post    = get_field( 'department', "user_{$user_id}" );
 			$user_department_post_id = $user_department_post->ID;
 
 			// Get users assigned to active user's department for current program, as array.
-			$dept_assigned_users = array();
-			foreach ( $this->program_meta_keys_departments as $meta_key ) {
+			$program_meta_keys_departments = array(
+				'assign_political_science_department_post_id',
+				'assign_sociology_department_post_id',
+				'assign_philosophy_humanities_department_post_id',
+				'assign_performance_studies_department_post_id',
+				'assign_international_studies_department_post_id',
+				'assign_history_department_post_id',
+				'assign_hispanic_studies_department_post_id',
+				'assign_english_department_post_id',
+				'assign_economics_department_post_id',
+				'assign_communication_department_post_id',
+				'assign_anthropology_department_post_id',
+				'assign_psychology_department_post_id',
+				'assign_dean_department_post_id',
+			);
+			$dept_assigned_business_admin = array();
+			foreach ( $program_meta_keys_departments as $meta_key ) {
 				$assigned_dept = (int) $current_program_post_meta[ $meta_key ][0];
 				if ( $user_department_post_id === $assigned_dept ) {
-					$base_key                              = preg_replace( '/_department_post_id$/', '', $meta_key );
-					$dept_assigned_users['it_rep']         = $current_program_post_meta[ "{$base_key}_it_reps" ][0];
-					$dept_assigned_users['business_admin'] = $current_program_post_meta[ "{$base_key}_business_admins" ][0];
+					$base_key                     = preg_replace( '/_department_post_id$/', '', $meta_key );
+					$dept_assigned_business_admin = unserialize( $current_program_post_meta[ "{$base_key}_business_admins" ][0] );
+					$dept_assigned_business_admin = $dept_assigned_business_admin[0];
 					break;
 				}
 			}
@@ -177,78 +189,228 @@ class Order_Form_Helper {
 			 */
 
 			// Save customer user ID.
-			$field_key = 'field_5ffcc0a806823';
-			$value     = $user->get( 'ID' );
-			update_field( $field_key, $value, $post_id );
-
-			// Save form entry ID.
-			$field_key = 'field_5ffcc19d06827';
-			$value     = $entry['id'];
-			update_field( $field_key, $value, $post_id );
-
-			// Save contribution amount.
-			$field_key = 'field_5ffcc10806825';
-			$value     = $entry['10'];
-			update_field( $field_key, $value, $post_id );
-
-			// Save account number.
-			$field_key = 'field_5ffcc16306826';
-			$value     = $entry['12'];
-			update_field( $field_key, $value, $post_id );
-
-			// Save building location.
-			$field_key = 'field_6009bcb19bba2';
-			$value     = $entry['2'];
-			update_field( $field_key, $value, $post_id );
-
-			// Save office location.
-			$field_key = 'field_5ffcc21406828';
-			$value     = $entry['3'];
-			update_field( $field_key, $value, $post_id );
-
-			// Save current asset.
-			$field_key = 'field_5ffcc22006829';
-			$value     = $entry['4'];
-			update_field( $field_key, $value, $post_id );
-
-			// Save order comment.
-			$field_key = 'field_5ffcc22d0682a';
-			$value     = $entry['13'];
-			update_field( $field_key, $value, $post_id );
+			$value = $user->get( 'ID' );
+			update_field( 'user', $value, $post_id );
 
 			// Save program.
-			$field_key = 'field_5ffcc2590682b';
-			$value     = $current_program_id;
-			update_field( $field_key, $value, $post_id );
+			$value = $current_program_id;
+			update_field( 'program', $value, $post_id );
+
+			// Save building location.
+			$value = $data['cla_building_name'];
+			update_field( 'building', $value, $post_id );
+
+			// Save office location.
+			$value = $data['cla_room_number'];
+			update_field( 'office_location', $value, $post_id );
+
+			// Save contribution amount.
+			$value = $data['cla_contribution_amount'];
+			update_field( 'contribution_amount', $value, $post_id );
+
+			// Save account number.
+			$value = $data['cla_account_number'];
+			update_field( 'contribution_account', $value, $post_id );
+
+			// Save order comment.
+			$value = $data['cla_order_comments'];
+			update_field( 'order_comment', $value, $post_id );
+
+			// Save current asset.
+			$value = $data['cla_current_asset_number'];
+			update_field( 'current_asset', $value, $post_id );
+
+			// Save product subtotal.
+			$value = $data['cla_total_purchase'];
+			update_field( 'products_subtotal', $value, $post_id );
+
+			// Save no computer yet field.
+			if ( array_key_exists( 'cla_no_computer_yet', $data ) ) {
+				$value = $data['cla_no_computer_yet'];
+				update_field( 'i_dont_have_a_computer_yet', $value, $post_id );
+			}
 
 			// Save department IT Rep.
-			$field_key = 'field_5fff703a5289f';
-			$value     = $dept_assigned_users['it_rep'];
-			update_field( $field_key, $value, $post_id );
+			// $value = $dept_assigned_users['it_rep'];
+			$value = $data['cla_it_rep_id'];
+			update_field( 'it_rep_status', array( 'it_rep' => $value ), $post_id );
 
 			// Save department Business Admin.
-			$field_key = 'field_5fff70b84ffe4';
-			$value     = $dept_assigned_users['business_admin'];
-			update_field( $field_key, $value, $post_id );
-
-			// Save order items.
-			$field_key = 'field_5ffcc2b90682c';
+			$value = $dept_assigned_business_admin;
+			update_field( 'business_staff_status', array( 'business_staff' => $value ), $post_id );
 
 			/**
-			// Save order status.
-			$field_key = 'field_5ffe12e5d0bcd';
-			$value     = array( 'Action Required' );
-			update_field( $field_key, $value, $post_id );
-			// Save IT staff status.
-			$field_key = 'field_5ffcc41c0682f';
-			$value     = $entry['1'];
-			update_field( $field_key, $value, $post_id );
-			// Save processing staff status.
-			// Processing staff is determined by a "program".
-			// A "program" determines people per department and role.
-			$field_key = 'field_5ffcc3cc0682e';
-			*/
+			 * Handle quote fields and file uploads.
+			 */
+			// These files need to be included as dependencies when on the front end.
+			require_once( ABSPATH . 'wp-admin/includes/image.php' );
+			require_once( ABSPATH . 'wp-admin/includes/file.php' );
+			require_once( ABSPATH . 'wp-admin/includes/media.php' );
+
+			// Let WordPress handle the upload.
+			// Remember, 'cla_quote_0_file' is the name of our file input in our form above.
+			// Here post_id is 0 because we are not going to attach the media to any post.
+			$quote_count  = $data['cla_quote_count'];
+			if ( $quote_count > 0 ) {
+
+				$quote_fields = array();
+				for ($i=0; $i < $quote_count; $i++) {
+
+					$quote_fields[$i] = array(
+						'name'        => $data["cla_quote_{$i}_name"],
+						'price'       => $data["cla_quote_{$i}_price"],
+						'description' => $data["cla_quote_{$i}_description"],
+					);
+
+					// Handle uploading quote file.
+					$attachment_id = media_handle_upload( "cla_quote_{$i}_file", 0 );
+					if ( is_wp_error( $attachment_id ) ) {
+						// There was an error uploading the image.
+						error_log($attachment_id->get_error_message());
+					} else {
+						// Attach file.
+						$quote_fields[$i]['file'] = $attachment_id;
+					}
+
+				}
+				update_field( 'quotes', $quote_fields, $post_id );
+
+			}
+
+			/**
+			 * Save product information.
+			 */
+			$product_post_ids = preg_replace('/^,|,$/', '', $data['cla_product_ids']);
+			$product_post_ids = explode( ',', $product_post_ids );
+			$product_count    = count( $product_post_ids );
+			if ( $product_count > 0 ) {
+
+				$product_fields   = array();
+				for ($i=0; $i < $product_count; $i++) {
+					$product_fields[$i] = array(
+						'sku' => get_field( 'sku', $product_post_ids[$i] ),
+						'item' => get_the_title( $product_post_ids[$i] ),
+						'price' => get_field( 'price', $product_post_ids[$i] ),
+					);
+				}
+				update_field( 'order_items', $product_fields, $post_id );
+
+			}
+
 		}
+
+		return $post_id;
+	}
+
+	public function get_product_post_objects_for_program_by_user_dept( $category = false ) {
+
+		// Get current user and user ID.
+		$user    = wp_get_current_user();
+		$user_id = $user->get( 'ID' );
+
+		// Get user's department.
+		$user_department_post    = get_field( 'department', "user_{$user_id}" );
+		$user_department_post_id = $user_department_post->ID;
+
+		// Retrieve products for the current program year.
+		$current_program_post      = get_field( 'current_program', 'option' );
+		$current_program_id        = $current_program_post->ID;
+		$current_program_post_meta = get_post_meta( $current_program_id );
+
+		// Filter out hidden products for department.
+		$hidden_products = get_post_meta( $user_department_post_id, 'hidden_products', true );
+
+		// Find the posts.
+		$args          = array(
+			'post_type'  => 'product',
+			'nopaging'   => true,
+			'post__not_in' => $hidden_products,
+			'meta_query' => array( //phpcs:ignore
+				'relation' => 'AND',
+				array(
+					'key'   => 'program', //phpcs:ignore
+					'value' => $current_program_id, //phpcs:ignore
+					'compare' => '=',
+				),
+				array(
+					'relation' => 'OR',
+					array(
+						'key'     => 'visibility',
+						'compare' => 'NOT EXISTS',
+					),
+					array(
+						'relation' => 'AND',
+						array(
+							'key'     => 'visibility_archived',
+							'value'   => '1',
+							'compare' => '!='
+						),
+						array(
+							'key'     => 'visibility_bundle_only',
+							'value'   => '1',
+							'compare' => '!='
+						),
+					),
+				),
+			),
+		);
+
+		// Return product category only, if chosen.
+		if ( false !== $category ) {
+			$args['tax_query'] = array(
+				array(
+					'taxonomy' => 'product-category',
+					'field'    => 'slug',
+					'terms'    => $category,
+				)
+			);
+		}
+		$products      = new \WP_Query( $args );
+		$product_posts = $products->posts;
+
+		return $product_posts;
+
+	}
+
+	public function cla_get_products( $category = false ) {
+
+		/**
+		 * Display products.
+		 */
+		$product_posts = $this->get_product_post_objects_for_program_by_user_dept( $category );
+
+		// Output posts.
+		$output = '<div class="products grid-x grid-margin-x grid-margin-y">';
+		foreach ( $product_posts as $key => $post ) {
+
+			// Define the card variables.
+			$post_id     = $post->ID;
+			$permalink   = get_permalink($post->ID);
+			$post_title  = $post->post_title;
+			$price       = (int) get_post_meta( $post->ID, 'price', true );
+			$price       = number_format( $price, 2, '.', ',' );
+			$thumbnail   = get_the_post_thumbnail( $post, 'post-thumbnail', 'style=""' );
+			$thumbnail   = preg_replace( '/ style="[^"]*"/', '', $thumbnail );
+			$description = get_post_meta( $post->ID, 'description', true );
+			$more_info   = get_post_meta( $post->ID, 'descriptors', true );
+
+			// Build the card output.
+			$output .= "<div id=\"product-{$post_id}\" class=\"card cell small-12 medium-3\">";
+			$output .= "<h5 class=\"card-header\"><a class=\"post-title post-title-{$post_id}\" href=\"{$permalink}\">{$post_title}</a></h5>";
+			$output .= "<div class=\"card-body\">{$thumbnail}<p>$description</p></div>";
+			$output .= "<div class=\"card-footer\"><div class=\"grid-x grid-padding-x grid-padding-y\">";
+			$output .= "<div class=\"more-details-wrap align-left cell shrink\"><button class=\"more-details link\" type=\"button\">More Details<div class=\"info\">$more_info</div></button></div>";
+			$output .= "<div class=\"cell auto align-right display-price price-{$post_id}\">\${$price}</div>";
+			$output .= "<div class=\"cart-cell cell small-12 align-left\"><button id=\"cart-btn-{$post_id}\" data-product-id=\"{$post_id}\" data-product-price=\"\${$price}\" type=\"button\" class=\"add-product\">Add</button></div>";
+			$output .= "</div></div>";
+			$output .= "</div>";
+
+		}
+		$output .= '</div>';
+
+		$return = wp_kses_post( $output );
+		return $output;
+
 	}
 
 }

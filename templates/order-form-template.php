@@ -57,117 +57,6 @@ add_action( 'wp_enqueue_scripts', 'cla_workstation_order_form_scripts', 1 );
 
 get_header();
 
-function get_product_post_objects_for_program_by_user_dept( $category = false ) {
-
-	// Get current user and user ID.
-	$user    = wp_get_current_user();
-	$user_id = $user->get( 'ID' );
-
-	// Get user's department.
-	$user_department_post    = get_field( 'department', "user_{$user_id}" );
-	$user_department_post_id = $user_department_post->ID;
-
-	// Retrieve products for the current program year.
-	$current_program_post      = get_field( 'current_program', 'option' );
-	$current_program_id        = $current_program_post->ID;
-	$current_program_post_meta = get_post_meta( $current_program_id );
-
-	// Filter out hidden products for department.
-	$hidden_products = get_post_meta( $user_department_post_id, 'hidden_products', true );
-
-	// Find the posts.
-	$args          = array(
-		'post_type'  => 'product',
-		'nopaging'   => true,
-		'post__not_in' => $hidden_products,
-		'meta_query' => array( //phpcs:ignore
-			'relation' => 'AND',
-			array(
-				'key'   => 'program', //phpcs:ignore
-				'value' => $current_program_id, //phpcs:ignore
-				'compare' => '=',
-			),
-			array(
-				'relation' => 'OR',
-				array(
-					'key'     => 'visibility',
-					'compare' => 'NOT EXISTS',
-				),
-				array(
-					'relation' => 'AND',
-					array(
-						'key'     => 'visibility_archived',
-						'value'   => '1',
-						'compare' => '!='
-					),
-					array(
-						'key'     => 'visibility_bundle_only',
-						'value'   => '1',
-						'compare' => '!='
-					),
-				),
-			),
-		),
-	);
-
-	// Return product category only, if chosen.
-	if ( false !== $category ) {
-		$args['tax_query'] = array(
-			array(
-				'taxonomy' => 'product-category',
-				'field'    => 'slug',
-				'terms'    => $category,
-			)
-		);
-	}
-	$products      = new \WP_Query( $args );
-	$product_posts = $products->posts;
-
-	return $product_posts;
-
-}
-
-function cla_get_products( $category = false ) {
-
-	/**
-	 * Display products.
-	 */
-	$product_posts = get_product_post_objects_for_program_by_user_dept( $category );
-
-	// Output posts.
-	$output = '<div class="products grid-x grid-margin-x grid-margin-y">';
-	foreach ( $product_posts as $key => $post ) {
-
-		// Define the card variables.
-		$post_id     = $post->ID;
-		$permalink   = get_permalink($post->ID);
-		$post_title  = $post->post_title;
-		$price       = (int) get_post_meta( $post->ID, 'price', true );
-		$price       = number_format( $price, 2, '.', ',' );
-		$thumbnail   = get_the_post_thumbnail( $post, 'post-thumbnail', 'style=""' );
-		$thumbnail   = preg_replace( '/ style="[^"]*"/', '', $thumbnail );
-		$description = get_post_meta( $post->ID, 'description', true );
-		$more_info   = get_post_meta( $post->ID, 'descriptors', true );
-
-		// Build the card output.
-		$output .= "<div id=\"product-{$post_id}\" class=\"card cell small-12 medium-3\">";
-		$output .= "<h5 class=\"card-header\"><a class=\"post-title post-title-{$post_id}\" href=\"{$permalink}\">{$post_title}</a></h5>";
-		$output .= "<div class=\"card-body\">{$thumbnail}<p>$description</p></div>";
-		$output .= "<div class=\"card-footer\"><div class=\"grid-x grid-padding-x grid-padding-y\">";
-		$output .= "<div class=\"more-details-wrap align-left cell shrink\"><button class=\"more-details link\" type=\"button\">More Details<div class=\"info\">$more_info</div></button></div>";
-		$output .= "<div class=\"cell auto align-right display-price price-{$post_id}\">\${$price}</div>";
-		$output .= "<div class=\"cart-cell cell small-12 align-left\"><button id=\"cart-btn-{$post_id}\" data-product-id=\"{$post_id}\" data-product-price=\"\${$price}\" type=\"button\" class=\"add-product\">Add</button></div>";
-		$output .= "</div></div>";
-		$output .= "</div>";
-
-	}
-	$output .= '</div>';
-
-	$return = wp_kses_post( $output );
-	return $output;
-
-}
-
 ?><div id="primary" class="content-area"><main id="main" class="site-main">
 <h1><?php the_title(); ?></h1>
 					   <?php
@@ -181,6 +70,7 @@ function cla_get_products( $category = false ) {
 						the_content();
 
 						$output_form = true;
+						$validation_message = '';
 
 						if ( isset( $_POST['cla_submit'] ) ) {
 
@@ -189,16 +79,11 @@ function cla_get_products( $category = false ) {
 								&& wp_verify_nonce( $_POST['the_superfluous_nonceity_n8me'], 'verify_order_form_nonce8' )
 							) {
 
-								echo '<pre>';
-								print_r( $_POST );
-								echo '</pre>';
-
 								$output_form = false;
-								$validation_message = '';
 
 								// Validate file form fields.
 								$validate_files     = $cla_form_helper->validate_file_field( $_FILES );
-								$output_form        = $validate_files['passed'];
+								$output_form        = ! $validate_files['passed'];
 								$validation_message .= $validate_files['message'];
 
 							}
@@ -206,6 +91,9 @@ function cla_get_products( $category = false ) {
 
 						if ( $output_form ) {
 
+							/**
+							 * Build and output the form.
+							 */
 							// Get current user and user ID.
 							$user      = wp_get_current_user();
 							$user_id   = $user->get( 'ID' );
@@ -273,9 +161,9 @@ function cla_get_products( $category = false ) {
 							/**
 							 * Get product categories.
 							 */
-							$apple_list = cla_get_products('apple');
-							$pc_list = cla_get_products('pc');
-							$addons_list = cla_get_products('add-on');
+							$apple_list = $cla_form_helper->cla_get_products('apple');
+							$pc_list = $cla_form_helper->cla_get_products('pc');
+							$addons_list = $cla_form_helper->cla_get_products('add-on');
 
 							/**
 							 * Purchased product IDs field.
@@ -304,6 +192,11 @@ function cla_get_products( $category = false ) {
 							$button_add_quote = '<div class="products"><button type="button" id="cla_add_quote">Add an Advanced Teaching/Research Quote</button></div>';
 
 							/**
+							 * Store number of quotes.
+							 */
+							$count_quotes = '<input type="hidden" id="cla_quote_count" name="cla_quote_count" value="0" />';
+
+							/**
 							 * Submit button.
 							 */
 							$submit_button = '<input type="submit" id="cla_submit" name="cla_submit" value="Place Order">';
@@ -317,7 +210,7 @@ function cla_get_products( $category = false ) {
 							 * Form
 							 */
 							$permalink = get_permalink();
-							$search_form  = "<div id=\"cla_order_form_wrap\">
+							$search_form = "{$validation_message}<div id=\"cla_order_form_wrap\">
 	<form method=\"post\" enctype=\"multipart/form-data\" id=\"cla_order_form\" action=\"{$permalink}\">
 		<div class=\"grid-x grid-margin-x\"><div class=\"cell medium-6\">{$order_info}</div><div class=\"cell medium-6\">{$additional_funding}</div></div><hr />
 		<div class=\"grid-x grid-margin-x\"><div class=\"cell medium-6\">
@@ -334,30 +227,29 @@ function cla_get_products( $category = false ) {
 		</div>
 		<div class=\"grid-x grid-margin-x\">
 			<div id=\"products\" class=\"cell small-12 medium-auto\">
-				<div class=\"products-apple toggle\"><h3><a class=\"btn\">Apple</a></h3>{$apple_list}</div>
-				<div class=\"products-pc toggle\"><h3><a class=\"btn\">PC</a></h3>{$pc_list}</div>
-				<div class=\"products-addons toggle\"><h3><a class=\"btn\">Add Ons</a></h3>{$addons_list}</div>
-				<div class=\"products-custom-quote toggle\"><h3><a class=\"btn\">Advanced Teaching/Research Quote</a></h3>{$button_add_quote}</div>
+				<div class=\"products-apple toggle\"><h3><a class=\"btn\" href=\"javascript:;\">Apple</a></h3>{$apple_list}</div>
+				<div class=\"products-pc toggle\"><h3><a class=\"btn\" href=\"javascript:;\">PC</a></h3>{$pc_list}</div>
+				<div class=\"products-addons toggle\"><h3><a class=\"btn\" href=\"javascript:;\">Add Ons</a></h3>{$addons_list}</div>
+				<div class=\"products-custom-quote toggle\"><h3><a class=\"btn\" href=\"javascript:;\">Advanced Teaching/Research Quote</a></h3>{$button_add_quote}</div>
 			</div>
 			<div id=\"shopping_cart\" class=\"cell small-12 medium-3\"><h3>Shopping Cart</h3>
-				%s%s%s<hr />
+				{$count_quotes}{$purchase_field}{$total_purchase_field}{$list_purchases}<hr />
 				<div class=\"grid-x\">
 					<div class=\"cell shrink\">Products Total:</div>
 					<div id=\"products_total\" class=\"cell auto align-right\">$0.00</div>
 				</div>
-				<div id=\"allocation-data\" class=\"grid-x hidden\" data-allocation=\"%s\" data-allocation-threshold=\"%s\">
+				<div id=\"allocation-data\" class=\"grid-x hidden\" data-allocation=\"{$allocation}\" data-allocation-threshold=\"{$allocation_threshold}\">
 					<div class=\"cell shrink\">Contribution Needed:</div>
 					<div id=\"contribution_needed\" class=\"cell auto align-right\">$0.00</div>
 				</div>
 				<hr />
-				<div>%s%s</div>
+				<div>{$submit_button}{$nonce_field}</div>
 				<div class=\"flagged-instructions hidden\">Please address the flagged items.</div>
 			</div>
 		</div>
 	</form>
 </div>";
 
-							$search_form  = sprintf( $search_form, $purchase_field, $total_purchase_field, $list_purchases, $allocation, $allocation_threshold, $submit_button, $nonce_field );
 							$allowed_html = array(
 								'form'     => array(
 									'method'  => array(),
@@ -436,28 +328,8 @@ function cla_get_products( $category = false ) {
 							 */
 							$post_id = $cla_form_helper->create_post( $_POST );
 
-							/**
-							 * Handle file uploads.
-							 */
-							// These files need to be included as dependencies when on the front end.
-							require_once( ABSPATH . 'wp-admin/includes/image.php' );
-							require_once( ABSPATH . 'wp-admin/includes/file.php' );
-							require_once( ABSPATH . 'wp-admin/includes/media.php' );
-
-							// Let WordPress handle the upload.
-							// Remember, 'cla_quote_0_file' is the name of our file input in our form above.
-							// Here post_id is 0 because we are not going to attach the media to any post.
-							$attachment_id = media_handle_upload( 'cla_quote_0_file', 0 );
-
-							if ( is_wp_error( $attachment_id ) ) {
-								// There was an error uploading the image.
-								error_log($attachment_id->get_error_message());
-								$output_form = true;
-							} else {
-								echo get_the_permalink( $attachment_id );
-							}
 							?>
-	<div id="respond">Validated.</div>
+							<div id="respond">You have successfully submitted your order.</div>
 							<?php
 						}
 					}
