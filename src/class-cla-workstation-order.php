@@ -45,10 +45,6 @@ class CLA_Workstation_Order {
 		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-assets.php';
 		new \CLA_Workstation_Order\Assets();
 
-		// Handle GravityForms leads.
-		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-leads-into-orders.php';
-		new \CLA_Workstation_Order\Leads_Into_Orders();
-
 		// Create post types.
 		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-wsorder-posttype.php';
 		new \CLA_Workstation_Order\WSOrder_PostType();
@@ -64,15 +60,6 @@ class CLA_Workstation_Order {
 
 		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-department-posttype.php';
 		new \CLA_Workstation_Order\Department_PostType();
-
-		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-order-form-mods.php';
-		new \CLA_Workstation_Order\Order_Form_Mods();
-
-		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-shortcode-department-products.php';
-		new \CLA_Workstation_Order\Shortcode_Department_Products();
-
-		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-products-in-form.php';
-		new \CLA_Workstation_Order\Products_In_Form();
 
 		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-pagetemplate.php';
 		$order_form = new \CLA_Workstation_Order\PageTemplate( CLA_WORKSTATION_ORDER_TEMPLATE_PATH, 'order-form-template.php', 'Order Form' );
