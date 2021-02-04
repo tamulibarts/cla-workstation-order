@@ -116,7 +116,7 @@ class Program_PostType {
     	echo $field;
     } else if ( 'orders' === $column_name ) {
     	$admin_url = admin_url();
-    	echo "<a href=\"{$admin_url}/edit.php?post_type=wsorder&program={$post_id}\">Orders</a>";
+    	echo "<a href=\"{$admin_url}edit.php?post_type=wsorder&program={$post_id}\">Orders</a>";
     }
 	}
 

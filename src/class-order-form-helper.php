@@ -299,7 +299,28 @@ class Order_Form_Helper {
 
 		}
 
+		$this->send_confirmation_email( "{$current_program_prefix}-{$new_wsorder_id}", $user, $data['cla_it_rep_id'], $post_id, $data );
+
 		return $post_id;
+
+	}
+
+	private function send_confirmation_email( $order_name, $current_user, $it_rep_id, $post_id, $data ) {
+
+		$current_user_name  = $current_user->display_name;
+		$current_user_email = $current_user->user_email;
+		$it_rep_user        = get_userdata( $it_rep_id );
+		$it_rep_email       = $it_rep_user->user_email;
+		$order_name         = $data[];
+		$headers            = array('Content-Type: text/html; charset=UTF-8');
+
+		// Email end user.
+		wp_mail( $current_user_email, "Workstation Order Received", '<p>Thank you,</p><p>Please allow us up to 2 business days to process your request.</p><p><em>This email was sent from an unmonitored email address. Please do not reply to this email.</em></p>', $headers );
+
+		// Email IT Rep.
+		$admin_url = admin_url();
+		wp_mail( $it_rep_email, "Order submitted for {$order_name}", '<p>Hello,</p><p>{$current_user_name} has submitted an order: <a href="{$admin_url}post.php?post={$post_id}&action=edit">{$order_name}</a>.</p><p><em>This email was sent from an unmonitored email address. Please do not reply to this email.</em></p>', $headers );
+
 	}
 
 	public function get_product_post_objects_for_program_by_user_dept( $category = false ) {

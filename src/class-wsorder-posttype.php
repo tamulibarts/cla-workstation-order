@@ -44,7 +44,7 @@ class WSOrder_PostType {
 		// add_filter( 'wp_insert_post_data', array( $this, 'insert_post_data' ), 11, 2);
 
 		// Notify parties of changes to order status.
-		// add_action( 'transition_post_status', array( $this, 'notify_published' ), 10, 3 );
+		add_action( 'transition_post_status', array( $this, 'notify_users' ), 10, 3 );
 
 	}
 
@@ -414,40 +414,6 @@ class WSOrder_PostType {
 
 	}
 
-	/**
-	 * Notify users based on their association to the wsorder post and the new status of the post.
-	 *
-	 * @since 0.1.0
-	 * @param string  $new_status The post's new status.
-	 * @param string  $old_status The post's old status.
-	 * @param WP_Post $post       The post object.
-	 * @return void
-	 */
-	public function notify_published( $new_status, $old_status, $post ) {
-
-		if ( 'wsorder' !== $post->post_type ) {
-			return;
-		}
-		$message              = '';
-		$message .= serialize( $_POST ); //phpcs:ignore
-		$message .= serialize( $post ); //phpcs:ignore
-		if ( isset( $_POST['acf'] ) ) {
-			$it_rep_user_id       = $_POST['acf']['field_5fff6b46a22af']['field_5fff703a5289f']; //phpcs:ignore
-			$it_rep_user_id_saved = get_post_meta( $post->ID, 'it_rep_status_it_rep' );
-			$message             .= $it_rep_user_id . ' : ' . $it_rep_user_id_saved;
-		}
-		wp_mail( 'zwatkins2@tamu.edu', 'order published', $message );
-		if (
-			( 'publish' === $new_status && 'publish' !== $old_status )
-			&& 'wsorder' === $post->post_type
-		) {
-			$message  = serialize( $_GET ); //phpcs:ignore
-			$message .= serialize( $_POST ); //phpcs:ignore
-			$message .= serialize( $post ); //phpcs:ignore
-			wp_mail( 'zwatkins2@tamu.edu', 'order published', $message );
-		}
-	}
-
 	public function add_list_view_columns( $columns ){
 
 	  $status = array('status' => '');
@@ -528,5 +494,76 @@ class WSOrder_PostType {
 		    $query->query_vars['name'] = '';
 	    }
 		}
+	}
+
+	/**
+	 * Notify users based on their association to the wsorder post and the new status of the post.
+	 *
+	 * @since 0.1.0
+	 * @param string  $new_status The post's new status.
+	 * @param string  $old_status The post's old status.
+	 * @param WP_Post $post       The post object.
+	 * @return void
+	 */
+	public function notify_users( $new_status, $old_status, $post ) {
+
+		if ( 'wsorder' !== $post->post_type ) {
+			return;
+		}
+	    // [acf] => Array
+      //   (
+      //       [field_5ffcc0a806823] =>
+      //       [field_60074b5ee982b] =>
+      //       [field_5ffcc10806825] =>
+      //       [field_5ffcc16306826] =>
+      //       [field_6009bcb19bba2] =>
+      //       [field_5ffcc21406828] =>
+      //       [field_5ffcc22006829] =>
+      //       [field_60187cc11415d] => 0
+      //       [field_5ffcc22d0682a] =>
+      //       [field_5ffcc2590682b] => 240
+      //       [field_5ffcc2b90682c] =>
+      //       [field_600858275c27f] =>
+      //       [field_5fff6b46a22af] => Array
+      //           (
+      //               [field_5fff703a5289f] =>
+      //               [field_5fff6b71a22b0] => 0
+      //           )
+
+      //       [field_5fff6ec0e2f7e] => Array
+      //           (
+      //               [field_5fff70b84ffe4] =>
+      //               [field_5fff6ec0e4385] => 0
+      //           )
+
+      //       [field_5fff6f3cee555] => Array
+      //           (
+      //               [field_5fff6f3cef757] => 0
+      //               [field_60074e2222cee] => 0
+      //           )
+
+      //   )
+    	// [ID] => 2828
+		// echo '<pre>';
+		// print_r($_POST);
+		// echo '</pre>';
+		// $message              = '';
+		// $message .= serialize( $_POST ); //phpcs:ignore
+		// $message .= serialize( $post ); //phpcs:ignore
+		if ( isset( $_POST['acf'] ) ) {
+			$it_rep_user_id       = $_POST['acf']['field_5fff6b46a22af']['field_5fff703a5289f']; //phpcs:ignore
+			$it_rep_user_id_saved = get_post_meta( $post->ID, 'it_rep_status_it_rep' );
+			$message             .= $it_rep_user_id . ' : ' . $it_rep_user_id_saved;
+		}
+		// wp_mail( 'zwatkins2@tamu.edu', 'order published', $message );
+		// if (
+		// 	( 'publish' === $new_status && 'publish' !== $old_status )
+		// 	&& 'wsorder' === $post->post_type
+		// ) {
+		// 	$message  = serialize( $_GET ); //phpcs:ignore
+		// 	$message .= serialize( $_POST ); //phpcs:ignore
+		// 	$message .= serialize( $post ); //phpcs:ignore
+		// 	wp_mail( 'zwatkins2@tamu.edu', 'order published', $message );
+		// }
 	}
 }
