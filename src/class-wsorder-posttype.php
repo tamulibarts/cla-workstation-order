@@ -507,9 +507,10 @@ class WSOrder_PostType {
 	 */
 	public function notify_users( $new_status, $old_status, $post ) {
 
-		if ( 'wsorder' !== $post->post_type ) {
+		if ( $old_status === $new_status || 'wsorder' !== $post->post_type ) {
 			return;
 		}
+
 	    // [acf] => Array
       //   (
       //       [field_5ffcc0a806823] =>
@@ -550,11 +551,11 @@ class WSOrder_PostType {
 		// $message              = '';
 		// $message .= serialize( $_POST ); //phpcs:ignore
 		// $message .= serialize( $post ); //phpcs:ignore
-		if ( isset( $_POST['acf'] ) ) {
-			$it_rep_user_id       = $_POST['acf']['field_5fff6b46a22af']['field_5fff703a5289f']; //phpcs:ignore
-			$it_rep_user_id_saved = get_post_meta( $post->ID, 'it_rep_status_it_rep' );
-			$message             .= $it_rep_user_id . ' : ' . $it_rep_user_id_saved;
-		}
+		// if ( isset( $_POST['acf'] ) ) {
+		// 	$it_rep_user_id       = $_POST['acf']['field_5fff6b46a22af']['field_5fff703a5289f']; //phpcs:ignore
+		// 	$it_rep_user_id_saved = get_post_meta( $post->ID, 'it_rep_status_it_rep' );
+		// 	$message              .= $it_rep_user_id . ' : ' . $it_rep_user_id_saved;
+		// }
 		// wp_mail( 'zwatkins2@tamu.edu', 'order published', $message );
 		// if (
 		// 	( 'publish' === $new_status && 'publish' !== $old_status )
@@ -565,5 +566,120 @@ class WSOrder_PostType {
 		// 	$message .= serialize( $post ); //phpcs:ignore
 		// 	wp_mail( 'zwatkins2@tamu.edu', 'order published', $message );
 		// }
+
+		/**
+		 * Once IT Rep has confirmed, if business approval needed ->
+		 * subject: [{$order_id}] Workstation Order Approval - {$department_abbreviation} - {$end_user}
+		 * to: business user
+		 * body: email_body_it_rep_to_business( $post->ID, $_POST['acf'] )
+		 */
+	}
+
+	private function email_body_it_rep_to_business( $order_post_id, $acf_data ) {
+
+		$program_name    = get_the_title( $acf_data['field_5ffcc2590682b'] );
+		$addfund_amount  = $acf_data['field_5ffcc10806825'];
+		$addfund_account = $acf_data['field_5ffcc16306826'];
+		$admin_order_url = admin_url() . "post.php?post={$order_post_id}&action=edit";
+		$message         = "<p>
+  Howdy<br />
+  <strong>There is a new {$program_name} order that requires your attention for financial resolution.</strong></p>
+<p>
+  {$user_name} elected to contribute additional funds toward their order in the amount of {$addfund_amount}. An account reference of \"{$addfund_account}\" needs to be confirmed or replaced with the correct account number that will be used on the official requisition.
+</p>
+<p>
+  You can view the order at this link: {$admin_order_url}.
+</p>
+<p>
+  Have a great day!<br />
+  <em>-Liberal Arts IT</em>
+</p>
+<p><em>This email was sent from an unmonitored email address. Please do not reply to this email.</em></p>";
+
+  	return $message;
+
+	}
+
+	private function email_body_to_logistics( $order_post_id, $acf_data ) {
+
+		$program_name    = get_the_title( $acf_data['field_5ffcc2590682b'] );
+		$admin_order_url = admin_url() . "post.php?post={$order_post_id}&action=edit";
+		$message         = "<p><strong>There is a new {$program_name} order that requires your approval.</strong></p>
+<p>
+  Please review this order carefully for any errors or omissions, then approve order for purchasing.
+</p>
+<p>
+  You can view the order at this link: {$admin_order_url}.
+</p>
+<p>
+  Have a great day!<br />
+  <em>-Liberal Arts IT</em>
+</p>
+<p><em>This email was sent from an unmonitored email address. Please do not reply to this email.</em></p>";
+
+		return $message;
+
+	}
+
+	private function email_body_return_to_user( $order_post_id, $acf_data ) {
+
+		$program_name     = get_the_title( $acf_data['field_5ffcc2590682b'] );
+		$actor_user       = get_current_user();
+		$actor_name       = $actor_user->display_name;
+		$returned_comment = '';
+		$admin_order_url  = admin_url() . "post.php?post={$order_post_id}&action=edit";
+		$message          = "<p>
+  Howdy,
+</p>
+<p>
+  Your {$program_name} order has been returned by {$actor_name}. This could be because it was missing some required information, missing a necessary part, or could not be fulfilled as is. An explanation should appear below in the comments.
+</p>
+<p>
+  Comments from {$actor_name}: {$returned_comment}
+</p>
+<p>
+  Next step is to resolve your order's issue with the person who returned it (who has been copied on this email for your convenience), then correct the existing order. You may access your order online at any time using this link: {$admin_order_url}.
+</p>
+
+<p>Have a great day!</p>
+<p><em>-Liberal Arts IT</em></p>
+<p><em>This email was sent from an unmonitored email address. Please do not reply to this email.</em></p>";
+
+		return $message;
+
+	}
+
+	private function email_body_return_to_user_fws( $order_post_id, $acf_data ) {
+
+		$program_name     = get_the_title( $acf_data['field_5ffcc2590682b'] );
+		$actor_user       = get_current_user();
+		$actor_name       = $actor_user->display_name;
+		$user             = get_userdata( $acf_data['field_5ffcc0a806823'] );
+		$user_name        = $user->display_name;
+		$returned_comment = '';
+		$admin_order_url  = admin_url() . "post.php?post={$order_post_id}&action=edit";
+		$message          = "<p>
+  Howdy,
+</p>
+<p>
+  The {$program_name} order for {$user_name} has been returned by {$actor_name}. An explanation should appear below in the comments.
+</p>
+<p>
+  Comments from {$actor_name}: {$returned_comment}
+</p>
+<p>
+  {$user_name} will correct the order and resubmit.
+</p>
+<p>
+  You can view the order at this link: {$admin_order_url}.
+</p>
+<p>
+  Have a great day!<br />
+  <em>-Liberal Arts IT</em>
+</p>
+<p><em>This email was sent from an unmonitored email address. Please do not reply to this email.</em></p>";
+
+		return $message;
+
 	}
 }

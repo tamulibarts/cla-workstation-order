@@ -307,19 +307,57 @@ class Order_Form_Helper {
 
 	private function send_confirmation_email( $order_name, $current_user, $it_rep_id, $post_id, $data ) {
 
+		// Get user information.
 		$current_user_name  = $current_user->display_name;
 		$current_user_email = $current_user->user_email;
 		$it_rep_user        = get_userdata( $it_rep_id );
 		$it_rep_email       = $it_rep_user->user_email;
-		$order_name         = $data[];
-		$headers            = array('Content-Type: text/html; charset=UTF-8');
+
+		// Email settings.
+		$headers = array('Content-Type: text/html; charset=UTF-8');
+
+		// Get current program meta.
+		$current_program_post = get_field( 'current_program', 'option' );
+		$current_program_id   = $current_program_post->ID;
+		$program_name         = get_the_title( $current_program_id );
+
+		// Get order information.
+		$order_url = admin_url() . "post.php?post={$post_id}&action=edit";
 
 		// Email end user.
-		wp_mail( $current_user_email, "Workstation Order Received", '<p>Thank you,</p><p>Please allow us up to 2 business days to process your request.</p><p><em>This email was sent from an unmonitored email address. Please do not reply to this email.</em></p>', $headers );
+		$message = "<p>Howdy,</p>
+<p>Liberal Arts IT has received your order.</p>
+
+<p>Your {$program_name} order will be reviewed to ensure all necessary information and funding is in place.</p>
+<p>
+  Following review, your workstation request will be combined with others from your department to create a consolidated {$program_name} purchase. Consolidated orders are placed to maximize efficiency. Your order will be processed and received by IT Logistics in 4-6 weeks, depending on how early in the order cycle you make your selection. Once received, your workstation will be released to departmental IT staff who will then image your workstation, install software and prepare the device for delivery. These final steps generally take one to two days.
+</p>
+<p>You may view your order online at any time using this link: {$order_url}.</p>
+
+<p>
+  Have a great day!
+  <em>-Liberal Arts IT</em>
+</p>
+<p><em>This email was sent from an unmonitored email address. Please do not reply to this email.</em></p>";
+		wp_mail( $current_user_email, 'Workstation Order Received', $message, $headers );
 
 		// Email IT Rep.
-		$admin_url = admin_url();
-		wp_mail( $it_rep_email, "Order submitted for {$order_name}", '<p>Hello,</p><p>{$current_user_name} has submitted an order: <a href="{$admin_url}post.php?post={$post_id}&action=edit">{$order_name}</a>.</p><p><em>This email was sent from an unmonitored email address. Please do not reply to this email.</em></p>', $headers );
+		$admin_url = admin_url() . "post.php?post={$post_id}&action=edit";
+		$message = "<p>
+  <strong>There is a new {$program_name} order that requires your attention.</strong>
+</p>
+<p>
+  Please review this order carefully for any errors or omissions, then confirm it to pass along in the ordering workflow, or return it to the customer with your feedback and ask that they correct the order.
+</p>
+<p>
+  You can view the order at this link: {$order_url}.
+</p>
+<p>
+  Have a great day!
+  <em>-Liberal Arts IT</em>
+</p>
+<p><em>This email was sent from an unmonitored email address. Please do not reply to this email.</em></p>";
+		wp_mail( $it_rep_email, 'Workstation Order Received', $message, $headers );
 
 	}
 
