@@ -36,10 +36,7 @@ body.post-type-wsorder input#publish {
 }
 
 .edit-php.post-type-wsorder {
-	.confirmed,
-	.not-confirmed,
-	.ordered,
-	.not-fully-ordered {
+	.approval {
 		display: inline-block;
 		white-space: nowrap;
 		padding: 3px 5px;
@@ -47,15 +44,42 @@ body.post-type-wsorder input#publish {
 		font-size: 12px;
 		line-height: 1;
 	}
+
 	.confirmed,
 	.ordered {
 		background-color: #28A745;
 		border-radius: 4px;
 		color: #FFF;
 	}
+
 	.not-fully-ordered {
 		background-color: #DC3545;
 		border-radius: 4px;
 		color: #FFF;
+	}
+
+	th.manage-column.column-status {
+		width: 40px;
+	}
+
+	.column-status .status-color-key {
+		width: 40px;
+		height: 40px;
+
+		&.action_required {
+			background-color: #FFC107;
+		}
+
+		&.returned {
+			background-color: #DC3545;
+		}
+
+		&.completed {
+			background-color: #C3E6CB;
+		}
+
+		&.awaiting_another {
+			background-color: #D6D8DB;
+		}
 	}
 }

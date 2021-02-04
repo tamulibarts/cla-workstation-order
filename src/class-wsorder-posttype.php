@@ -34,54 +34,8 @@ class WSOrder_PostType {
 		add_action( 'admin_print_scripts-post-new.php', array( $this, 'admin_script' ), 11 );
 		add_action( 'admin_print_scripts-post.php', array( $this, 'admin_script' ), 11 );
 		// Add columns to dashboard post list screen.
-		add_filter( 'manage_wsorder_posts_columns', function( $columns ){
-
-  	  $columns['amount']    = 'Amount';
-  	  $columns['it_status'] = 'IT';
-  	  $columns['business_status'] = 'Business';
-  	  $columns['logistics_status'] = 'Logistics';
-	    return $columns;
-
-		});
-		add_action( 'manage_wsorder_posts_custom_column', function( $column_name, $post_id ) {
-	    if( 'amount' === $column_name ) {
-        $number = get_post_meta( $post_id, 'products_subtotal', true );
-        if ( class_exists('NumberFormatter') ) {
-					$formatter = new \NumberFormatter('en_US', \NumberFormatter::CURRENCY);
-					echo $formatter->formatCurrency($number, 'USD');
-				} else {
-					echo '$' . number_format($number, 2,'.', ',');
-				}
-	    } else if ( 'it_status' === $column_name ) {
-	    	$status = get_field( 'it_rep_status', $post_id );
-	    	if ( empty( $status['confirmed'] ) ) {
-	    		echo '<span class="not-confirmed">Not yet confirmed</span>';
-	    	} else {
-	    		echo '<span class="confirmed">Confirmed</span><br>';
-	    		echo $status['it_rep']['display_name'];
-	    	}
-	    } else if ( 'business_status' === $column_name ) {
-	    	$status = get_field( 'business_staff_status', $post_id );
-	    	if ( empty( $status['confirmed'] ) ) {
-	    		echo '<span class="not-confirmed">Not yet confirmed</span>';
-	    	} else {
-	    		echo '<span class="confirmed">Confirmed</span><br>';
-	    		echo $status['business_staff']['display_name'];
-	    	}
-	    } else if ( 'logistics_status' === $column_name ) {
-	    	$status = get_field( 'it_logistics_status', $post_id );
-	    	if ( empty( $status['confirmed'] ) ) {
-	    		echo '<span class="not-confirmed">Not yet confirmed</span>';
-	    	} else {
-	    		echo '<span class="confirmed">Confirmed</span> ';
-		    	if ( empty( $status['ordered'] ) ) {
-		    		echo '<span class="not-fully-ordered">Not fully ordered</span>';
-		    	} else {
-		    		echo '<span class="ordered">Ordered</span>';
-		    	}
-	    	}
-	    }
-		}, 10, 2 );
+		add_filter( 'manage_wsorder_posts_columns', array( $this, 'add_list_view_columns' ) );
+		add_action( 'manage_wsorder_posts_custom_column', array( $this, 'output_list_view_columns' ), 10, 2 );
 		// Manipulate post title to force it to a certain format.
 		// add_filter( 'default_title', array( $this, 'default_post_title' ) );
 		// add_action( 'new_wsorder', array( $this, 'new_wsorder' ) );
@@ -89,6 +43,41 @@ class WSOrder_PostType {
 
 		// Notify parties of changes to order status.
 		// add_action( 'transition_post_status', array( $this, 'notify_published' ), 10, 3 );
+
+	}
+
+	/**
+	 * Determine if business approval is required.
+	 *
+	 * @var int $post_id The wsorder post ID to check.
+	 */
+	private function order_requires_business_approval( $post_id ) {
+
+  	// Get order subtotal.
+  	$subtotal = (float) get_field( 'products_subtotal', $post_id );
+  	// Get order program post ID.
+  	$program_id = get_field( 'program', $post_id );
+
+  	if ( ! empty( $program_id ) ) {
+
+			// Get order's program allocation threshold.
+			$program_threshold = (float) get_field( 'threshold', $program_id );
+
+			if ( $subtotal > $program_threshold ) {
+
+				return true;
+
+			} else {
+
+				return false;
+
+			}
+
+  	} else {
+
+  		return true;
+
+  	}
 
 	}
 
@@ -429,5 +418,67 @@ class WSOrder_PostType {
 			$message .= serialize( $post ); //phpcs:ignore
 			wp_mail( 'zwatkins2@tamu.edu', 'order published', $message );
 		}
+	}
+
+	public function add_list_view_columns( $columns ){
+
+	  $status = array('status' => '');
+	  $columns = array_merge( $status, $columns );
+
+	  $columns['amount']           = 'Amount';
+	  $columns['it_status']        = 'IT';
+	  $columns['business_status']  = 'Business';
+	  $columns['logistics_status'] = 'Logistics';
+    return $columns;
+
+	}
+
+	public function output_list_view_columns( $column_name, $post_id ) {
+		if ( 'status' === $column_name ) {
+			$status = get_post_status( $post_id );
+			echo "<div class=\"status-color-key {$status}\"></div>";
+		} else if( 'amount' === $column_name ) {
+      $number = get_post_meta( $post_id, 'products_subtotal', true );
+      if ( class_exists('NumberFormatter') ) {
+				$formatter = new \NumberFormatter('en_US', \NumberFormatter::CURRENCY);
+				echo $formatter->formatCurrency($number, 'USD');
+			} else {
+				echo '$' . number_format($number, 2,'.', ',');
+			}
+    } else if ( 'it_status' === $column_name ) {
+    	$status = get_field( 'it_rep_status', $post_id );
+    	if ( empty( $status['confirmed'] ) ) {
+    		echo '<span class="approval not-confirmed">Not yet confirmed</span>';
+    	} else {
+    		echo '<span class="approval confirmed">Confirmed</span><br>';
+    		echo $status['it_rep']['display_name'];
+    	}
+    } else if ( 'business_status' === $column_name ) {
+    	// Determine status message.
+    	$requires_business_approval = $this->order_requires_business_approval( $post_id );
+    	if ( $requires_business_approval ) {
+	    	$status = get_field( 'business_staff_status', $post_id );
+	    	if ( empty( $status['confirmed'] ) ) {
+	    		echo '<span class="approval not-confirmed">Not yet confirmed</span>';
+	    	} else {
+	    		echo '<span class="approval confirmed">Confirmed</span><br>';
+	    		echo $status['business_staff']['display_name'];
+	    	}
+    	} else {
+    		echo '<span class="approval">Not required</span>';
+    	}
+    } else if ( 'logistics_status' === $column_name ) {
+    	$status = get_field( 'it_logistics_status', $post_id );
+    	if ( empty( $status['confirmed'] ) ) {
+    		echo '<span class="approval not-confirmed">Not yet confirmed</span>';
+    	} else {
+    		echo '<span class="approval confirmed">Confirmed</span> ';
+	    	if ( empty( $status['ordered'] ) ) {
+	    		echo '<span class="approval not-fully-ordered">Not fully ordered</span>';
+	    	} else {
+	    		echo '<span class="approval ordered">Ordered</span>';
+	    	}
+    	}
+    }
 	}
 }
