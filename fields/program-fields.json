@@ -68,7 +68,7 @@
                 "key": "field_6006f98dc985f",
                 "label": "Fiscal Year",
                 "name": "fiscal_year",
-                "type": "number",
+                "type": "text",
                 "instructions": "",
                 "required": 0,
                 "conditional_logic": 0,
@@ -81,9 +81,7 @@
                 "placeholder": "",
                 "prepend": "",
                 "append": "",
-                "min": 2014,
-                "max": "",
-                "step": ""
+                "maxlength": ""
             },
             {
                 "key": "field_6006fa173dcf0",

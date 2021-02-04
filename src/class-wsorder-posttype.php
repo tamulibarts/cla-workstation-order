@@ -37,7 +37,9 @@ class WSOrder_PostType {
 		add_filter( 'manage_wsorder_posts_columns', array( $this, 'add_list_view_columns' ) );
 		add_action( 'manage_wsorder_posts_custom_column', array( $this, 'output_list_view_columns' ), 10, 2 );
 		// Manipulate post title to force it to a certain format.
-		// add_filter( 'default_title', array( $this, 'default_post_title' ) );
+		add_filter( 'default_title', array( $this, 'default_post_title' ), 11, 2 );
+		// Allow programs to link to a list of associated orders in admin.
+		add_filter( 'parse_query', array( $this, 'admin_list_posts_filter' ) );
 		// add_action( 'new_wsorder', array( $this, 'new_wsorder' ) );
 		// add_filter( 'wp_insert_post_data', array( $this, 'insert_post_data' ), 11, 2);
 
@@ -289,35 +291,61 @@ class WSOrder_PostType {
 
 	}
 
+	private function get_last_order_id( $program_post_id ) {
+
+		$args              = array(
+			'post_type'      => 'wsorder',
+			'post_status'    => 'any',
+			'posts_per_page' => 1,
+			'fields'         => 'ids',
+			'meta_query'     => array(
+				array(
+					'key'     => 'order_id',
+					'compare' => 'EXISTS'
+				),
+				array(
+					'key'     => 'program',
+					'compare' => '=',
+					'value'   => $program_post_id,
+				)
+			),
+		);
+		$the_query = new \WP_Query( $args );
+		$posts = $the_query->posts;
+		if ( ! empty( $posts ) ) {
+			$last_wsorder_id = (int) get_post_meta( $posts[0], 'order_id', true );
+		} else {
+			$last_wsorder_id = 0;
+		}
+
+		return $last_wsorder_id;
+
+	}
+
 	/**
 	 * Make post title using current program ID and incremented order ID from last order.
 	 */
-	public function default_post_title() {
+	public function default_post_title( $post_title, $post ) {
 
-		global $post_type;
-
-		if ('wsorder' === $post_type) {
-
-			$args              = array(
-				'post_type'      => 'wsorder',
-				'posts_per_page' => 1,
-			);
-			$last_wsorder_post = wp_get_recent_posts( $args, OBJECT );
-			$wsorder_id        = 1;
-			if ( ! empty( $last_wsorder_post ) ) {
-				$last_wsorder_id = (int) get_post_meta( $last_wsorder_post[0]->ID, 'order_id' );
-				$wsorder_id      = $last_wsorder_id + 1;
-			}
+		if ('wsorder' === $post->post_type) {
 
 			// Get current program meta.
 			$current_program_post      = get_field( 'current_program', 'option' );
-			$current_program_id        = $current_program_post->ID;
-			$current_program_post_meta = get_post_meta( $current_program_id );
-			$current_program_prefix    = $current_program_post_meta['prefix'][0];
+			if ( ! empty( $current_program_post ) ) {
+				$current_program_id        = $current_program_post->ID;
+				$current_program_post_meta = get_post_meta( $current_program_id );
+				$current_program_prefix    = $current_program_post_meta['prefix'][0];
 
-			// Push order ID value to post details.
-			return "{$current_program_prefix}-{$wsorder_id}";
+				// Get last order ID.
+				$last_wsorder_id = $this->get_last_order_id( $current_program_id );
+				$wsorder_id = $last_wsorder_id + 1;
+
+				// Push order ID value to post details.
+				$post_title = "{$current_program_prefix}-{$wsorder_id}";
+			}
 		}
+
+		return $post_title;
 	}
 
 	public function insert_post_data ( $data, $postarr ) {
@@ -438,7 +466,7 @@ class WSOrder_PostType {
 			$status = get_post_status( $post_id );
 			echo "<div class=\"status-color-key {$status}\"></div>";
 		} else if( 'amount' === $column_name ) {
-      $number = get_post_meta( $post_id, 'products_subtotal', true );
+      $number = (float) get_post_meta( $post_id, 'products_subtotal', true );
       if ( class_exists('NumberFormatter') ) {
 				$formatter = new \NumberFormatter('en_US', \NumberFormatter::CURRENCY);
 				echo $formatter->formatCurrency($number, 'USD');
@@ -480,5 +508,25 @@ class WSOrder_PostType {
 	    	}
     	}
     }
+	}
+
+	public function admin_list_posts_filter( $query ){
+		global $pagenow;
+		$type = 'post';
+		if (isset($_GET['post_type'])) {
+	    $type = $_GET['post_type'];
+		}
+		if ( 'wsorder' == $type && is_admin() && $pagenow=='edit.php') {
+	    $meta_query = array(); // Declare meta query to fill after
+	    if (isset($_GET['program']) && $_GET['program'] != '') {
+        // first meta key/value
+        $meta_query = array (
+          'key'      => 'program',
+          'value'    => $_GET['program']
+        );
+		    $query->query_vars['meta_query'][] = $meta_query; // add meta queries to $query
+		    $query->query_vars['name'] = '';
+	    }
+		}
 	}
 }

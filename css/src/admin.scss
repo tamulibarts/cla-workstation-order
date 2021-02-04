@@ -3,36 +3,40 @@
 }
 
 /* Change save and publish buttons for wsorder post edit pages. */
-body.post-type-wsorder input#publish {
-	display: none;
-}
+body.wp-admin.post-type-wsorder {
+	input#publish {
+		display: none;
+	}
 
-#minor-publishing-actions #save-action {
-	position: relative;
-}
+	#minor-publishing-actions {
+		#save-action {
+			position: relative;
 
-#minor-publishing-actions #save-action:before {
-	content: "Save";
-	display: block;
-	position: absolute;
-	top: 6px;
-	left: 26px;
-	color: #0071A1;
-	font-size: 13px;
-	pointer-events: none;
-}
+			&:before {
+				content: "Save";
+				display: block;
+				position: absolute;
+				top: 6px;
+				left: 26px;
+				color: #0071A1;
+				font-size: 13px;
+				pointer-events: none;
+			}
+		}
 
-#minor-publishing-actions #save-post,
-#minor-publishing-actions #save-post.button.disabled {
-	color: transparent!important;
-}
+		#save-post,
+		#save-post.button.disabled {
+			color: transparent!important;
+		}
+	}
 
-/* Hide post status on edit page*/
-.inline-edit-wsorder .inline-edit-status,
-.inline-edit-wsorder .inline-edit-group,
-.misc-pub-section.misc-pub-visibility,
-.misc-pub-section.misc-pub-curtime {
-	display: none;
+	/* Hide post status on edit page*/
+	.inline-edit-wsorder .inline-edit-status,
+	.inline-edit-wsorder .inline-edit-group,
+	.misc-pub-section.misc-pub-visibility,
+	.misc-pub-section.misc-pub-curtime {
+		display: none;
+	}
 }
 
 .edit-php.post-type-wsorder {
@@ -81,5 +85,17 @@ body.post-type-wsorder input#publish {
 		&.awaiting_another {
 			background-color: #D6D8DB;
 		}
+	}
+}
+.edit-php.post-type-program {
+
+	th.manage-column.column-current {
+		width: 40px;
+	}
+
+	.current-program-marker	{
+		font-size: 40px;
+		font-weight: bold;
+		line-height: 40px;
 	}
 }
