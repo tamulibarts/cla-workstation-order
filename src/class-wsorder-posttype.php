@@ -55,29 +55,29 @@ class WSOrder_PostType {
 	    } else if ( 'it_status' === $column_name ) {
 	    	$status = get_field( 'it_rep_status', $post_id );
 	    	if ( empty( $status['confirmed'] ) ) {
-	    		echo 'Not yet confirmed';
+	    		echo '<span class="not-confirmed">Not yet confirmed</span>';
 	    	} else {
-	    		echo 'Confirmed<br>';
+	    		echo '<span class="confirmed">Confirmed</span><br>';
 	    		echo $status['it_rep']['display_name'];
 	    	}
 	    } else if ( 'business_status' === $column_name ) {
 	    	$status = get_field( 'business_staff_status', $post_id );
 	    	if ( empty( $status['confirmed'] ) ) {
-	    		echo 'Not yet confirmed';
+	    		echo '<span class="not-confirmed">Not yet confirmed</span>';
 	    	} else {
-	    		echo 'Confirmed<br>';
+	    		echo '<span class="confirmed">Confirmed</span><br>';
 	    		echo $status['business_staff']['display_name'];
 	    	}
 	    } else if ( 'logistics_status' === $column_name ) {
 	    	$status = get_field( 'it_logistics_status', $post_id );
 	    	if ( empty( $status['confirmed'] ) ) {
-	    		echo 'Not yet confirmed';
+	    		echo '<span class="not-confirmed">Not yet confirmed</span>';
 	    	} else {
-	    		echo 'Confirmed; ';
+	    		echo '<span class="confirmed">Confirmed</span> ';
 		    	if ( empty( $status['ordered'] ) ) {
-		    		echo 'Not fully ordered';
+		    		echo '<span class="not-fully-ordered">Not fully ordered</span>';
 		    	} else {
-		    		echo 'Ordered';
+		    		echo '<span class="ordered">Ordered</span>';
 		    	}
 	    	}
 	    }
