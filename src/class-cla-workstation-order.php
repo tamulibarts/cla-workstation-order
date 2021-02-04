@@ -70,6 +70,8 @@ class CLA_Workstation_Order {
 
 		add_action( 'init', array( $this, 'init' ) );
 
+		add_action( 'init', array( $this, 'stop_guests' ) );
+
 	}
 
 	/**
@@ -117,6 +119,15 @@ class CLA_Workstation_Order {
 			);
 
 		}
+	}
+
+
+	public function stop_guests() {
+
+    if ( $GLOBALS['pagenow'] !== 'wp-login.php' && ! is_user_logged_in() ) {
+      auth_redirect();
+    }
+
 	}
 
 }
