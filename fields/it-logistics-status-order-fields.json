@@ -19,6 +19,25 @@
                 "layout": "block",
                 "sub_fields": [
                     {
+                        "key": "field_601d67ec53d63",
+                        "label": "Comments",
+                        "name": "comments",
+                        "type": "textarea",
+                        "instructions": "",
+                        "required": 0,
+                        "conditional_logic": 0,
+                        "wrapper": {
+                            "width": "",
+                            "class": "",
+                            "id": ""
+                        },
+                        "default_value": "",
+                        "placeholder": "",
+                        "maxlength": "",
+                        "rows": "",
+                        "new_lines": ""
+                    },
+                    {
                         "key": "field_5fff6f3cef757",
                         "label": "Confirmed",
                         "name": "confirmed",

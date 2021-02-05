@@ -39,6 +39,25 @@
                         "return_format": "array"
                     },
                     {
+                        "key": "field_601d66373860d",
+                        "label": "Comments",
+                        "name": "comments",
+                        "type": "textarea",
+                        "instructions": "",
+                        "required": 0,
+                        "conditional_logic": 0,
+                        "wrapper": {
+                            "width": "",
+                            "class": "",
+                            "id": ""
+                        },
+                        "default_value": "",
+                        "placeholder": "",
+                        "maxlength": "",
+                        "rows": "",
+                        "new_lines": ""
+                    },
+                    {
                         "key": "field_5fff6b71a22b0",
                         "label": "Confirmed",
                         "name": "confirmed",

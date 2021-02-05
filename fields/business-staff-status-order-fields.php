@@ -8,118 +8,135 @@
  * @subpackage cla-workstation-order/fields
  */
 
-if ( function_exists( 'acf_add_local_field_group' ) ) :
+if( function_exists('acf_add_local_field_group') ):
 
-	acf_add_local_field_group(
+acf_add_local_field_group(array(
+	'key' => 'group_5fff6ec0e01ee',
+	'title' => 'Business Staff Status',
+	'fields' => array(
 		array(
-			'key'                   => 'group_5fff6ec0e01ee',
-			'title'                 => 'Business Staff Status',
-			'fields'                => array(
+			'key' => 'field_5fff6ec0e2f7e',
+			'label' => 'Business Staff Status',
+			'name' => 'business_staff_status',
+			'type' => 'group',
+			'instructions' => '',
+			'required' => 0,
+			'conditional_logic' => 0,
+			'wrapper' => array(
+				'width' => '',
+				'class' => '',
+				'id' => '',
+			),
+			'layout' => 'block',
+			'sub_fields' => array(
 				array(
-					'key'               => 'field_5fff6ec0e2f7e',
-					'label'             => 'Business Staff Status',
-					'name'              => 'business_staff_status',
-					'type'              => 'group',
-					'instructions'      => '',
-					'required'          => 0,
+					'key' => 'field_5fff70b84ffe4',
+					'label' => 'Business Staff',
+					'name' => 'business_staff',
+					'type' => 'user',
+					'instructions' => '',
+					'required' => 0,
 					'conditional_logic' => 0,
-					'wrapper'           => array(
+					'wrapper' => array(
 						'width' => '',
 						'class' => '',
-						'id'    => '',
+						'id' => '',
 					),
-					'layout'            => 'block',
-					'sub_fields'        => array(
-						array(
-							'key'               => 'field_5fff70b84ffe4',
-							'label'             => 'Business Staff',
-							'name'              => 'business_staff',
-							'type'              => 'user',
-							'instructions'      => '',
-							'required'          => 0,
-							'conditional_logic' => 0,
-							'wrapper'           => array(
-								'width' => '',
-								'class' => '',
-								'id'    => '',
-							),
-							'role'              => array(
-								0 => 'wso_business_admin',
-							),
-							'allow_null'        => 0,
-							'multiple'          => 0,
-							'return_format'     => 'array',
-						),
-						array(
-							'key'               => 'field_5fff6ec0e4385',
-							'label'             => 'Confirmed',
-							'name'              => 'confirmed',
-							'type'              => 'true_false',
-							'instructions'      => '',
-							'required'          => 0,
-							'conditional_logic' => 0,
-							'wrapper'           => array(
-								'width' => '',
-								'class' => '',
-								'id'    => '',
-							),
-							'message'           => '',
-							'default_value'     => 0,
-							'ui'                => 0,
-							'ui_on_text'        => '',
-							'ui_off_text'       => '',
-						),
-						array(
-							'key'               => 'field_5fff6ec0e438b',
-							'label'             => 'Date',
-							'name'              => 'date',
-							'type'              => 'date_time_picker',
-							'instructions'      => '',
-							'required'          => 0,
-							'conditional_logic' => array(
-								array(
-									array(
-										'field'    => 'field_5fff6ec0e4385',
-										'operator' => '==',
-										'value'    => '1',
-									),
-								),
-							),
-							'wrapper'           => array(
-								'width' => '',
-								'class' => '',
-								'id'    => '',
-							),
-							'display_format'    => 'F j, Y g:i a',
-							'return_format'     => 'Y-m-d H:i:s',
-							'first_day'         => 0,
-						),
+					'role' => array(
+						0 => 'wso_business_admin',
 					),
+					'allow_null' => 0,
+					'multiple' => 0,
+					'return_format' => 'array',
 				),
-			),
-			'location'              => array(
 				array(
-					array(
-						'param'    => 'current_user_role',
-						'operator' => '==',
-						'value'    => 'wso_business_admin',
+					'key' => 'field_601d646e59d65',
+					'label' => 'Comments',
+					'name' => 'comments',
+					'type' => 'textarea',
+					'instructions' => '',
+					'required' => 0,
+					'conditional_logic' => 0,
+					'wrapper' => array(
+						'width' => '',
+						'class' => '',
+						'id' => '',
 					),
-					array(
-						'param'    => 'post_type',
-						'operator' => '==',
-						'value'    => 'wsorder',
+					'default_value' => '',
+					'placeholder' => '',
+					'maxlength' => '',
+					'rows' => '',
+					'new_lines' => '',
+				),
+				array(
+					'key' => 'field_5fff6ec0e4385',
+					'label' => 'Confirmed',
+					'name' => 'confirmed',
+					'type' => 'true_false',
+					'instructions' => '',
+					'required' => 0,
+					'conditional_logic' => 0,
+					'wrapper' => array(
+						'width' => '',
+						'class' => '',
+						'id' => '',
 					),
+					'message' => 'You must enter the correct business account number before confirming',
+					'default_value' => 0,
+					'ui' => 0,
+					'ui_on_text' => '',
+					'ui_off_text' => '',
+				),
+				array(
+					'key' => 'field_5fff6ec0e438b',
+					'label' => 'Date',
+					'name' => 'date',
+					'type' => 'date_time_picker',
+					'instructions' => '',
+					'required' => 0,
+					'conditional_logic' => array(
+						array(
+							array(
+								'field' => 'field_5fff6ec0e4385',
+								'operator' => '==',
+								'value' => '1',
+							),
+						),
+					),
+					'wrapper' => array(
+						'width' => '',
+						'class' => '',
+						'id' => '',
+					),
+					'display_format' => 'F j, Y g:i a',
+					'return_format' => 'Y-m-d H:i:s',
+					'first_day' => 0,
 				),
 			),
-			'menu_order'            => 2,
-			'position'              => 'normal',
-			'style'                 => 'seamless',
-			'label_placement'       => 'left',
-			'instruction_placement' => 'label',
-			'hide_on_screen'        => '',
-			'active'                => true,
-			'description'           => '',
-		)
-	);
+		),
+	),
+	'location' => array(
+		array(
+			array(
+				'param' => 'current_user_role',
+				'operator' => '==',
+				'value' => 'wso_business_admin',
+			),
+			array(
+				'param' => 'post_type',
+				'operator' => '==',
+				'value' => 'wsorder',
+			),
+		),
+	),
+	'menu_order' => 2,
+	'position' => 'normal',
+	'style' => 'seamless',
+	'label_placement' => 'left',
+	'instruction_placement' => 'label',
+	'hide_on_screen' => '',
+	'active' => true,
+	'description' => '',
+));
 
 endif;
