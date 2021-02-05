@@ -9,6 +9,8 @@ Todo:
 * Create custom theme similar to old one
 * Create navigation menu similar to old app
 * Ensure users can edit their own orders but cannot change who they are assigned to
+* Sanitize inputs for form submission -> create post process
+* Fix auth_redirect() from causing errors for cron
 
 * Once user submits order ->
 	subject: Workstation Order Received
@@ -134,3 +136,11 @@ Todo:
     <em>-Liberal Arts IT</em>
   </p>
   <p><em>This email was sent from an unmonitored email address. Please do not reply to this email.</em></p>
+
+[Emails]
+1. Order placed: email user who placed the order with "order in progress email" and the IT rep assigned to the order "order in need of attention email"
+2. IT Rep checks their "Confirmed" checkbox and saves the order. If business approval needed: email department's business admin for the program
+3. Business office checks their "Confirmed" box and is required to enter the account code in the following format (02-CLLA-123456-12345); email Logistics "order in need of attention email"
+4. IT Rep checks their "Confirmed" checkbox and saves the order. If business approval not needed: email logistics "order in need of attention email"
+5. IT Logistics checks their "Confirmed" checkbox and user is emailed with "order approval completed email"
+6. Lets discuss the returned options when you are ready.... I would ideally like to change it up.
