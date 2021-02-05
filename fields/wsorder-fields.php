@@ -58,7 +58,7 @@ acf_add_local_field_group(array(
 		),
 		array(
 			'key' => 'field_5ffcc16306826',
-			'label' => 'Account Number',
+			'label' => 'Account',
 			'name' => 'contribution_account',
 			'type' => 'text',
 			'instructions' => '',

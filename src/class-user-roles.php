@@ -181,7 +181,7 @@ class User_Roles {
 	 */
 	private function add_role( $role, $display_name, $base_role, $caps ) {
 
-		$base_caps = get_role( $base_role )->capabilities;
+		$base_caps = $base_role === false ? array() : get_role( $base_role )->capabilities;
 		$caps      = array_merge( $base_caps, $caps );
 		add_role( $role, $display_name, $caps );
 

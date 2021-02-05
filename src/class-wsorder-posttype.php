@@ -40,9 +40,6 @@ class WSOrder_PostType {
 		add_filter( 'default_title', array( $this, 'default_post_title' ), 11, 2 );
 		// Allow programs to link to a list of associated orders in admin.
 		add_filter( 'parse_query', array( $this, 'admin_list_posts_filter' ) );
-		// add_action( 'new_wsorder', array( $this, 'new_wsorder' ) );
-		// add_filter( 'wp_insert_post_data', array( $this, 'insert_post_data' ), 11, 2);
-
 		// Notify parties of changes to order status.
 		add_action( 'transition_post_status', array( $this, 'notify_users' ), 10, 3 );
 
@@ -245,57 +242,6 @@ class WSOrder_PostType {
 		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'fields/order-department-comments-fields.php';
 
 	}
-	/**
-	 * Create new wsorder post type for the very first time.
-	 * We will create the "order_id" post meta.
-	 */
-	function new_wsorder( $post_id, $post ){
-
-		// Get current program meta.
-		$current_program_post      = get_field( 'current_program', 'option' );
-		$current_program_id        = $current_program_post->ID;
-		$current_program_post_meta = get_post_meta( $current_program_id );
-		$current_program_prefix    = $current_program_post_meta['prefix'][0];
-
-		// Make post title using current program ID and incremented order ID from last order.
-		$args              = array(
-			'post_type'      => 'wsorder',
-			'post_status'    => 'any',
-			'posts_per_page' => 1,
-			'fields'         => 'ids',
-			'meta_query'     => array(
-				array(
-					'key'     => 'order_id',
-					'compare' => 'EXISTS'
-				),
-				array(
-					'key'     => 'program',
-					'compare' => '=',
-					'value'   => $current_program_id,
-				)
-			),
-		);
-		$the_query = new \WP_Query( $args, OBJECT );
-		$last_wsorder_posts = $the_query->posts;
-
-		// Figure out order ID.
-		$wsorder_id = 1;
-		if ( ! empty( $last_wsorder_posts ) ) {
-			$last_wsorder_id = (int) get_post_meta( $last_wsorder_posts[0], 'order_id', true );
-			$test = get_post_meta( $last_wsorder_posts[0], 'order_id', true );
-			echo '<script>console.log("' . gettype($test) . '");</script>';
-			$wsorder_id      = $last_wsorder_id + 1;
-		}
-
-		// Push order ID value to post details.
-		update_post_meta( $post_id, 'order_id', $wsorder_id );
-		$args = array(
-			'ID' => $post->ID,
-			'post_title' => "{$current_program_prefix}-{$wsorder_id}",
-		);
-		wp_update_post( $args );
-
-	}
 
 	private function get_last_order_id( $program_post_id ) {
 
@@ -352,68 +298,6 @@ class WSOrder_PostType {
 		}
 
 		return $post_title;
-	}
-
-	public function insert_post_data ( $data, $postarr ) {
-
-		if ( $data['post_type'] !== 'wsorder' ) return;
-    if ( defined('DOING_AUTOSAVE') && DOING_AUTOSAVE ) return;
-
-		// Get current program meta.
-		$current_program_post      = get_field( 'current_program', 'option' );
-		$current_program_id        = $current_program_post->ID;
-		$current_program_post_meta = get_post_meta( $current_program_id );
-		$current_program_prefix    = $current_program_post_meta['prefix'][0];
-
-    $post_id = $postarr['ID'];
-
-    if ( $post_id === 0 ) {
-
-    	$program_id = $current_program_id;
-
-    	// Post doesn't exist yet, so get order ID from last saved order.
-			$args              = array(
-				'post_type'      => 'wsorder',
-				'post_status'    => 'any',
-				'posts_per_page' => 1,
-				'fields'         => 'ids',
-				'meta_query'     => array(
-					array(
-						'key'     => 'order_id',
-						'compare' => 'EXISTS'
-					),
-					array(
-						'key'     => 'program',
-						'compare' => '=',
-						'value'   => $current_program_id,
-					)
-				),
-			);
-			$the_query = new \WP_Query( $args );
-			$last_wsorder_posts = $the_query->posts;
-			$wsorder_id = 1;
-			if ( ! empty( $last_wsorder_posts ) ) {
-				$last_wsorder_id = (int) get_post_meta( $last_wsorder_posts[0], 'order_id' );
-				$wsorder_id      = $last_wsorder_id + 1;
-			}
-
-    } else {
-
-    	// Update post meta for order ID.
-    	$meta_exists = metadata_exists( 'post', $post_id, 'order_id' );
-    	if ( ! $meta_exists ) {
-    		update_post_meta( $post_id, 'order_id', $wsorder_id );
-    	} else {
-	    	// Post exists, get order ID from post meta.
-		    $wsorder_id = get_post_meta( $post_id, 'order_id', true );
-		  }
-
-	  }
-
-		// Set the post title value.
-    $data['post_title'] = "{$current_program_prefix}-{$wsorder_id}";
-
-    return $data;
 
 	}
 
@@ -500,6 +384,41 @@ class WSOrder_PostType {
 		}
 	}
 
+	private function get_program_business_admin_user_id( $program_id, $user_department_post_id ) {
+
+		// Get users assigned to active user's department for current program, as array.
+		$program_meta_keys_departments = array(
+			'assign_political_science_department_post_id',
+			'assign_sociology_department_post_id',
+			'assign_philosophy_humanities_department_post_id',
+			'assign_performance_studies_department_post_id',
+			'assign_international_studies_department_post_id',
+			'assign_history_department_post_id',
+			'assign_hispanic_studies_department_post_id',
+			'assign_english_department_post_id',
+			'assign_economics_department_post_id',
+			'assign_communication_department_post_id',
+			'assign_anthropology_department_post_id',
+			'assign_psychology_department_post_id',
+			'assign_dean_department_post_id',
+		);
+		$current_program_post_meta     = get_post_meta( $program_id );
+		$value                         = 0;
+
+		foreach ( $program_meta_keys_departments as $meta_key ) {
+			$assigned_dept = (int) $current_program_post_meta[ $meta_key ][0];
+			if ( $user_department_post_id === $assigned_dept ) {
+				$base_key                     = preg_replace( '/_department_post_id$/', '', $meta_key );
+				$dept_assigned_business_admin = unserialize( $current_program_post_meta[ "{$base_key}_business_admins" ][0] );
+				$value                        = $dept_assigned_business_admin[0];
+				break;
+			}
+		}
+
+		return $value;
+
+	}
+
 	/**
 	 * Notify users based on their association to the wsorder post and the new status of the post.
 	 *
@@ -510,8 +429,8 @@ class WSOrder_PostType {
 	 * @return void
 	 */
 	public function notify_users( $new_status, $old_status, $post ) {
-
-		if ( $old_status === $new_status || 'wsorder' !== $post->post_type ) {
+		error_log( $new_status . ' : ' . $old_status );
+		if ( $old_status === $new_status || 'wsorder' !== $post->post_type || $new_status === 'auto-draft' ) {
 			return;
 		}
 
@@ -570,13 +489,127 @@ class WSOrder_PostType {
 		// 	$message .= serialize( $post ); //phpcs:ignore
 		// 	wp_mail( 'zwatkins2@tamu.edu', 'order published', $message );
 		// }
+		$post_id                 = $post->ID;
+		$order_id                = get_the_title( $post_id );
+		$end_user                = get_field( 'user', $post_id );
+		$end_user_email          = $end_user['user_email'];
+		$user_id                 = $end_user['ID'];
+		$user_department_post    = get_field( 'department', "user_{$user_id}" );
+		error_log( serialize( $user_department_post ) );
+		$user_department_post_id = $user_department_post ? $user_department_post->ID : 0;
+		$department_abbreviation = get_field( 'abbreviation', $user_department_post_id );
+		$order_program           = get_field( 'program', $post_id );
+		$order_program_id        = $order_program ? $order_program->ID : 0;
+		$business_admin_id       = $this->get_program_business_admin_user_id( $order_program_id, $user_department_post_id );
+		$business_admin_obj      = get_userdata( $business_admin_id );
+		$business_admin_email    = $business_admin_obj->user_email;
+		$logistics_email         = get_field( 'logistics_email', 'option' );
+		$enable_logistics_email  = get_field( 'enable_emails_to_logistics', 'option' );
+		$headers                 = array('Content-Type: text/html; charset=UTF-8');
+		$contribution_amount     = get_field( 'contribution_amount', $post_id );
+		$saved_post_it_confirm   = (int) get_post_meta( $post_id, 'it_rep_status_confirmed', true );
+		$new_post_it_confirm     = (int) $_POST['acf']['field_5fff6b46a22af']['field_5fff6b71a22b0'];
+		$saved_post_log_confirm  = (int) get_post_meta( $post_id, 'it_logistics_status_confirmed', true );
+		$new_post_log_confirm    = (int) $_POST['acf']['field_5fff6f3cee555']['field_5fff6f3cef757'];
+		$saved_post_bus_confirm  = (int) get_post_meta( $post_id, 'business_staff_status_confirmed', true );
+		if ( array_key_exists( 'field_5fff6ec0e4385', $_POST['acf']['field_5fff6ec0e2f7e'] ) ) {
+			$new_post_bus_confirm = (int) $_POST['acf']['field_5fff6ec0e2f7e']['field_5fff6ec0e4385'];
+		} else {
+			$new_post_bus_confirm = 0;
+		}
 
 		/**
 		 * Once IT Rep has confirmed, if business approval needed ->
-		 * subject: [{$order_id}] Workstation Order Approval - {$department_abbreviation} - {$end_user}
-		 * to: business user
+		 * subject: [{$order_id}] Workstation Order Approval - {$department_abbreviation} - {$end_user_name}
+		 * to: department's business admin for the order's program
 		 * body: email_body_it_rep_to_business( $post->ID, $_POST['acf'] )
 		 */
+		if (
+			$saved_post_it_confirm === 0
+			&& $new_post_it_confirm === 1
+			&& ! empty( $contribution_amount )
+		) {
+
+			$to      = $business_admin_email;
+			$title   = "[{$order_id}] Workstation Order Approval - {$department_abbreviation} - {$end_user_name}";
+			$message = $this->email_body_it_rep_to_business( $post_id, $_POST['acf'] );
+			wp_mail( $to, $title, $message, $headers );
+
+		}
+
+		/**
+		 * Once IT Rep has confirmed, if business approval NOT needed ->
+		 * subject: [{$order_id}] Workstation Order Approval - {$department_abbreviation} - {$end_user_name}
+		 * to: logistics user
+		 * body: email_body_to_logistics( $post->ID, $_POST['acf'] )
+		 */
+		if (
+			$saved_post_it_confirm === 0
+			&& $new_post_it_confirm === 1
+			&& empty( $contribution_amount )
+			&& $enable_logistics_email === 1
+		) {
+
+			$to      = $logistics_email;
+			$title   = "[{$order_id}] Workstation Order Approval - {$department_abbreviation} - {$end_user_name}";
+			$message = $this->email_body_it_rep_to_business( $post_id, $_POST['acf'] );
+			wp_mail( $to, $title, $message, $headers );
+
+		}
+
+		/**
+		 * If business approval needed, once Business Staff has confirmed ->
+		 * subject: [{$order_id}] Workstation Order Approval - {$department_abbreviation} - {$end_user_name}
+		 * to: logistics user
+		 * body: email_body_to_logistics( $post->ID, $_POST['acf'] )
+		 */
+
+		if (
+			! empty( $contribution_amount )
+			&& $saved_post_bus_confirm === 0
+			&& $new_post_bus_confirm === 1
+		) {
+
+			$to      = $logistics_email;
+			$title   = "[{$order_id}] Workstation Order Approval - {$department_abbreviation} - {$end_user_name}";
+			$message = $this->email_body_to_logistics( $post_id, $_POST['acf'] );
+			wp_mail( $to, $title, $message, $headers );
+
+		}
+
+		/** ><
+		 * IT Logistics checks their "Confirmed" checkbox and user is emailed with "order approval completed email"
+		 * subject: [{$order_id}] Workstation Order Approval - {$department_abbreviation} - {$end_user_name}
+		 * to: end user
+		 * body: email_body_order_approved( $post->ID, $_POST['acf'] );
+		 */
+		if (
+			$saved_post_log_confirm === 0
+			&& $new_post_log_confirm === 1
+		) {
+
+			$to      = $end_user_email;
+			$title   = "[{$order_id}] Workstation Order Approval - {$department_abbreviation} - {$end_user_name}";
+			$message = $this->email_body_order_approved( $post_id, $_POST['acf'] );
+			wp_mail( $to, $title, $message, $headers );
+
+		}
+
+		/**
+		 * If status changed to "Returned" ->
+		 * subject: [{$order_id}] Returned Workstation Order - {$department_abbreviation} - {$end_user_name}
+		 * to: end user
+		 * cc: whoever set it to return
+		 * body: email_body_return_to_user( $post->ID, $_POST['acf'] );
+		 */
+
+		/**
+		 * If status changed to "Returned" ->
+		 * subject: [{$order_id}] Returned Workstation Order - {$department_abbreviation} - {$order.user_name}
+		 * to: if it_rep is assigned and approved, email them; if business_admin is assigned and approved, email them
+  	 * body: email_body_return_to_user_forward( $post->ID, $_POST['acf'] );
+  	 */
+
 	}
 
 	private function email_body_it_rep_to_business( $order_post_id, $acf_data ) {
@@ -655,7 +688,7 @@ class WSOrder_PostType {
 
 	}
 
-	private function email_body_return_to_user_fws( $order_post_id, $acf_data ) {
+	private function email_body_return_to_user_forward( $order_post_id, $acf_data ) {
 
 		$program_name     = get_the_title( $acf_data['field_5ffcc2590682b'] );
 		$actor_user       = get_current_user();
@@ -678,6 +711,27 @@ class WSOrder_PostType {
 </p>
 <p>
   You can view the order at this link: {$admin_order_url}.
+</p>
+<p>
+  Have a great day!<br />
+  <em>- Liberal Arts IT</em>
+</p>
+<p><em>This email was sent from an unmonitored email address. Please do not reply to this email.</em></p>";
+
+		return $message;
+
+	}
+
+	private function email_body_order_approved( $order_post_id, $acf_data ) {
+
+		$program_name = get_the_title( $acf_data['field_5ffcc2590682b'] );
+		$user         = get_userdata( $acf_data['field_601d4a61e8ace'] );
+		$user_name    = $user->display_name;
+		$message      = "<p>
+	Howdy,
+</p>
+<p>
+	The {$program_name} order for {$user_name} has been approved.
 </p>
 <p>
   Have a great day!<br />

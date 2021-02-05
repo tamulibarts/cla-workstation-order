@@ -66,7 +66,7 @@ class CLA_Workstation_Order {
 		$order_form->register();
 
 		// Register settings page.
-		add_action( 'acf/init', array( $this, 'register_settings_page' ) );
+		add_action( 'acf/init', array( $this, 'register_custom_fields' ) );
 
 		add_action( 'init', array( $this, 'init' ) );
 
@@ -102,7 +102,7 @@ class CLA_Workstation_Order {
 	 * @since 0.1.0
 	 * @return void
 	 */
-	public function register_settings_page() {
+	public function register_custom_fields() {
 
 		if ( function_exists( 'acf_add_options_page' ) ) {
 
@@ -119,12 +119,15 @@ class CLA_Workstation_Order {
 			);
 
 		}
+
+		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'fields/user-fields.php';
+
 	}
 
 
 	public function stop_guests() {
 
-    if ( $GLOBALS['pagenow'] !== 'wp-login.php' && ! is_user_logged_in() ) {
+    if ( $GLOBALS['pagenow'] !== 'wp-login.php' && ! is_user_logged_in() && !defined('DOING_AJAX') && !defined('DOING_CRON') ) {
       auth_redirect();
     }
 
