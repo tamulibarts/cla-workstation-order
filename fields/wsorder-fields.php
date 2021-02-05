@@ -31,7 +31,7 @@ acf_add_local_field_group(array(
 			'placeholder' => '',
 			'prepend' => '',
 			'append' => '',
-			'min' => '',
+			'min' => '0',
 			'max' => '',
 			'step' => '',
 		),

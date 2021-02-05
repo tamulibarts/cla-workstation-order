@@ -430,7 +430,7 @@ class WSOrder_PostType {
 	 */
 	public function notify_users( $new_status, $old_status, $post ) {
 		error_log( $new_status . ' : ' . $old_status );
-		if ( $old_status === $new_status || 'wsorder' !== $post->post_type || $new_status === 'auto-draft' ) {
+		if ( $old_status === $new_status || 'wsorder' !== $post->post_type || $new_status === 'auto-draft' || ! array_key_exists( 'acf', $_POST ) ) {
 			return;
 		}
 
@@ -489,34 +489,52 @@ class WSOrder_PostType {
 		// 	$message .= serialize( $post ); //phpcs:ignore
 		// 	wp_mail( 'zwatkins2@tamu.edu', 'order published', $message );
 		// }
-		$post_id                 = $post->ID;
-		$order_id                = get_the_title( $post_id );
-		$end_user                = get_field( 'user', $post_id );
-		$end_user_email          = $end_user['user_email'];
-		$user_id                 = $end_user['ID'];
-		$user_department_post    = get_field( 'department', "user_{$user_id}" );
-		error_log( serialize( $user_department_post ) );
-		$user_department_post_id = $user_department_post ? $user_department_post->ID : 0;
-		$department_abbreviation = get_field( 'abbreviation', $user_department_post_id );
-		$order_program           = get_field( 'program', $post_id );
-		$order_program_id        = $order_program ? $order_program->ID : 0;
-		$business_admin_id       = $this->get_program_business_admin_user_id( $order_program_id, $user_department_post_id );
-		$business_admin_obj      = get_userdata( $business_admin_id );
-		$business_admin_email    = $business_admin_obj->user_email;
-		$logistics_email         = get_field( 'logistics_email', 'option' );
-		$enable_logistics_email  = get_field( 'enable_emails_to_logistics', 'option' );
-		$headers                 = array('Content-Type: text/html; charset=UTF-8');
-		$contribution_amount     = get_field( 'contribution_amount', $post_id );
-		$saved_post_it_confirm   = (int) get_post_meta( $post_id, 'it_rep_status_confirmed', true );
-		$new_post_it_confirm     = (int) $_POST['acf']['field_5fff6b46a22af']['field_5fff6b71a22b0'];
-		$saved_post_log_confirm  = (int) get_post_meta( $post_id, 'it_logistics_status_confirmed', true );
-		$new_post_log_confirm    = (int) $_POST['acf']['field_5fff6f3cee555']['field_5fff6f3cef757'];
-		$saved_post_bus_confirm  = (int) get_post_meta( $post_id, 'business_staff_status_confirmed', true );
+		$post_id  = $post->ID;
+		$order_id = get_the_title( $post_id );
+		$end_user = get_field( 'user', $post_id );
+		if ( $end_user ) {
+			$end_user_email          = $end_user['user_email'];
+			$user_id                 = $end_user['ID'];
+			$user_department_post    = get_field( 'department', "user_{$user_id}" );
+			$user_department_post_id = $user_department_post ? $user_department_post->ID : 0;
+			$department_abbreviation = get_field( 'abbreviation', $user_department_post_id );
+		} else {
+			return;
+		}
+		$order_program = get_field( 'program', $post_id );
+		if ( $order_program ) {
+			$order_program_id = $order_program ? $order_program->ID : 0;
+
+			if ( isset( $user_department_post_id ) ) {
+				$business_admin_id       = $this->get_program_business_admin_user_id( $order_program_id, $user_department_post_id );
+				$business_admin_obj      = get_userdata( $business_admin_id );
+				$business_admin_email    = $business_admin_obj->user_email;
+			}
+		} else {
+			return;
+		}
+		// Get email headers.
+		$headers                = array('Content-Type: text/html; charset=UTF-8');
+		// Get contribution amount.
+		$contribution_amount    = get_field( 'contribution_amount', $post_id );
+		// Get logistics email settings.
+		$logistics_email        = get_field( 'logistics_email', 'option' );
+		$enable_logistics_email = get_field( 'enable_emails_to_logistics', 'option' );
+		// Get confirmation statuses.
+		$saved_post_it_confirm  = (int) get_post_meta( $post_id, 'it_rep_status_confirmed', true );
+		$new_post_it_confirm    = (int) $_POST['acf']['field_5fff6b46a22af']['field_5fff6b71a22b0'];
+		$saved_post_log_confirm = (int) get_post_meta( $post_id, 'it_logistics_status_confirmed', true );
+		$new_post_log_confirm   = (int) $_POST['acf']['field_5fff6f3cee555']['field_5fff6f3cef757'];
+		$saved_post_bus_confirm = (int) get_post_meta( $post_id, 'business_staff_status_confirmed', true );
 		if ( array_key_exists( 'field_5fff6ec0e4385', $_POST['acf']['field_5fff6ec0e2f7e'] ) ) {
 			$new_post_bus_confirm = (int) $_POST['acf']['field_5fff6ec0e2f7e']['field_5fff6ec0e4385'];
 		} else {
 			$new_post_bus_confirm = 0;
 		}
+		// Get current user information.
+		$current_user      = wp_get_current_user();
+		$current_user_name = $current_user->display_name;
+
 
 		/**
 		 * Once IT Rep has confirmed, if business approval needed ->
