@@ -4,24 +4,6 @@
         "title": "Order Fields",
         "fields": [
             {
-                "key": "field_5ffcc0a806823",
-                "label": "User",
-                "name": "user",
-                "type": "user",
-                "instructions": "",
-                "required": 0,
-                "conditional_logic": 0,
-                "wrapper": {
-                    "width": "",
-                    "class": "",
-                    "id": ""
-                },
-                "role": "",
-                "allow_null": 0,
-                "multiple": 0,
-                "return_format": "array"
-            },
-            {
                 "key": "field_60074b5ee982b",
                 "label": "Products Subtotal",
                 "name": "products_subtotal",

@@ -74,10 +74,6 @@ class Product_PostType {
 	public function register_custom_fields() {
 
 		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'fields/product-fields.php';
-		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'fields/it-rep-status-order-fields.php';
-		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'fields/business-staff-status-order-fields.php';
-		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'fields/it-logistics-status-order-fields.php';
-		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'fields/order-department-comments-fields.php';
 
 	}
 

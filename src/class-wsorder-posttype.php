@@ -237,6 +237,12 @@ class WSOrder_PostType {
 	public function register_custom_fields() {
 
 		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'fields/wsorder-fields.php';
+		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'fields/wsorder-admin-fields.php';
+		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'fields/wsorder-return-to-user-fields.php';
+		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'fields/it-rep-status-order-fields.php';
+		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'fields/business-staff-status-order-fields.php';
+		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'fields/it-logistics-status-order-fields.php';
+		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'fields/order-department-comments-fields.php';
 
 	}
 	/**
@@ -384,9 +390,6 @@ class WSOrder_PostType {
 				),
 			);
 			$the_query = new \WP_Query( $args );
-			// echo '<pre style="padding-left:250px;">';
-			// print_r($the_query);
-			// echo '</pre>';
 			$last_wsorder_posts = $the_query->posts;
 			$wsorder_id = 1;
 			if ( ! empty( $last_wsorder_posts ) ) {
@@ -428,6 +431,7 @@ class WSOrder_PostType {
 	}
 
 	public function output_list_view_columns( $column_name, $post_id ) {
+
 		if ( 'status' === $column_name ) {
 			$status = get_post_status( $post_id );
 			echo "<div class=\"status-color-key {$status}\"></div>";
@@ -592,7 +596,7 @@ class WSOrder_PostType {
 </p>
 <p>
   Have a great day!<br />
-  <em>-Liberal Arts IT</em>
+  <em>- Liberal Arts IT</em>
 </p>
 <p><em>This email was sent from an unmonitored email address. Please do not reply to this email.</em></p>";
 
@@ -613,7 +617,7 @@ class WSOrder_PostType {
 </p>
 <p>
   Have a great day!<br />
-  <em>-Liberal Arts IT</em>
+  <em>- Liberal Arts IT</em>
 </p>
 <p><em>This email was sent from an unmonitored email address. Please do not reply to this email.</em></p>";
 
@@ -641,8 +645,10 @@ class WSOrder_PostType {
   Next step is to resolve your order's issue with the person who returned it (who has been copied on this email for your convenience), then correct the existing order. You may access your order online at any time using this link: {$admin_order_url}.
 </p>
 
-<p>Have a great day!</p>
-<p><em>-Liberal Arts IT</em></p>
+<p>
+	Have a great day!<br />
+	<em>- Liberal Arts IT</em>
+</p>
 <p><em>This email was sent from an unmonitored email address. Please do not reply to this email.</em></p>";
 
 		return $message;
@@ -654,9 +660,9 @@ class WSOrder_PostType {
 		$program_name     = get_the_title( $acf_data['field_5ffcc2590682b'] );
 		$actor_user       = get_current_user();
 		$actor_name       = $actor_user->display_name;
-		$user             = get_userdata( $acf_data['field_5ffcc0a806823'] );
+		$user             = get_userdata( $acf_data['field_601d4a61e8ace'] );
 		$user_name        = $user->display_name;
-		$returned_comment = '';
+		$returned_comment = $acf_data['field_601d52f2e5418'];
 		$admin_order_url  = admin_url() . "post.php?post={$order_post_id}&action=edit";
 		$message          = "<p>
   Howdy,
@@ -675,7 +681,7 @@ class WSOrder_PostType {
 </p>
 <p>
   Have a great day!<br />
-  <em>-Liberal Arts IT</em>
+  <em>- Liberal Arts IT</em>
 </p>
 <p><em>This email was sent from an unmonitored email address. Please do not reply to this email.</em></p>";
 
