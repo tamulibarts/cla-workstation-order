@@ -3,6 +3,8 @@ WordPress plugin for ordering workstations
 
 Todo:
 * Create lead and approval email system for new orders
+* Implement returned comment field.
+* Move the "user" order field to a role-protected group so the user can't change it themself.
 * Implement Bundles
 * Create custom theme similar to old one
 * Create navigation menu similar to old app
@@ -25,6 +27,7 @@ Todo:
     Have a great day!
     <em>-Liberal Arts IT</em>
   </p>
+  <p><em>This email was sent from an unmonitored email address. Please do not reply to this email.</em></p>
 
 	subject: Workstation Order Received
 	to: it rep
@@ -42,6 +45,7 @@ Todo:
     Get back to work,<br />
     <em>- &lt;3 Garrett</em>
   </p>
+  <p><em>This email was sent from an unmonitored email address. Please do not reply to this email.</em></p>
 
 * Once IT Rep has confirmed, if business approval needed ->
   subject: [{$order_id}] Workstation Order Approval - {$department_abbreviation} - {$end_user}
@@ -60,6 +64,7 @@ Todo:
     Have a great day!<br />
     <em>-Liberal Arts IT</em>
   </p>
+  <p><em>This email was sent from an unmonitored email address. Please do not reply to this email.</em></p>
 
 * If business approval needed, once Business Staff has confirmed ->
 	subject: [{$order_id}] Workstation Order Approval - {$department_abbreviation} - {$end_user}
@@ -72,10 +77,11 @@ Todo:
   <p>
     You can view the order at this link: {$admin_order_url}.
   </p>
-  <p>
-    Get back to work,<br />
-    <em>- &lt;3 Garrett</em>
-  </p>
+	<p>
+	  Have a great day!<br />
+	  <em>-Liberal Arts IT</em>
+	</p>
+  <p><em>This email was sent from an unmonitored email address. Please do not reply to this email.</em></p>
 
 * Once logistics has confirmed ->
 	subject: [{$order_id}] Workstation Order Approval - {$department_abbreviation} - {$end_user}
@@ -102,6 +108,7 @@ Todo:
 
   <p>Have a great day!</p>
   <p><em>-Liberal Arts IT</em></p>
+  <p><em>This email was sent from an unmonitored email address. Please do not reply to this email.</em></p>
 
 * If status changed to "Returned" ->
 	subject: [{$order_id}] Returned Workstation Order - {$order.department.abbreviation} - {$order.user_name}
@@ -126,3 +133,4 @@ Todo:
     Have a great day!<br />
     <em>-Liberal Arts IT</em>
   </p>
+  <p><em>This email was sent from an unmonitored email address. Please do not reply to this email.</em></p>
