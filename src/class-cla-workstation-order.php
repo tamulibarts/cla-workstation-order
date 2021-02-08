@@ -132,7 +132,7 @@ class CLA_Workstation_Order {
 	public function stop_guests() {
 
     if ( $GLOBALS['pagenow'] !== 'wp-login.php' && ! is_user_logged_in() && !defined('DOING_AJAX') && !defined('DOING_CRON') ) {
-      auth_redirect();
+      // auth_redirect();
     }
 
 	}
