@@ -52,9 +52,8 @@ function cla_workstation_activation() {
 
 	// Check for missing dependencies.
 	$acf_pro       = is_plugin_active( 'advanced-custom-fields-pro/acf.php' );
-	$gravity_forms = is_plugin_active( 'gravityforms/gravityforms.php' );
 
-	if ( false === $acf_pro || false === $gravity_forms ) {
+	if ( false === $acf_pro ) {
 
 		$error = sprintf(
 			/* translators: %s: URL for plugins dashboard page */
