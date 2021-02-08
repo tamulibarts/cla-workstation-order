@@ -72,6 +72,10 @@ class CLA_Workstation_Order {
 
 		add_action( 'init', array( $this, 'stop_guests' ) );
 
+		add_filter( 'manage_users_columns', array( $this, 'add_user_admin_columns' ) );
+
+		add_filter( 'manage_users_custom_column', array( $this, 'render_user_admin_columns' ), 10, 3 );
+
 	}
 
 	/**
@@ -130,6 +134,29 @@ class CLA_Workstation_Order {
     if ( $GLOBALS['pagenow'] !== 'wp-login.php' && ! is_user_logged_in() && !defined('DOING_AJAX') && !defined('DOING_CRON') ) {
       auth_redirect();
     }
+
+	}
+
+	public function add_user_admin_columns( $column ) {
+
+    $column['department'] = 'Department';
+    $midpoint = 4;
+    $arr_1 = array_slice( $column, 0, $midpoint );
+    $arr_2 = array_slice( $column, $midpoint, count( $column ) - $midpoint );
+    $arr_1['department'] = 'Department';
+    $column = array_merge($arr_1, $arr_2);
+    return $column;
+
+	}
+
+	public function render_user_admin_columns( $val, $column_name, $user_id ) {
+
+    switch ($column_name) {
+      case 'department' :
+        return get_the_title( get_the_author_meta( 'department', $user_id ) );
+      default:
+    }
+    return $val;
 
 	}
 
