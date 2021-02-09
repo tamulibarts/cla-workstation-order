@@ -106,6 +106,48 @@ class Order_Form_Helper {
 
 	}
 
+	private function get_program_business_admin_user_id( $program_id, $user_department_post_id ) {
+
+		// Get users assigned to active user's department for current program, as array.
+		$program_meta_keys_departments = array(
+			'assign_political_science_department_post_id',
+			'assign_sociology_department_post_id',
+			'assign_philosophy_humanities_department_post_id',
+			'assign_performance_studies_department_post_id',
+			'assign_international_studies_department_post_id',
+			'assign_history_department_post_id',
+			'assign_hispanic_studies_department_post_id',
+			'assign_english_department_post_id',
+			'assign_economics_department_post_id',
+			'assign_communication_department_post_id',
+			'assign_anthropology_department_post_id',
+			'assign_psychology_department_post_id',
+			'assign_dean_department_post_id',
+		);
+		$current_program_post_meta     = get_post_meta( $program_id );
+		$value                         = 0;
+
+		foreach ( $program_meta_keys_departments as $meta_key ) {
+			$assigned_dept = (int) $current_program_post_meta[ $meta_key ][0];
+			if ( $user_department_post_id === $assigned_dept ) {
+				$base_key                     = preg_replace( '/_department_post_id$/', '', $meta_key );
+				$meta_value                   = $current_program_post_meta[ "{$base_key}_business_admins" ];
+				error_log( $meta_value );
+				if ( gettype( $meta_value ) === 'boolean' ) {
+					$value = 0;
+				} else {
+					$meta_value                   = unserialize( $meta_value[0] );
+					$dept_assigned_business_admin = unserialize( $meta_value );
+					$value                        = $dept_assigned_business_admin[0];
+				}
+				break;
+			}
+		}
+
+		return $value;
+
+	}
+
 	/**
 	 * After submission action hook
 	 *
@@ -157,31 +199,7 @@ class Order_Form_Helper {
 			$user_department_post_id = $user_department_post->ID;
 
 			// Get users assigned to active user's department for current program, as array.
-			$program_meta_keys_departments = array(
-				'assign_political_science_department_post_id',
-				'assign_sociology_department_post_id',
-				'assign_philosophy_humanities_department_post_id',
-				'assign_performance_studies_department_post_id',
-				'assign_international_studies_department_post_id',
-				'assign_history_department_post_id',
-				'assign_hispanic_studies_department_post_id',
-				'assign_english_department_post_id',
-				'assign_economics_department_post_id',
-				'assign_communication_department_post_id',
-				'assign_anthropology_department_post_id',
-				'assign_psychology_department_post_id',
-				'assign_dean_department_post_id',
-			);
-			$dept_assigned_business_admin = array();
-			foreach ( $program_meta_keys_departments as $meta_key ) {
-				$assigned_dept = (int) $current_program_post_meta[ $meta_key ][0];
-				if ( $user_department_post_id === $assigned_dept ) {
-					$base_key                     = preg_replace( '/_department_post_id$/', '', $meta_key );
-					$dept_assigned_business_admin = unserialize( $current_program_post_meta[ "{$base_key}_business_admins" ][0] );
-					$dept_assigned_business_admin = $dept_assigned_business_admin[0];
-					break;
-				}
-			}
+			$dept_assigned_business_admin = $this->get_program_business_admin_user_id( $current_program_id, $user_department_post_id );
 
 			/**
 			 * Save ACF field values.
@@ -236,7 +254,7 @@ class Order_Form_Helper {
 			update_field( 'it_rep_status', array( 'it_rep' => $value ), $post_id );
 
 			// Save department Business Admin.
-			$value = $dept_assigned_business_admin;
+			$value = $dept_assigned_business_admin === 0 ? '' : $dept_assigned_business_admin;
 			update_field( 'business_staff_status', array( 'business_staff' => $value ), $post_id );
 
 			/**
