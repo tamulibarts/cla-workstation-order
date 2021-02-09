@@ -227,10 +227,10 @@ get_header();
 		</div>
 		<div class=\"grid-x grid-margin-x\">
 			<div id=\"products\" class=\"cell small-12 medium-auto\">
-				<div class=\"products-apple toggle\"><h3><a class=\"btn\" href=\"javascript:;\">Apple</a></h3>{$apple_list}</div>
-				<div class=\"products-pc toggle\"><h3><a class=\"btn\" href=\"javascript:;\">PC</a></h3>{$pc_list}</div>
-				<div class=\"products-addons toggle\"><h3><a class=\"btn\" href=\"javascript:;\">Add Ons</a></h3>{$addons_list}</div>
-				<div class=\"products-custom-quote toggle\"><h3><a class=\"btn\" href=\"javascript:;\">Advanced Teaching/Research Quote</a></h3>{$button_add_quote}</div>
+				<div class=\"products-apple toggle\"><h3><a class=\"btn\" href=\"#\">Apple</a></h3>{$apple_list}</div>
+				<div class=\"products-pc toggle\"><h3><a class=\"btn\" href=\"#\">PC</a></h3>{$pc_list}</div>
+				<div class=\"products-addons toggle\"><h3><a class=\"btn\" href=\"#\">Add Ons</a></h3>{$addons_list}</div>
+				<div class=\"products-custom-quote toggle\"><h3><a class=\"btn\" href=\"#\">Advanced Teaching/Research Quote</a></h3>{$button_add_quote}</div>
 			</div>
 			<div id=\"shopping_cart\" class=\"cell small-12 medium-3\"><h3>Shopping Cart</h3>
 				{$count_quotes}{$purchase_field}{$total_purchase_field}{$list_purchases}<hr />

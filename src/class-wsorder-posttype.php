@@ -429,7 +429,7 @@ class WSOrder_PostType {
 	 * @return void
 	 */
 	public function notify_users( $new_status, $old_status, $post ) {
-		error_log( $new_status . ' : ' . $old_status );
+		error_log( $old_status . ' -> ' . $new_status );
 		if ( $old_status === $new_status || 'wsorder' !== $post->post_type || $new_status === 'auto-draft' || ! array_key_exists( 'acf', $_POST ) ) {
 			return;
 		}
@@ -507,8 +507,12 @@ class WSOrder_PostType {
 
 			if ( isset( $user_department_post_id ) ) {
 				$business_admin_id       = $this->get_program_business_admin_user_id( $order_program_id, $user_department_post_id );
-				$business_admin_obj      = get_userdata( $business_admin_id );
-				$business_admin_email    = $business_admin_obj->user_email;
+				if ( 0 === $business_admin_id ) {
+					$business_admin_email = false;
+				} else {
+					$business_admin_obj   = get_userdata( $business_admin_id );
+					$business_admin_email = $business_admin_obj->user_email;
+				}
 			}
 		} else {
 			return;
@@ -521,11 +525,11 @@ class WSOrder_PostType {
 		$logistics_email        = get_field( 'logistics_email', 'option' );
 		$enable_logistics_email = get_field( 'enable_emails_to_logistics', 'option' );
 		// Get confirmation statuses.
-		$saved_post_it_confirm  = (int) get_post_meta( $post_id, 'it_rep_status_confirmed', true );
+		$old_post_it_confirm  = (int) get_post_meta( $post_id, 'it_rep_status_confirmed', true );
 		$new_post_it_confirm    = (int) $_POST['acf']['field_5fff6b46a22af']['field_5fff6b71a22b0'];
-		$saved_post_log_confirm = (int) get_post_meta( $post_id, 'it_logistics_status_confirmed', true );
+		$old_post_log_confirm = (int) get_post_meta( $post_id, 'it_logistics_status_confirmed', true );
 		$new_post_log_confirm   = (int) $_POST['acf']['field_5fff6f3cee555']['field_5fff6f3cef757'];
-		$saved_post_bus_confirm = (int) get_post_meta( $post_id, 'business_staff_status_confirmed', true );
+		$old_post_bus_confirm = (int) get_post_meta( $post_id, 'business_staff_status_confirmed', true );
 		if ( array_key_exists( 'field_5fff6ec0e4385', $_POST['acf']['field_5fff6ec0e2f7e'] ) ) {
 			$new_post_bus_confirm = (int) $_POST['acf']['field_5fff6ec0e2f7e']['field_5fff6ec0e4385'];
 		} else {
@@ -533,8 +537,10 @@ class WSOrder_PostType {
 		}
 		// Get current user information.
 		$current_user      = wp_get_current_user();
+		$current_user_id   = $current_user->ID;
 		$current_user_name = $current_user->display_name;
-
+		// Get IT Rep user information.
+		$it_rep_user_id = (int) get_post_meta( $post_id, 'it_rep_status_it_rep', true );
 
 		/**
 		 * Once IT Rep has confirmed, if business approval needed ->
@@ -543,9 +549,12 @@ class WSOrder_PostType {
 		 * body: email_body_it_rep_to_business( $post->ID, $_POST['acf'] )
 		 */
 		if (
-			$saved_post_it_confirm === 0
+			$old_post_it_confirm === 0
 			&& $new_post_it_confirm === 1
+			&& $current_user_id === $it_rep_user_id
 			&& ! empty( $contribution_amount )
+			&& isset( $business_admin_email )
+			&& false !== $business_admin_email
 		) {
 
 			$to      = $business_admin_email;
@@ -562,7 +571,7 @@ class WSOrder_PostType {
 		 * body: email_body_to_logistics( $post->ID, $_POST['acf'] )
 		 */
 		if (
-			$saved_post_it_confirm === 0
+			$old_post_it_confirm === 0
 			&& $new_post_it_confirm === 1
 			&& empty( $contribution_amount )
 			&& $enable_logistics_email === 1
@@ -584,7 +593,7 @@ class WSOrder_PostType {
 
 		if (
 			! empty( $contribution_amount )
-			&& $saved_post_bus_confirm === 0
+			&& $old_post_bus_confirm === 0
 			&& $new_post_bus_confirm === 1
 		) {
 
@@ -602,7 +611,7 @@ class WSOrder_PostType {
 		 * body: email_body_order_approved( $post->ID, $_POST['acf'] );
 		 */
 		if (
-			$saved_post_log_confirm === 0
+			$old_post_log_confirm === 0
 			&& $new_post_log_confirm === 1
 		) {
 
