@@ -42,6 +42,7 @@ cache
 
 #Ignore compiled files and dependencies using package control
 css/*.css
+css/**/*.css.map
 node_modules
 .sass-cache
 vendor
