@@ -44,13 +44,20 @@ class User_Roles {
 
 		// Update existing Subscriber role.
 		$subscriber_role = get_role( 'subscriber' );
-		$subscriber_role->add_cap( 'edit_wsorder', true );
-		$subscriber_role->add_cap( 'read_wsorder', true );
-		$subscriber_role->add_cap( 'delete_wsorder', false );
-		$subscriber_role->add_cap( 'edit_wsorders', true );
-		$subscriber_role->add_cap( 'edit_others_wsorders', false );
-		$subscriber_role->add_cap( 'create_wsorders', true );
-		$subscriber_role->add_cap( 'publish_wsorders', true );
+    $subscriber_role->add_cap( 'edit_wsorder', true );
+    $subscriber_role->add_cap( 'read_wsorder', true );
+    // $subscriber_role->add_cap( 'delete_wsorder', false );
+    // $subscriber_role->add_cap( 'create_wsorders', false );
+    // $subscriber_role->add_cap( 'delete_wsorders', false );
+    // $subscriber_role->add_cap( 'delete_others_wsorders', false );
+    // $subscriber_role->add_cap( 'delete_private_wsorders', false );
+    // $subscriber_role->add_cap( 'delete_published_wsorders', false );
+    $subscriber_role->add_cap( 'edit_wsorders', true );
+    // $subscriber_role->add_cap( 'edit_others_wsorders', false );
+    // $subscriber_role->add_cap( 'edit_private_wsorders', false );
+    // $subscriber_role->add_cap( 'edit_published_wsorders', false );
+    // $subscriber_role->add_cap( 'publish_wsorders', false );
+    // $subscriber_role->add_cap( 'read_private_wsorders', false );
 
 		/**
 		 * Add new roles with custom post type capabilities.
@@ -58,114 +65,143 @@ class User_Roles {
 
 		// WSO Admin role.
 		$wso_admin_caps = array(
-			'edit_program'             => true,
-			'read_program'             => true,
-			'delete_program'           => true,
-			'edit_programs'            => true,
-			'edit_others_programs'     => true,
-			'publish_programs'         => true,
-			'read_private_programs'    => true,
-			'create_programs'          => true,
-			'edit_department'          => true,
-			'read_department'          => true,
-			'delete_department'        => true,
-			'edit_departments'         => true,
-			'edit_others_departments'  => true,
-			'publish_departments'      => true,
-			'read_private_departments' => true,
-			'create_departments'       => true,
-			'edit_wsorder'             => true,
-			'read_wsorder'             => true,
-			'delete_wsorder'           => true,
-			'edit_wsorders'            => true,
-			'edit_others_wsorders'     => true,
-			'publish_wsorders'         => true,
-			'read_private_wsorders'    => true,
-			'create_wsorders'          => true,
-			'edit_product'             => true,
-			'read_product'             => true,
-			'delete_product'           => true,
-			'edit_products'            => true,
-			'edit_others_products'     => true,
-			'publish_products'         => true,
-			'read_private_products'    => true,
-			'create_products'          => true,
-			'edit_bundle'              => true,
-			'read_bundle'              => true,
-			'delete_bundle'            => true,
-			'edit_bundles'             => true,
-			'edit_others_bundles'      => true,
-			'publish_bundles'          => true,
-			'read_private_bundles'     => true,
-			'create_bundles'           => true,
+      'edit_wsorder'              => true,
+      'read_wsorder'              => true,
+      'delete_wsorder'            => true,
+      'create_wsorders'           => true,
+      'delete_wsorders'           => true,
+      'delete_others_wsorders'    => true,
+      'delete_private_wsorders'   => true,
+      'delete_published_wsorders' => true,
+      'edit_wsorders'             => true,
+      'edit_others_wsorders'      => true,
+      'edit_private_wsorders'     => true,
+      'edit_published_wsorders'   => true,
+      'publish_wsorders'          => true,
+      'read_private_wsorders'     => true,
+			'edit_program'              => true,
+			'read_program'              => true,
+			'delete_program'            => true,
+			'edit_programs'             => true,
+			'edit_others_programs'      => true,
+			'publish_programs'          => true,
+			'read_private_programs'     => true,
+			'create_programs'           => true,
+			'edit_department'           => true,
+			'read_department'           => true,
+			'delete_department'         => true,
+			'edit_departments'          => true,
+			'edit_others_departments'   => true,
+			'publish_departments'       => true,
+			'read_private_departments'  => true,
+			'create_departments'        => true,
+			'edit_product'              => true,
+			'read_product'              => true,
+			'delete_product'            => true,
+			'edit_products'             => true,
+			'edit_others_products'      => true,
+			'publish_products'          => true,
+			'read_private_products'     => true,
+			'create_products'           => true,
+			'edit_bundle'               => true,
+			'read_bundle'               => true,
+			'delete_bundle'             => true,
+			'edit_bundles'              => true,
+			'edit_others_bundles'       => true,
+			'publish_bundles'           => true,
+			'read_private_bundles'      => true,
+			'create_bundles'            => true,
+			'manage_wso_options'        => true,
+			'upload_files'              => true,
+			'unfiltered_html'           => true,
+			'read'                      => true,
+			'manage_product_categories' => true,
+			'remove_users'              => true,
+			'upload_files'              => true,
+			'promote_users'             => true,
+			'list_users'                => true,
 		);
-		$this->add_role( 'wso_admin', 'WSO Admin', 'editor', $wso_admin_caps );
+		$this->add_role( 'wso_admin', 'WSO Admin', false, $wso_admin_caps );
 
 		// Logistics role.
 		$logistics_caps = array(
-			'edit_users'               => true,
-			'edit_product'             => true,
-			'read_product'             => true,
-			'delete_product'           => true,
-			'edit_products'            => true,
-			'edit_others_products'     => true,
-			'publish_products'         => true,
-			'read_private_products'    => true,
-			'create_products'          => true,
-			'edit_bundle'              => true,
-			'read_bundle'              => true,
-			'delete_bundle'            => true,
-			'edit_bundles'             => true,
-			'edit_others_bundles'      => true,
-			'publish_bundles'          => true,
-			'read_private_bundles'     => true,
-			'create_bundles'           => true,
-			'edit_department'          => true,
-			'read_department'          => true,
-			'delete_department'        => true,
-			'edit_departments'         => true,
-			'edit_others_departments'  => true,
-			'publish_departments'      => true,
-			'read_private_departments' => true,
-			'create_departments'       => true,
-			'edit_program'             => true,
-			'read_program'             => true,
-			'delete_program'           => true,
-			'edit_programs'            => true,
-			'edit_others_programs'     => true,
-			'publish_programs'         => true,
-			'read_private_programs'    => true,
-			'create_programs'          => true,
+			'edit_wsorder'              => true,
+      'read_wsorder'              => true,
+      'delete_wsorder'            => true,
+      'create_wsorders'           => true,
+      'delete_wsorders'           => true,
+      'delete_others_wsorders'    => true,
+      'delete_private_wsorders'   => true,
+      'delete_published_wsorders' => true,
+      'edit_wsorders'             => true,
+      'edit_others_wsorders'      => true,
+      'edit_private_wsorders'     => true,
+      'edit_published_wsorders'   => true,
+      'publish_wsorders'          => true,
+      'read_private_wsorders'     => true,
+      'read'                      => true,
 		);
-		$this->add_role( 'wso_logistics', 'Logistics', 'contributor', $logistics_caps );
+		$this->add_role( 'wso_logistics', 'Logistics', false, $logistics_caps );
 
+		/**
+		 * IT Rep capabilities.
+		 */
 		$it_rep_caps = array(
-			'edit_wsorder'     => true,
-			'read_wsorder'     => true,
-			'publish_wsorders' => true,
-			'create_wsorders'  => true,
+			'edit_wsorder'              => true,
+      'read_wsorder'              => true,
+      // 'delete_wsorder'            => false,
+      // 'create_wsorders'           => false,
+      // 'delete_wsorders'           => false,
+      // 'delete_others_wsorders'    => false,
+      // 'delete_private_wsorders'   => false,
+      // 'delete_published_wsorders' => false,
+      'edit_wsorders'             => true,
+      'edit_others_wsorders'      => true,
+      // 'edit_private_wsorders'     => false,
+      // 'edit_published_wsorders'   => false,
+      // 'publish_wsorders'          => false,
+      // 'read_private_wsorders'     => false,
 		);
-		$this->add_role( 'wso_it_rep', 'IT Rep', 'contributor', $it_rep_caps );
+		$this->add_role( 'wso_it_rep', 'IT Rep', false, $it_rep_caps );
 
-		$primary_it_rep_caps = array(
-			'edit_wsorder'     => true,
-			'read_wsorder'     => true,
-			'publish_wsorders' => true,
-			'create_wsorders'  => true,
-		);
-		$this->add_role( 'wso_primary_it_rep', 'Primary IT Rep', 'contributor', $primary_it_rep_caps );
+		$primary_it_rep_caps = array();
+		$this->add_role( 'wso_primary_it_rep', 'Primary IT Rep', 'wso_it_rep', $primary_it_rep_caps );
 
+		$program_it_rep_caps = array();
+		$this->add_role( 'wso_program_it_rep', 'Program IT Rep', 'wso_it_rep', $program_it_rep_caps );
+
+		$department_it_rep_caps = array();
+		$this->add_role( 'wso_department_it_rep', 'Department IT Rep', 'wso_it_rep', $department_it_rep_caps );
+
+		/**
+		 * Admin capabilities.
+		 */
 		$business_admin_caps = array(
-			'edit_wsorder'          => true,
-			'read_wsorder'          => true,
-			'delete_wsorder'        => true,
-			'edit_wsorders'         => true,
-			'edit_others_wsorders'  => true,
-			'publish_wsorders'      => true,
-			'read_private_wsorders' => true,
-			'create_wsorders'       => true,
+			'edit_wsorder'              => true,
+      'read_wsorder'              => true,
+      // 'delete_wsorder'            => false,
+      // 'create_wsorders'           => false,
+      // 'delete_wsorders'           => false,
+      // 'delete_others_wsorders'    => false,
+      // 'delete_private_wsorders'   => false,
+      // 'delete_published_wsorders' => false,
+      'edit_wsorders'             => true,
+      'edit_others_wsorders'      => true,
+      // 'edit_private_wsorders'     => false,
+      // 'edit_published_wsorders'   => false,
+      // 'publish_wsorders'          => false,
+      // 'read_private_wsorders'     => false,
 		);
-		$this->add_role( 'wso_business_admin', 'Business Admin', 'editor', $business_admin_caps );
+		$this->add_role( 'wso_business_admin', 'Business Admin', false, $business_admin_caps );
+
+		$program_business_admin_caps = array();
+		$this->add_role( 'wso_program_business_admin', 'Program Business Admin', 'wso_business_admin', $program_business_admin_caps );
+
+		$department_business_admin_caps = array();
+		$this->add_role( 'wso_department_business_admin', 'Department Business Admin', 'wso_business_admin', $department_business_admin_caps );
+
+		$primary_business_admin_caps = array();
+		$this->add_role( 'wso_primary_business_admin', 'Primary Business Admin', 'wso_business_admin', $primary_business_admin_caps );
 
 	}
 
@@ -200,16 +236,18 @@ class User_Roles {
 		$subscriber_role = get_role( 'subscriber' );
 		$subscriber_role->remove_cap( 'edit_wsorder' );
 		$subscriber_role->remove_cap( 'read_wsorder' );
-		$subscriber_role->remove_cap( 'delete_wsorder' );
 		$subscriber_role->remove_cap( 'edit_wsorders' );
-		$subscriber_role->remove_cap( 'edit_others_wsorders' );
-		$subscriber_role->remove_cap( 'create_wsorders' );
-		$subscriber_role->remove_cap( 'publish_wsorders' );
 
 		remove_role( 'wso_admin' );
 		remove_role( 'wso_logistics' );
 		remove_role( 'wso_it_rep' );
 		remove_role( 'wso_primary_it_rep' );
+		remove_role( 'wso_department_it_rep' );
+		remove_role( 'wso_program_it_rep' );
 		remove_role( 'wso_business_admin' );
+		remove_role( 'wso_program_business_admin' );
+		remove_role( 'wso_department_business_admin' );
+		remove_role( 'wso_primary_business_admin' );
+
 	}
 }

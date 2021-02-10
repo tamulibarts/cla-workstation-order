@@ -92,7 +92,14 @@ class CLA_Workstation_Order {
 			array('Product Category', 'Product Categories'),
 			'product-category',
 			array('product', 'bundle'),
-			array(),
+			array(
+				'capabilities' => array(
+					'manage_terms' => 'manage_product_categories',
+					'edit_terms'   => 'manage_product_categories',
+					'delete_terms' => 'manage_product_categories',
+					'assign_terms' => 'manage_product_categories',
+				),
+			),
 			array(),
 			'',
 			true
@@ -117,7 +124,7 @@ class CLA_Workstation_Order {
 					'page_title' => 'Workstation Order Settings',
 					'menu_title' => 'WSO Settings',
 					'menu_slug'  => 'wsorder-settings',
-					'capability' => 'manage_options',
+					'capability' => 'manage_wso_options',
 					'redirect'   => false,
 				)
 			);

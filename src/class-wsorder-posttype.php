@@ -42,6 +42,7 @@ class WSOrder_PostType {
 		add_filter( 'parse_query', array( $this, 'admin_list_posts_filter' ) );
 		// Notify parties of changes to order status.
 		add_action( 'transition_post_status', array( $this, 'notify_users' ), 10, 3 );
+		// Notify parties of changes to order status.
 
 	}
 
@@ -98,9 +99,25 @@ class WSOrder_PostType {
 			'wsorder',
 			array(),
 			'dashicons-portfolio',
-			array( 'title' ),
+			array( 'title', 'author' ),
 			array(
-				'capability_type' => array( 'wsorder', 'wsorders' ),
+				'capabilities' => array(
+	        'edit_post'                 => 'edit_wsorder',
+	        'read_post'                 => 'read_wsorder',
+	        'delete_post'               => 'delete_wsorder',
+	        'create_posts'              => 'create_wsorders',
+	        'delete_posts'              => 'delete_wsorders',
+	        'delete_others_posts'       => 'delete_others_wsorders',
+	        'delete_private_posts'      => 'delete_private_wsorders',
+	        'delete_published_posts'    => 'delete_published_wsorders',
+	        'edit_posts'                => 'edit_wsorders',
+	        'edit_others_posts'         => 'edit_others_wsorders',
+	        'edit_private_posts'        => 'edit_private_wsorders',
+	        'edit_published_posts'      => 'edit_published_wsorders',
+	        'publish_posts'             => 'publish_wsorders',
+	        'read_private_posts'        => 'read_private_wsorders'
+				),
+				'map_meta_cap' => true,
 			)
 		);
 
