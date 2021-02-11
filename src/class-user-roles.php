@@ -127,12 +127,7 @@ class User_Roles {
 		$logistics_caps = array(
 			'edit_wsorder'              => true,
       'read_wsorder'              => true,
-      'delete_wsorder'            => true,
-      'create_wsorders'           => true,
-      'delete_wsorders'           => true,
-      'delete_others_wsorders'    => true,
-      'delete_private_wsorders'   => true,
-      'delete_published_wsorders' => true,
+      'create_wsorders'           => true, // This is needed to edit others orders for some reason.
       'edit_wsorders'             => true,
       'edit_others_wsorders'      => true,
       'edit_private_wsorders'     => true,
@@ -149,18 +144,14 @@ class User_Roles {
 		$it_rep_caps = array(
 			'edit_wsorder'              => true,
       'read_wsorder'              => true,
-      // 'delete_wsorder'            => false,
-      // 'create_wsorders'           => false,
-      // 'delete_wsorders'           => false,
-      // 'delete_others_wsorders'    => false,
-      // 'delete_private_wsorders'   => false,
-      // 'delete_published_wsorders' => false,
+      'create_wsorders'           => true, // This is needed to edit others orders for some reason.
       'edit_wsorders'             => true,
       'edit_others_wsorders'      => true,
-      // 'edit_private_wsorders'     => false,
-      // 'edit_published_wsorders'   => false,
-      // 'publish_wsorders'          => false,
-      // 'read_private_wsorders'     => false,
+      'edit_private_wsorders'     => true,
+      'edit_published_wsorders'   => true,
+      'publish_wsorders'          => true,
+      'read_private_wsorders'     => true,
+      'read'                      => true,
 		);
 		$this->add_role( 'wso_it_rep', 'IT Rep', false, $it_rep_caps );
 
@@ -179,18 +170,14 @@ class User_Roles {
 		$business_admin_caps = array(
 			'edit_wsorder'              => true,
       'read_wsorder'              => true,
-      // 'delete_wsorder'            => false,
-      // 'create_wsorders'           => false,
-      // 'delete_wsorders'           => false,
-      // 'delete_others_wsorders'    => false,
-      // 'delete_private_wsorders'   => false,
-      // 'delete_published_wsorders' => false,
+      'create_wsorders'           => true, // This is needed to edit others orders for some reason.
       'edit_wsorders'             => true,
       'edit_others_wsorders'      => true,
-      // 'edit_private_wsorders'     => false,
-      // 'edit_published_wsorders'   => false,
-      // 'publish_wsorders'          => false,
-      // 'read_private_wsorders'     => false,
+      'edit_private_wsorders'     => true,
+      'edit_published_wsorders'   => true,
+      'publish_wsorders'          => true,
+      'read_private_wsorders'     => true,
+      'read'                      => true,
 		);
 		$this->add_role( 'wso_business_admin', 'Business Admin', false, $business_admin_caps );
 
