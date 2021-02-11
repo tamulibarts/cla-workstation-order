@@ -326,7 +326,9 @@ class WSOrder_PostType {
 
 	  $status = array('status' => '');
 	  $columns = array_merge( $status, $columns );
+	  unset($columns['date']);
 
+	  $columns['author']           = 'Ordered By';
 	  $columns['ordered_at']       = 'Ordered At';
 	  $columns['amount']           = 'Amount';
 	  $columns['it_status']        = 'IT';
@@ -341,7 +343,7 @@ class WSOrder_PostType {
 		if ( 'status' === $column_name ) {
 			$status = get_post_status( $post_id );
 			echo "<div class=\"status-color-key {$status}\"></div>";
-		} else if( 'amount' === $column_name ) {
+		} elseif( 'amount' === $column_name ) {
       $number = (float) get_post_meta( $post_id, 'products_subtotal', true );
       if ( class_exists('NumberFormatter') ) {
 				$formatter = new \NumberFormatter('en_US', \NumberFormatter::CURRENCY);
@@ -349,7 +351,7 @@ class WSOrder_PostType {
 			} else {
 				echo '$' . number_format($number, 2,'.', ',');
 			}
-    } else if ( 'it_status' === $column_name ) {
+    } elseif ( 'it_status' === $column_name ) {
     	$status = get_field( 'it_rep_status', $post_id );
     	if ( empty( $status['confirmed'] ) ) {
     		echo '<span class="approval not-confirmed">Not yet confirmed</span>';
@@ -357,7 +359,7 @@ class WSOrder_PostType {
     		echo '<span class="approval confirmed">Confirmed</span><br>';
     		echo $status['it_rep']['display_name'];
     	}
-    } else if ( 'business_status' === $column_name ) {
+    } elseif ( 'business_status' === $column_name ) {
     	// Determine status message.
     	$requires_business_approval = $this->order_requires_business_approval( $post_id );
     	if ( $requires_business_approval ) {
@@ -371,7 +373,7 @@ class WSOrder_PostType {
     	} else {
     		echo '<span class="approval">Not required</span>';
     	}
-    } else if ( 'logistics_status' === $column_name ) {
+    } elseif ( 'logistics_status' === $column_name ) {
     	$status = get_field( 'it_logistics_status', $post_id );
     	if ( empty( $status['confirmed'] ) ) {
     		echo '<span class="approval not-confirmed">Not yet confirmed</span>';
@@ -387,8 +389,6 @@ class WSOrder_PostType {
     	$ordered = get_post_meta( $post_id, 'it_logistics_status_ordered_at', true );
     	if ( ! empty( $ordered ) ) {
     		echo date( 'F j, Y \a\t g:i a', strtotime($ordered));
-    	} else {
-    		echo '-';
     	}
     }
 	}
