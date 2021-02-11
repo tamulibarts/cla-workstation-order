@@ -118,6 +118,7 @@ class WSOrder_PostType {
 	        'read_private_posts'        => 'read_private_wsorders'
 				),
 				'map_meta_cap' => true,
+				'publicly_queryable' => false,
 			)
 		);
 
