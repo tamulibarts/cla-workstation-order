@@ -42,7 +42,6 @@ class WSOrder_PostType {
 		add_filter( 'parse_query', array( $this, 'admin_list_posts_filter' ) );
 		// Notify parties of changes to order status.
 		add_action( 'transition_post_status', array( $this, 'notify_users' ), 10, 3 );
-		// Notify parties of changes to order status.
 
 	}
 
