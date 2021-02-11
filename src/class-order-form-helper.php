@@ -206,10 +206,6 @@ class Order_Form_Helper {
 			 * https://www.advancedcustomfields.com/resources/update_field/
 			 */
 
-			// Save customer user ID.
-			$value = $user->get( 'ID' );
-			update_field( 'user', $value, $post_id );
-
 			// Save program.
 			$value = $current_program_id;
 			update_field( 'program', $value, $post_id );
