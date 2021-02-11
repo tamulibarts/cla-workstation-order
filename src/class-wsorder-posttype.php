@@ -323,6 +323,7 @@ class WSOrder_PostType {
 	  $status = array('status' => '');
 	  $columns = array_merge( $status, $columns );
 
+	  $columns['ordered_at']       = 'Ordered At';
 	  $columns['amount']           = 'Amount';
 	  $columns['it_status']        = 'IT';
 	  $columns['business_status']  = 'Business';
@@ -377,6 +378,13 @@ class WSOrder_PostType {
 	    	} else {
 	    		echo '<span class="approval ordered">Ordered</span>';
 	    	}
+    	}
+    } elseif ( 'ordered_at' === $column_name ) {
+    	$ordered = get_post_meta( $post_id, 'it_logistics_status_ordered_at', true );
+    	if ( ! empty( $ordered ) ) {
+    		echo date( 'F j, Y \a\t g:i a', strtotime($ordered));
+    	} else {
+    		echo '-';
     	}
     }
 	}
