@@ -398,6 +398,12 @@ class WSOrder_PostType {
 		    $query->query_vars['meta_query'][] = $meta_query; // add meta queries to $query
 		    $query->query_vars['name'] = '';
 	    }
+
+	    // Prevent subscribers from seeing other orders.
+	    $current_user = wp_get_current_user();
+	    if ( user_can( $current_user, 'subscriber' ) ) {
+	    	$query->query_vars['author'] = $current_user->ID;
+	    }
 		}
 	}
 
