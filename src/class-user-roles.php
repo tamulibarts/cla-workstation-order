@@ -120,6 +120,20 @@ class User_Roles {
 			'upload_files'              => true,
 			'promote_users'             => true,
 			'list_users'                => true,
+			'edit_post'                 => false,
+			'read_post'                 => false,
+			'delete_post'               => false,
+			'create_posts'              => false,
+			'delete_posts'              => false,
+			'delete_others_posts'       => false,
+			'delete_private_posts'      => false,
+			'delete_published_posts'    => false,
+			'edit_posts'                => false,
+			'edit_others_posts'         => false,
+			'edit_private_posts'        => false,
+			'edit_published_posts'      => false,
+			'publish_posts'             => false,
+			'read_private_posts'        => false,
 		);
 		$this->add_role( 'wso_admin', 'WSO Admin', false, $wso_admin_caps );
 
