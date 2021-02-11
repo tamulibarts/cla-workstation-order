@@ -72,6 +72,10 @@
 	input:not([type="checkbox"]),
 	select {
 		width: 100%;
+		height: 36px;
+		padding: 6px 12px;
+		color: #495057;
+		border: 1px solid #CED4DA;
 	}
 
 	> div {
@@ -87,7 +91,7 @@
 		cursor: pointer;
 		display: block;
 		margin-top: 10px;
-		margin-bottom: 0;
+		margin-bottom: 4px;
 	}
 
 	div.nobreak label {
@@ -100,6 +104,10 @@
 
 	dd {
 		padding-left: 0;
+	}
+
+	hr {
+		margin: 1rem auto;
 	}
 
 	.flagged {
@@ -115,13 +123,13 @@
 	}
 
 	.dollar-field {
-		border: 1px solid rgb(220, 215, 202);
+		border: 1px solid #CED4DA;
 		border-width: 1px 0 1px 1px;
-		width: 52px;
-		height: 52px;
+		width: 36px;
+		height: 36px;
 		text-align: center;
-		font-size: 26px;
-		line-height: 50px;
+		font-size: 18px;
+		line-height: 34px;
 		background-color: #DDD;
 
 		+ .cell input {
@@ -172,6 +180,10 @@
 
 #products {
 
+	> div {
+		margin-bottom: 2rem;
+	}
+
 	.add-product {
 		@extend %button;
 
@@ -182,6 +194,13 @@
 
 	h3 {
 		margin: 1rem 0;
+		font-size: 19.36px;
+		font-weight: 700;
+
+		a {
+			text-decoration: none;
+			color: #000;
+		}
 	}
 
 	.card {
@@ -207,6 +226,8 @@
   .card-header {
     padding: 0.75rem 1.25rem;
     border-radius: calc(0.25rem - 1px) calc(0.25rem - 1px) 0 0;
+    width: 100%;
+    margin-top: 0;
 
     a {
     	text-decoration: none;
@@ -250,6 +271,7 @@
 	}
 
 	.toggle {
+		cursor: default;
 
 		.btn:before {
 			content: "";
@@ -260,6 +282,7 @@
 			border: 12px solid #000;
 			border-color: transparent transparent transparent #000;
 			margin-right: 8px;
+			vertical-align: bottom;
 		}
 
 		&.active .btn:before {
@@ -288,6 +311,7 @@
 		border: none;
 		background-color: transparent;
 		padding: 0;
+		text-align: left;
 
 		&:focus,
 		&:hover {
@@ -296,6 +320,34 @@
 
 		&:focus {
 			outline: none;
+		}
+
+		.info {
+			text-transform: none;
+
+			.close {
+				position: absolute;
+				top: 0;
+				right: 3px;
+				overflow: hidden;
+				width: 18px;
+				height: 24px;
+				white-space: nowrap;
+
+				&:before {
+					content: "X";
+					display: inline-block;
+					margin-right: 200%;
+					font-family: Verdana, Tahoma, sans-serif;
+					font-size: 2.25rem;
+					font-weight: 700;
+				}
+			}
+		}
+
+		ul {
+			margin-left: 0;
+			margin-bottom: 0;
 		}
 	}
 
@@ -306,7 +358,7 @@
 		left: calc(100% + 4px);
 		border: 1px solid rgba(0, 0, 0, 0.2);
 		background-color: #FFF;
-		padding: 16px;
+		padding: 20px;
 		line-height: 1.1;
 		width: 350px;
 		max-height: 350px;
@@ -325,7 +377,7 @@
 	line-height: 1.5;
 	font-weight: 700;
 
-	input[type="submit"] {
+	input#cla_submit[type="submit"] {
 		@extend %button;
 		margin-top: 1rem;
 
