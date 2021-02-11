@@ -99,7 +99,7 @@ class WSOrder_PostType {
 			'wsorder',
 			array(),
 			'dashicons-portfolio',
-			array( 'title', 'author' ),
+			array( 'title' ),
 			array(
 				'capabilities' => array(
 	        'edit_post'                 => 'edit_wsorder',
