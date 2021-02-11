@@ -468,7 +468,7 @@ class Order_Form_Helper {
 
 			// Build the card output.
 			$output .= "<div id=\"product-{$post_id}\" class=\"card cell small-12 medium-3\">";
-			$output .= "<h5 class=\"card-header\"><a class=\"post-title post-title-{$post_id}\" href=\"{$permalink}\">{$post_title}</a></h5>";
+			$output .= "<h5 class=\"card-header\"><span class=\"post-title post-title-{$post_id}\">{$post_title}</span></h5>";
 			$output .= "<div class=\"card-body\">{$thumbnail}<p>$description</p></div>";
 			$output .= "<div class=\"card-footer\"><div class=\"grid-x grid-padding-x grid-padding-y\">";
 			$output .= "<div class=\"more-details-wrap align-left cell shrink\"><button class=\"more-details link\" type=\"button\">More Details<div class=\"info\">$more_info</div></button></div>";
