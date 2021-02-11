@@ -130,14 +130,13 @@ class Order_Form_Helper {
 		foreach ( $program_meta_keys_departments as $meta_key ) {
 			$assigned_dept = (int) $current_program_post_meta[ $meta_key ][0];
 			if ( $user_department_post_id === $assigned_dept ) {
-				$base_key                     = preg_replace( '/_department_post_id$/', '', $meta_key );
-				$meta_value                   = $current_program_post_meta[ "{$base_key}_business_admins" ];
-				error_log( $meta_value );
+				$base_key   = preg_replace( '/_department_post_id$/', '', $meta_key );
+				$meta_value = $current_program_post_meta[ "{$base_key}_business_admins" ];
 				if ( gettype( $meta_value ) === 'boolean' ) {
 					$value = 0;
 				} else {
 					$meta_value                   = unserialize( $meta_value[0] );
-					$dept_assigned_business_admin = unserialize( $meta_value );
+					$dept_assigned_business_admin = $meta_value[0];
 					$value                        = $dept_assigned_business_admin[0];
 				}
 				break;
