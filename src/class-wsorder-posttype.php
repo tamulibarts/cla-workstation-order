@@ -42,6 +42,10 @@ class WSOrder_PostType {
 		add_filter( 'parse_query', array( $this, 'admin_list_posts_filter' ) );
 		// Notify parties of changes to order status.
 		add_action( 'transition_post_status', array( $this, 'notify_users' ), 10, 3 );
+		// Redirect new order post creation to the order page.
+		add_filter( 'admin_url', array( $this, 'replace_new_order_url' ), 10, 3 );
+
+		add_action('admin_init', array( $this, 'redirect_to_order_form' ) );
 
 	}
 
@@ -794,6 +798,35 @@ class WSOrder_PostType {
 <p><em>This email was sent from an unmonitored email address. Please do not reply to this email.</em></p>";
 
 		return $message;
+
+	}
+
+	public function redirect_to_order_form() {
+
+	  global $pagenow;
+
+	  if (
+	  	! current_user_can( 'administrator' )
+	  	&& 'post-new.php' === $pagenow
+	  	&& isset($_GET['post_type'])
+	  	&& $_GET['post_type'] === 'wsorder'
+	  ) {
+
+	  	$blog_id = get_current_blog_id();
+	  	$url = get_site_url( $blog_id, 'order-form/' );
+	    wp_redirect( $url ); exit;
+
+	  }
+
+	}
+
+	public function replace_new_order_url ( $url, $path, $blog_id ) {
+
+		if ( 'post-new.php?post_type=wsorder' === $path ) {
+			$url = get_site_url( $blog_id, 'order-form/' );
+		}
+
+  	return $url;
 
 	}
 }
