@@ -331,7 +331,7 @@ get_header();
 							$post_id = $cla_form_helper->create_post( $_POST );
 
 							?>
-							<div id="respond">You have successfully submitted your order.</div>
+							<div id="respond"><p>You have successfully submitted your order.</p></div>
 							<?php
 						}
 					}
