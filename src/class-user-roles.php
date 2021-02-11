@@ -47,7 +47,7 @@ class User_Roles {
     $subscriber_role->add_cap( 'edit_wsorder', true );
     $subscriber_role->add_cap( 'read_wsorder', true );
     // $subscriber_role->add_cap( 'delete_wsorder', false );
-    // $subscriber_role->add_cap( 'create_wsorders', false );
+    $subscriber_role->add_cap( 'create_wsorders', true );
     // $subscriber_role->add_cap( 'delete_wsorders', false );
     // $subscriber_role->add_cap( 'delete_others_wsorders', false );
     // $subscriber_role->add_cap( 'delete_private_wsorders', false );
