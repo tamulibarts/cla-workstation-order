@@ -318,6 +318,8 @@ get_header();
 									'class'   => array(),
 									'loading' => array(),
 								),
+								'ul'       => array(),
+								'li'       => array(),
 							);
 							echo wp_kses( $search_form, $allowed_html );
 
