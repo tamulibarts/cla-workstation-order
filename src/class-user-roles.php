@@ -56,7 +56,7 @@ class User_Roles {
     // $subscriber_role->add_cap( 'edit_others_wsorders', false );
     // $subscriber_role->add_cap( 'edit_private_wsorders', false );
     // $subscriber_role->add_cap( 'edit_published_wsorders', false );
-    // $subscriber_role->add_cap( 'publish_wsorders', false );
+    $subscriber_role->add_cap( 'publish_wsorders', true );
     // $subscriber_role->add_cap( 'read_private_wsorders', false );
 
 		/**
@@ -239,6 +239,7 @@ class User_Roles {
 		$subscriber_role->remove_cap( 'read_wsorder' );
 		$subscriber_role->remove_cap( 'edit_wsorders' );
 		$subscriber_role->remove_cap( 'create_wsorders' );
+		$subscriber_role->remove_cap( 'publish_wsorders' );
 
 		remove_role( 'wso_admin' );
 		remove_role( 'wso_logistics' );
