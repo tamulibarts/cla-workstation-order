@@ -145,8 +145,8 @@ class User_Roles {
       'edit_wsorders'             => true,
       'edit_others_wsorders'      => true,
       'edit_private_wsorders'     => true,
-      'edit_published_wsorders'   => true,
-      'publish_wsorders'          => true,
+      // 'edit_published_wsorders'   => true,
+      'publish_wsorders'          => true, // Required for changing the post status.
       'read_private_wsorders'     => true,
       'read'                      => true,
 		);
@@ -162,8 +162,8 @@ class User_Roles {
       'edit_wsorders'             => true,
       'edit_others_wsorders'      => true,
       'edit_private_wsorders'     => true,
-      'edit_published_wsorders'   => true,
-      'publish_wsorders'          => true,
+      // 'edit_published_wsorders'   => true,
+      'publish_wsorders'          => true, // Required for changing the post status.
       'read_private_wsorders'     => true,
       'read'                      => true,
 		);
@@ -188,8 +188,8 @@ class User_Roles {
       'edit_wsorders'             => true,
       'edit_others_wsorders'      => true,
       'edit_private_wsorders'     => true,
-      'edit_published_wsorders'   => true,
-      'publish_wsorders'          => true,
+      // 'edit_published_wsorders'   => true,
+      'publish_wsorders'          => true, // Required for changing the post status.
       'read_private_wsorders'     => true,
       'read'                      => true,
 		);
