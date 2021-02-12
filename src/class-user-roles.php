@@ -238,6 +238,7 @@ class User_Roles {
 		$subscriber_role->remove_cap( 'edit_wsorder' );
 		$subscriber_role->remove_cap( 'read_wsorder' );
 		$subscriber_role->remove_cap( 'edit_wsorders' );
+		$subscriber_role->remove_cap( 'create_wsorders' );
 
 		remove_role( 'wso_admin' );
 		remove_role( 'wso_logistics' );
