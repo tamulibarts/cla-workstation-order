@@ -42,6 +42,10 @@ class CLA_Workstation_Order {
 	public function __construct() {
 
 		// Handle GravityForms leads.
+		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-dashboard.php';
+		new \CLA_Workstation_Order\Dashboard();
+
+		// Handle GravityForms leads.
 		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-assets.php';
 		new \CLA_Workstation_Order\Assets();
 
