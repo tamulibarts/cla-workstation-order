@@ -40,6 +40,8 @@ class WSOrder_PostType {
 		add_filter( 'default_title', array( $this, 'default_post_title' ), 11, 2 );
 		// Allow programs to link to a list of associated orders in admin.
 		add_filter( 'parse_query', array( $this, 'admin_list_posts_filter' ) );
+		// Prevent users from seeing posts they aren't involved with.
+		add_action( 'pre_get_posts', array( $this, 'pre_get_posts' ) );
 		// Notify parties of changes to order status.
 		add_action( 'transition_post_status', array( $this, 'notify_users' ), 10, 3 );
 		// Redirect new order post creation to the order page.
@@ -474,12 +476,52 @@ class WSOrder_PostType {
 		    $query->query_vars['meta_query'][] = $meta_query; // add meta queries to $query
 		    $query->query_vars['name'] = '';
 	    }
+		}
+	}
 
-	    // Prevent subscribers from seeing other orders.
-	    $current_user = wp_get_current_user();
-	    if ( user_can( $current_user, 'subscriber' ) ) {
-	    	$query->query_vars['author'] = $current_user->ID;
-	    }
+	/**
+	 * Modify the Order post type query in admin so that people not involved with the order
+	 * cannot see the post.
+	 *
+	 * @param object $query The query object.
+	 *
+	 * @return void
+	 */
+	public function pre_get_posts( $query ) {
+		if ( ! is_admin() ) {
+			return;
+		}
+		// Allow admins and logistics to see all orders.
+		if (
+			current_user_can( 'administrator' )
+			|| current_user_can( 'wso_admin' )
+			|| current_user_can( 'wso_logistics' )
+		) {
+			return;
+		}
+		// Everyone else must be restricted.
+		if ( 'wsorder' === $query->get('post_type') ) {
+			$user              = wp_get_current_user();
+			$current_user_id   = $user->ID;
+			$meta_query        = array(
+				'relation' => 'OR',
+				array(
+					'key'   => 'it_rep_status_it_rep',
+					'value' => $current_user_id,
+				),
+				array(
+					'key'   => 'business_staff_status_business_staff',
+					'value' => $current_user_id,
+				),
+				array(
+					'key'   => 'order_author',
+					'value' => $current_user_id,
+				)
+			);
+			$query->set('meta_query', $meta_query);
+			// echo '<pre>';
+			// print_r($query);
+			// echo '</pre>';
 		}
 	}
 
