@@ -8,68 +8,90 @@
  * @subpackage cla-workstation-order/fields
  */
 
-if ( function_exists( 'acf_add_local_field_group' ) ) :
+if( function_exists('acf_add_local_field_group') ):
 
-	acf_add_local_field_group(
+acf_add_local_field_group(array(
+	'key' => 'group_5fff71a842549',
+	'title' => 'Order Department Comments',
+	'fields' => array(
 		array(
-			'key'                   => 'group_5fff71a842549',
-			'title'                 => 'Order Department Comments',
-			'fields'                => array(
-				array(
-					'key'               => 'field_5fff71b0097c3',
-					'label'             => 'Department Comments',
-					'name'              => 'department_comments',
-					'type'              => 'textarea',
-					'instructions'      => '',
-					'required'          => 0,
-					'conditional_logic' => 0,
-					'wrapper'           => array(
-						'width' => '',
-						'class' => '',
-						'id'    => '',
-					),
-					'default_value'     => '',
-					'placeholder'       => '',
-					'maxlength'         => '',
-					'rows'              => '',
-					'new_lines'         => '',
-				),
+			'key' => 'field_5fff71b0097c3',
+			'label' => 'Department Comments',
+			'name' => 'department_comments',
+			'type' => 'textarea',
+			'instructions' => '',
+			'required' => 0,
+			'conditional_logic' => 0,
+			'wrapper' => array(
+				'width' => '',
+				'class' => '',
+				'id' => '',
 			),
-			'location'              => array(
-				array(
-					array(
-						'param'    => 'current_user_role',
-						'operator' => '==',
-						'value'    => 'wso_department_it_rep',
-					),
-					array(
-						'param'    => 'post_type',
-						'operator' => '==',
-						'value'    => 'wsorder',
-					),
-				),
-				array(
-					array(
-						'param'    => 'current_user_role',
-						'operator' => '==',
-						'value'    => 'wso_department_business_admin',
-					),
-					array(
-						'param'    => 'post_type',
-						'operator' => '==',
-						'value'    => 'wsorder',
-					),
-				),
+			'default_value' => '',
+			'placeholder' => '',
+			'maxlength' => '',
+			'rows' => '',
+			'new_lines' => '',
+		),
+	),
+	'location' => array(
+		array(
+			array(
+				'param' => 'current_user_role',
+				'operator' => '==',
+				'value' => 'wso_department_it_rep',
 			),
-			'position'              => 'normal',
-			'style'                 => 'default',
-			'label_placement'       => 'top',
-			'instruction_placement' => 'label',
-			'hide_on_screen'        => '',
-			'active'                => true,
-			'description'           => '',
-		)
-	);
+			array(
+				'param' => 'post_type',
+				'operator' => '==',
+				'value' => 'wsorder',
+			),
+		),
+		array(
+			array(
+				'param' => 'current_user_role',
+				'operator' => '==',
+				'value' => 'wso_department_business_admin',
+			),
+			array(
+				'param' => 'post_type',
+				'operator' => '==',
+				'value' => 'wsorder',
+			),
+		),
+		array(
+			array(
+				'param' => 'current_user_role',
+				'operator' => '==',
+				'value' => 'wso_admin',
+			),
+			array(
+				'param' => 'post_type',
+				'operator' => '==',
+				'value' => 'wsorder',
+			),
+		),
+		array(
+			array(
+				'param' => 'current_user_role',
+				'operator' => '==',
+				'value' => 'wso_logistics',
+			),
+			array(
+				'param' => 'post_type',
+				'operator' => '==',
+				'value' => 'wsorder',
+			),
+		),
+	),
 	'menu_order' => 3,
+	'position' => 'normal',
+	'style' => 'default',
+	'label_placement' => 'left',
+	'instruction_placement' => 'label',
+	'hide_on_screen' => '',
+	'active' => true,
+	'description' => '',
+));
 
 endif;
