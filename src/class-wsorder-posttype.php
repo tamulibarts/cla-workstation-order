@@ -639,6 +639,7 @@ class WSOrder_PostType {
 		$user_id                 = $post->post_author;
 		$end_user                = get_user_by( 'id', $user_id );
 		$end_user_email          = $end_user->user_email;
+		$end_user_name           = $end_user->user_name;
 		$user_department_post    = get_field( 'department', "user_{$user_id}" );
 		$user_department_post_id = $user_department_post ? $user_department_post->ID : 0;
 		$department_abbreviation = get_field( 'abbreviation', $user_department_post_id );
