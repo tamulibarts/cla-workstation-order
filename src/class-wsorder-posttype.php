@@ -26,17 +26,20 @@ class WSOrder_PostType {
 	 */
 	public function __construct() {
 
-		// Register_post_types.
+		// Register_post_type.
 		add_action( 'init', array( $this, 'register_post_type' ) );
+		// Register custom fields.
 		add_action( 'acf/init', array( $this, 'register_custom_fields' ) );
+		// Add custom post status elements to dropdown box.
 		add_action( 'post_submitbox_misc_actions', array( $this, 'post_status_add_to_dropdown' ) );
+		// Return readable custom post status title.
 		add_filter( 'display_post_states', array( $this, 'display_status_state' ) );
-		add_action( 'admin_print_scripts-post-new.php', array( $this, 'admin_script' ), 11 );
+		// Enqueue JavaScript file for admin
 		add_action( 'admin_print_scripts-post.php', array( $this, 'admin_script' ), 11 );
 		// Add columns to dashboard post list screen.
 		add_filter( 'manage_wsorder_posts_columns', array( $this, 'add_list_view_columns' ) );
 		add_action( 'manage_wsorder_posts_custom_column', array( $this, 'output_list_view_columns' ), 10, 2 );
-		// Manipulate post title to force it to a certain format.
+		// Manipulate post title into a certain format.
 		add_filter( 'default_title', array( $this, 'default_post_title' ), 11, 2 );
 		// Allow programs to link to a list of associated orders in admin.
 		add_filter( 'parse_query', array( $this, 'admin_list_posts_filter' ) );
