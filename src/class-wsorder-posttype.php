@@ -45,6 +45,8 @@ class WSOrder_PostType {
 		// Redirect new order post creation to the order page.
 		add_filter( 'admin_url', array( $this, 'replace_new_order_url' ), 10, 3 );
 		add_action( 'admin_init', array( $this, 'redirect_to_order_form' ) );
+		// Hide the publish button from users other than admins.
+		add_action( 'admin_body_class', array( $this, 'set_admin_body_class' ) );
 		add_action( 'admin_init', function() {
 			// Prevent users who aren't on a work order from viewing/editing it.
 			global $pagenow;
@@ -95,6 +97,25 @@ class WSOrder_PostType {
 		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'fields/business-staff-status-order-fields.php';
 		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'fields/it-logistics-status-order-fields.php';
 
+	}
+
+	/**
+	 * Set the body class with the current post status and user roles so that CSS can hide or show appropriate features.
+	 *
+	 * @return void
+	 */
+	public function set_admin_body_class ( $classes ) {
+		global $pagenow;
+
+		if ( $pagenow === 'post.php' ) {
+			$post_id      = get_the_ID();
+			$post_status  = get_post_status( $post_id );
+			$user         = wp_get_current_user();
+			$roles        = ( array ) $user->roles;
+			$classes     .= " $post_status " . implode(' ', $roles);
+		}
+
+		return $classes;
 	}
 
 	/**
