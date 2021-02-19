@@ -461,9 +461,10 @@ class WSOrder_PostType {
 	    $type = $_GET['post_type'];
 		}
 		// Modify wsorder edit page queries.
-		if ( 'wsorder' == $type && is_admin() && $pagenow=='edit.php') {
-			// Allow wsorders to be sorted by program ID.
-	    $meta_query = array(); // Declare meta query to fill after
+		if ( 'wsorder' === $type && is_admin() && 'edit.php' === $pagenow) {
+
+			// Allow wsorders to be sorted by program ID if "program" URL parameter is present.
+	    $meta_query = array(); // Declare meta query to fill afterwards
 	    if (isset($_GET['program']) && $_GET['program'] != '') {
         // first meta key/value
         $meta_query = array (
