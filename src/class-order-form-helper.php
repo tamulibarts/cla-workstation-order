@@ -75,6 +75,9 @@ class Order_Form_Helper {
 
 	}
 
+	/**
+	 * Get the most recent order's ID within a certain program
+	 */
 	private function get_last_order_id( $program_post_id ) {
 
 		$args              = array(
@@ -106,6 +109,9 @@ class Order_Form_Helper {
 
 	}
 
+	/**
+	 * Get the user ID of the designated business admin within a program's department.
+	 */
 	private function get_program_business_admin_user_id( $program_id, $user_department_post_id ) {
 
 		// Get users assigned to active user's department for current program, as array.
@@ -148,7 +154,7 @@ class Order_Form_Helper {
 	}
 
 	/**
-	 * After submission action hook
+	 * Create the wsorder post after the form is submitted.
 	 *
 	 * @param object $entry The Entry Object that was just created.
 	 * @param object $form  The current Form Object.
@@ -321,6 +327,15 @@ class Order_Form_Helper {
 
 	}
 
+	/**
+	 * Send the order form submission confirmation email to the end user and the IT rep.
+	 *
+	 * @param string $order_name   The order post's name.
+	 * @param object $current_user The current WP_User object.
+	 * @param int    $it_rep_id    The user ID of the IT rep.
+	 * @param int    $post_id      The post ID of the new wsorder post.
+	 * @param array  $data         The submission data.
+	 */
 	private function send_confirmation_email( $order_name, $current_user, $it_rep_id, $post_id, $data ) {
 
 		// Get user information.
@@ -377,6 +392,14 @@ class Order_Form_Helper {
 
 	}
 
+	/**
+	 * Get Products as objects for current program not hidden by current user's department
+	 * and within a certain category.
+	 *
+	 * @param string|false $category The category taxonomy term to filter by.
+	 *
+	 * @return array
+	 */
 	public function get_product_post_objects_for_program_by_user_dept( $category = false ) {
 
 		// Get current user and user ID.
@@ -447,6 +470,14 @@ class Order_Form_Helper {
 
 	}
 
+	/**
+	 * Get the HTML for products within the current program and the current user's department
+	 * and an optional category taconomy term.
+	 *
+	 * @param string|false $category The category taxonomy term to filter by.
+	 *
+	 * @return string
+	 */
 	public function cla_get_products( $category = false ) {
 
 		/**
