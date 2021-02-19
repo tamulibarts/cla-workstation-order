@@ -9,7 +9,7 @@
                 "name": "order_id",
                 "type": "number",
                 "instructions": "",
-                "required": 1,
+                "required": 0,
                 "conditional_logic": 0,
                 "wrapper": {
                     "width": "",
@@ -23,6 +23,24 @@
                 "min": 0,
                 "max": "",
                 "step": 1
+            },
+            {
+                "key": "field_60302052bab04",
+                "label": "Author",
+                "name": "order_author",
+                "type": "user",
+                "instructions": "",
+                "required": 0,
+                "conditional_logic": 0,
+                "wrapper": {
+                    "width": "",
+                    "class": "",
+                    "id": ""
+                },
+                "role": "",
+                "allow_null": 0,
+                "multiple": 0,
+                "return_format": "array"
             }
         ],
         "location": [

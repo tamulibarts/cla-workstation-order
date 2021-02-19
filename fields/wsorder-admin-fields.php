@@ -20,7 +20,7 @@ acf_add_local_field_group(array(
 			'name' => 'order_id',
 			'type' => 'number',
 			'instructions' => '',
-			'required' => 1,
+			'required' => 0,
 			'conditional_logic' => 0,
 			'wrapper' => array(
 				'width' => '',
@@ -34,6 +34,24 @@ acf_add_local_field_group(array(
 			'min' => 0,
 			'max' => '',
 			'step' => 1,
+		),
+		array(
+			'key' => 'field_60302052bab04',
+			'label' => 'Author',
+			'name' => 'order_author',
+			'type' => 'user',
+			'instructions' => '',
+			'required' => 0,
+			'conditional_logic' => 0,
+			'wrapper' => array(
+				'width' => '',
+				'class' => '',
+				'id' => '',
+			),
+			'role' => '',
+			'allow_null' => 0,
+			'multiple' => 0,
+			'return_format' => 'array',
 		),
 	),
 	'location' => array(
