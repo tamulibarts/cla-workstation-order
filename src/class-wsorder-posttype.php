@@ -409,7 +409,9 @@ class WSOrder_PostType {
 		if (isset($_GET['post_type'])) {
 	    $type = $_GET['post_type'];
 		}
+		// Modify wsorder edit page queries.
 		if ( 'wsorder' == $type && is_admin() && $pagenow=='edit.php') {
+			// Allow wsorders to be sorted by program ID.
 	    $meta_query = array(); // Declare meta query to fill after
 	    if (isset($_GET['program']) && $_GET['program'] != '') {
         // first meta key/value
