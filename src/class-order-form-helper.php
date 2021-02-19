@@ -167,10 +167,6 @@ class Order_Form_Helper {
 		$current_program_post_meta = get_post_meta( $current_program_id );
 		$current_program_prefix    = $current_program_post_meta['prefix'][0];
 
-		// Get new order post's order ID meta.
-		$last_wsorder_id = $this->get_last_order_id( $current_program_id );
-		$new_wsorder_id  = $last_wsorder_id + 1;
-
 		// Insert post.
 		$postarr = array(
 			'post_author'    => $user_id,
@@ -179,9 +175,6 @@ class Order_Form_Helper {
 			'comment_status' => 'closed',
 			'post_title'     => "{$current_program_prefix}-{$new_wsorder_id}",
 			'post_content'   => '',
-			'meta_input'     => array(
-				'order_id' => $new_wsorder_id,
-			),
 		);
 		$post_id = wp_insert_post( $postarr, true );
 
@@ -204,6 +197,16 @@ class Order_Form_Helper {
 			 * Save ACF field values.
 			 * https://www.advancedcustomfields.com/resources/update_field/
 			 */
+
+			// Save order ID.
+			$last_wsorder_id = $this->get_last_order_id( $current_program_id );
+			$new_wsorder_id  = $last_wsorder_id + 1;
+			$value = $new_wsorder_id;
+			update_field( 'order_id', $value, $post_id );
+
+			// Save order author.
+			$value = $user_id;
+			update_field( 'order_author', $value, $post_id );
 
 			// Save program.
 			$value = $current_program_id;
