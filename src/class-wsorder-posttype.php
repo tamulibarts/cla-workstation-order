@@ -634,9 +634,9 @@ class WSOrder_PostType {
 		// 	wp_mail( 'zwatkins2@tamu.edu', 'order published', $message );
 		// }
 		$post_id                 = $post->ID;
-		$order_id                = get_the_title( $post_id );
 		$end_user                = get_user_by( 'id', $post->post_author );
 		$end_user_email          = $end_user->user_email;
+		$order_name              = get_the_title( $post_id );
 		$user_id                 = $post->post_author;
 		$user_department_post    = get_field( 'department', "user_{$user_id}" );
 		$user_department_post_id = $user_department_post ? $user_department_post->ID : 0;
@@ -684,7 +684,7 @@ class WSOrder_PostType {
 
 		/**
 		 * Once IT Rep has confirmed, if business approval needed ->
-		 * subject: [{$order_id}] Workstation Order Approval - {$department_abbreviation} - {$end_user_name}
+		 * subject: [{$order_name}] Workstation Order Approval - {$department_abbreviation} - {$end_user_name}
 		 * to: department's business admin for the order's program
 		 * body: email_body_it_rep_to_business( $post->ID, $_POST['acf'] )
 		 */
@@ -698,7 +698,7 @@ class WSOrder_PostType {
 		) {
 
 			$to      = $business_admin_email;
-			$title   = "[{$order_id}] Workstation Order Approval - {$department_abbreviation} - {$end_user_name}";
+			$title   = "[{$order_name}] Workstation Order Approval - {$department_abbreviation} - {$end_user_name}";
 			$message = $this->email_body_it_rep_to_business( $post_id, $_POST['acf'] );
 			wp_mail( $to, $title, $message, $headers );
 
@@ -706,7 +706,7 @@ class WSOrder_PostType {
 
 		/**
 		 * Once IT Rep has confirmed, if business approval NOT needed ->
-		 * subject: [{$order_id}] Workstation Order Approval - {$department_abbreviation} - {$end_user_name}
+		 * subject: [{$order_name}] Workstation Order Approval - {$department_abbreviation} - {$end_user_name}
 		 * to: logistics user
 		 * body: email_body_to_logistics( $post->ID, $_POST['acf'] )
 		 */
@@ -718,7 +718,7 @@ class WSOrder_PostType {
 		) {
 
 			$to      = $logistics_email;
-			$title   = "[{$order_id}] Workstation Order Approval - {$department_abbreviation} - {$end_user_name}";
+			$title   = "[{$order_name}] Workstation Order Approval - {$department_abbreviation} - {$end_user_name}";
 			$message = $this->email_body_it_rep_to_business( $post_id, $_POST['acf'] );
 			wp_mail( $to, $title, $message, $headers );
 
@@ -726,7 +726,7 @@ class WSOrder_PostType {
 
 		/**
 		 * If business approval needed, once Business Staff has confirmed ->
-		 * subject: [{$order_id}] Workstation Order Approval - {$department_abbreviation} - {$end_user_name}
+		 * subject: [{$order_name}] Workstation Order Approval - {$department_abbreviation} - {$end_user_name}
 		 * to: logistics user
 		 * body: email_body_to_logistics( $post->ID, $_POST['acf'] )
 		 */
@@ -738,7 +738,7 @@ class WSOrder_PostType {
 		) {
 
 			$to      = $logistics_email;
-			$title   = "[{$order_id}] Workstation Order Approval - {$department_abbreviation} - {$end_user_name}";
+			$title   = "[{$order_name}] Workstation Order Approval - {$department_abbreviation} - {$end_user_name}";
 			$message = $this->email_body_to_logistics( $post_id, $_POST['acf'] );
 			wp_mail( $to, $title, $message, $headers );
 
@@ -746,7 +746,7 @@ class WSOrder_PostType {
 
 		/** ><
 		 * IT Logistics checks their "Confirmed" checkbox and user is emailed with "order approval completed email"
-		 * subject: [{$order_id}] Workstation Order Approval - {$department_abbreviation} - {$end_user_name}
+		 * subject: [{$order_name}] Workstation Order Approval - {$department_abbreviation} - {$end_user_name}
 		 * to: end user
 		 * body: email_body_order_approved( $post->ID, $_POST['acf'] );
 		 */
@@ -756,7 +756,7 @@ class WSOrder_PostType {
 		) {
 
 			$to      = $end_user_email;
-			$title   = "[{$order_id}] Workstation Order Approval - {$department_abbreviation} - {$end_user_name}";
+			$title   = "[{$order_name}] Workstation Order Approval - {$department_abbreviation} - {$end_user_name}";
 			$message = $this->email_body_order_approved( $post_id, $_POST['acf'] );
 			wp_mail( $to, $title, $message, $headers );
 
@@ -764,7 +764,7 @@ class WSOrder_PostType {
 
 		/**
 		 * If status changed to "Returned" ->
-		 * subject: [{$order_id}] Returned Workstation Order - {$department_abbreviation} - {$end_user_name}
+		 * subject: [{$order_name}] Returned Workstation Order - {$department_abbreviation} - {$end_user_name}
 		 * to: end user
 		 * cc: whoever set it to return
 		 * body: email_body_return_to_user( $post->ID, $_POST['acf'] );
@@ -772,7 +772,7 @@ class WSOrder_PostType {
 
 		/**
 		 * If status changed to "Returned" ->
-		 * subject: [{$order_id}] Returned Workstation Order - {$department_abbreviation} - {$order.user_name}
+		 * subject: [{$order_name}] Returned Workstation Order - {$department_abbreviation} - {$order.user_name}
 		 * to: if it_rep is assigned and approved, email them; if business_admin is assigned and approved, email them
   	 * body: email_body_return_to_user_forward( $post->ID, $_POST['acf'] );
   	 */
