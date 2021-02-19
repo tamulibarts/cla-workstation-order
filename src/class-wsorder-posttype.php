@@ -44,8 +44,24 @@ class WSOrder_PostType {
 		add_action( 'transition_post_status', array( $this, 'notify_users' ), 10, 3 );
 		// Redirect new order post creation to the order page.
 		add_filter( 'admin_url', array( $this, 'replace_new_order_url' ), 10, 3 );
+		add_action( 'admin_init', array( $this, 'redirect_to_order_form' ) );
+	}
 
-		add_action('admin_init', array( $this, 'redirect_to_order_form' ) );
+	/**
+	 * Register custom fields
+	 *
+	 * @since 1.0.0
+	 * @return void
+	 */
+	public function register_custom_fields() {
+
+		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'fields/wsorder-admin-fields.php';
+		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'fields/wsorder-fields.php';
+		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'fields/wsorder-return-to-user-fields.php';
+		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'fields/order-department-comments-fields.php';
+		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'fields/it-rep-status-order-fields.php';
+		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'fields/business-staff-status-order-fields.php';
+		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'fields/it-logistics-status-order-fields.php';
 
 	}
 
@@ -253,24 +269,6 @@ class WSOrder_PostType {
 				return $states;
 				break;
 		}
-
-	}
-
-	/**
-	 * Register custom fields
-	 *
-	 * @since 1.0.0
-	 * @return void
-	 */
-	public function register_custom_fields() {
-
-		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'fields/wsorder-fields.php';
-		// require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'fields/wsorder-admin-fields.php';
-		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'fields/wsorder-return-to-user-fields.php';
-		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'fields/it-rep-status-order-fields.php';
-		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'fields/business-staff-status-order-fields.php';
-		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'fields/it-logistics-status-order-fields.php';
-		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'fields/order-department-comments-fields.php';
 
 	}
 
