@@ -611,7 +611,7 @@ class WSOrder_PostType {
 		// }
 		$post_id                 = $post->ID;
 		$order_id                = get_the_title( $post_id );
-		$end_user                = get_user_by( $post->post_author );
+		$end_user                = get_user_by( 'id', $post->post_author );
 		$end_user_email          = $end_user->user_email;
 		$user_id                 = $post->post_author;
 		$user_department_post    = get_field( 'department', "user_{$user_id}" );
