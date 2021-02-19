@@ -90,25 +90,26 @@ class Dashboard {
 	 * @return void
 	 */
 	public function remove_dashboard_meta() {
+
+		// Remove help and screen options tabs
 		add_filter( 'screen_options_show_help', function(){ return false; } );
-		if ( ! current_user_can( 'manage_options' ) ) {
-			add_filter( 'screen_options_show_screen', function(){ return false; } );
+		add_filter( 'screen_options_show_screen', function(){ return false; } );
 
-			remove_meta_box( 'dashboard_incoming_links', 'dashboard', 'normal' );
-			remove_meta_box( 'dashboard_plugins', 'dashboard', 'normal' );
-			remove_meta_box( 'dashboard_primary', 'dashboard', 'normal' );
-			remove_meta_box( 'dashboard_secondary', 'dashboard', 'normal' );
-			remove_meta_box( 'dashboard_quick_press', 'dashboard', 'side' );
-			remove_meta_box( 'dashboard_recent_drafts', 'dashboard', 'side' );
-			remove_meta_box( 'dashboard_recent_comments', 'dashboard', 'normal' );
-			remove_meta_box( 'dashboard_right_now', 'dashboard', 'normal' );
-			remove_meta_box( 'dashboard_activity', 'dashboard', 'normal');
-			remove_meta_box( 'dashboard_site_health', 'dashboard', 'normal');
-			remove_meta_box( 'dashboard_welcome', 'dashboard', 'normal');
+		// Remove every widget from the main dashboard page
+		remove_meta_box( 'dashboard_incoming_links', 'dashboard', 'normal' );
+		remove_meta_box( 'dashboard_plugins', 'dashboard', 'normal' );
+		remove_meta_box( 'dashboard_primary', 'dashboard', 'normal' );
+		remove_meta_box( 'dashboard_secondary', 'dashboard', 'normal' );
+		remove_meta_box( 'dashboard_quick_press', 'dashboard', 'side' );
+		remove_meta_box( 'dashboard_recent_drafts', 'dashboard', 'side' );
+		remove_meta_box( 'dashboard_recent_comments', 'dashboard', 'normal' );
+		remove_meta_box( 'dashboard_right_now', 'dashboard', 'normal' );
+		remove_meta_box( 'dashboard_activity', 'dashboard', 'normal');
+		remove_meta_box( 'dashboard_site_health', 'dashboard', 'normal');
+		remove_meta_box( 'dashboard_welcome', 'dashboard', 'normal');
 
-			// Remove WP Engine dashboard widget.
-			remove_meta_box( 'wpe_dify_news_feed', 'dashboard', 'normal');
-		}
+		// Remove WP Engine dashboard widget.
+		remove_meta_box( 'wpe_dify_news_feed', 'dashboard', 'normal');
 	}
 
 	/**
@@ -135,14 +136,15 @@ class Dashboard {
 	 * @return void
 	 */
 	public function remove_profile_sections_start() {
+		if ( ! current_user_can( 'administrator' ) ) {
+			ob_start( function( $subject ) {
+				$subject = preg_replace( '#<h[0-9]>'.__("Personal Options").'</h[0-9]>.+?/table>#s', '', $subject, 1 );
+				$subject = preg_replace( '#<h[0-9]>'.__("About Yourself").'</h[0-9]>.+?/table>#s', '', $subject, 1 );
+				$subject = preg_replace( '#<h[0-9]>'.__("Application Passwords").'</h[0-9]>.+?/table>#s', '', $subject, 1 );
 
-    ob_start( function( $subject ) {
-      $subject = preg_replace( '#<h[0-9]>'.__("Personal Options").'</h[0-9]>.+?/table>#s', '', $subject, 1 );
-      $subject = preg_replace( '#<h[0-9]>'.__("About Yourself").'</h[0-9]>.+?/table>#s', '', $subject, 1 );
-      $subject = preg_replace( '#<h[0-9]>'.__("Application Passwords").'</h[0-9]>.+?/table>#s', '', $subject, 1 );
-
-      return $subject;
-    });
+				return $subject;
+			});
+		}
 
   }
 
@@ -153,7 +155,9 @@ class Dashboard {
 	 */
   public function remove_profile_sections_end () {
 
-    ob_end_flush();
+		if ( ! current_user_can( 'administrator' ) ) {
+			ob_end_flush();
+		}
 
   }
 }
