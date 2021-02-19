@@ -634,11 +634,11 @@ class WSOrder_PostType {
 		// 	wp_mail( 'zwatkins2@tamu.edu', 'order published', $message );
 		// }
 		$post_id                 = $post->ID;
-		$end_user                = get_user_by( 'id', $post->post_author );
-		$end_user_email          = $end_user->user_email;
 		$order_name              = get_the_title( $post_id );
 		// Declare end user variables.
 		$user_id                 = $post->post_author;
+		$end_user                = get_user_by( 'id', $user_id );
+		$end_user_email          = $end_user->user_email;
 		$user_department_post    = get_field( 'department', "user_{$user_id}" );
 		$user_department_post_id = $user_department_post ? $user_department_post->ID : 0;
 		$department_abbreviation = get_field( 'abbreviation', $user_department_post_id );
