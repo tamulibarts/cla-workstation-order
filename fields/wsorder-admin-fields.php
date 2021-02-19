@@ -15,24 +15,6 @@ acf_add_local_field_group(array(
 	'title' => 'Administrative Fields',
 	'fields' => array(
 		array(
-			'key' => 'field_601d4a61e8ace',
-			'label' => 'User',
-			'name' => 'user',
-			'type' => 'user',
-			'instructions' => '',
-			'required' => 0,
-			'conditional_logic' => 0,
-			'wrapper' => array(
-				'width' => '',
-				'class' => '',
-				'id' => '',
-			),
-			'role' => '',
-			'allow_null' => 0,
-			'multiple' => 0,
-			'return_format' => 'array',
-		),
-		array(
 			'key' => 'field_601d596738d58',
 			'label' => 'Order ID',
 			'name' => 'order_id',
