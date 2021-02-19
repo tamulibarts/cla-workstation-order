@@ -1,11 +1,11 @@
 [
     {
         "key": "group_5fff71a842549",
-        "title": "Order Department Comments",
+        "title": "Department Comments",
         "fields": [
             {
                 "key": "field_5fff71b0097c3",
-                "label": "Department Comments",
+                "label": " ",
                 "name": "department_comments",
                 "type": "textarea",
                 "instructions": "",

@@ -12,11 +12,11 @@ if( function_exists('acf_add_local_field_group') ):
 
 acf_add_local_field_group(array(
 	'key' => 'group_5fff71a842549',
-	'title' => 'Order Department Comments',
+	'title' => 'Department Comments',
 	'fields' => array(
 		array(
 			'key' => 'field_5fff71b0097c3',
-			'label' => 'Department Comments',
+			'label' => ' ',
 			'name' => 'department_comments',
 			'type' => 'textarea',
 			'instructions' => '',
