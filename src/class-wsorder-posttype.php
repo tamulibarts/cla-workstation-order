@@ -45,6 +45,38 @@ class WSOrder_PostType {
 		// Redirect new order post creation to the order page.
 		add_filter( 'admin_url', array( $this, 'replace_new_order_url' ), 10, 3 );
 		add_action( 'admin_init', array( $this, 'redirect_to_order_form' ) );
+		add_action( 'admin_init', function() {
+			// Prevent users who aren't on a work order from viewing/editing it.
+			global $pagenow;
+			if( isset($_GET['post']) ) {
+				$user = wp_get_current_user();
+				$current_user_id = $user->ID;
+				$post_id = absint($_GET['post']); // Always sanitize
+				$author_id = (int) get_post_field( 'post_author', $post_id );
+				$it_rep_id = (int) get_field( 'it_rep_status', $post_id )['it_rep']['ID'];
+				$business_admin_id = (int) get_field( 'business_staff_status', $post_id )['business_staff']['ID'];
+				// echo '<script>';
+				// echo 'console.log("current_user_id: ' . $current_user_id . '; author_id:' . $author_id . '; it_rep_id:' . $it_rep_id . '; business_admin_id:' . $business_admin_id . '");';
+				// echo '</script>';
+				if (
+					'post.php' === $pagenow
+					&& isset($_GET['post'])
+					&& 'wsorder' === get_post_type( $_GET['post'] )
+					&& ! current_user_can( 'administrator' )
+					&& ! current_user_can( 'wso_admin' )
+					&& ! current_user_can( 'wso_logistics' ) // Not a logistics user
+					&& $current_user_id !== $author_id // Not the author
+					&& $current_user_id !== $it_rep_id // Not the IT rep
+					&& $current_user_id !== $business_admin_id // Not the business admin
+				) {
+					// $location = $_SERVER['HTTP_REFERER'];
+					$location = admin_url() . 'edit.php?post_type=wsorder';
+					wp_safe_redirect($location);
+					exit();
+				}
+			}
+		});
+
 	}
 
 	/**
