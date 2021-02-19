@@ -61,7 +61,6 @@ if ( function_exists( 'acf_add_local_field_group' ) ) :
 					),
 				),
 			),
-			'menu_order'            => 0,
 			'position'              => 'normal',
 			'style'                 => 'default',
 			'label_placement'       => 'top',
@@ -71,5 +70,6 @@ if ( function_exists( 'acf_add_local_field_group' ) ) :
 			'description'           => '',
 		)
 	);
+	'menu_order' => 3,
 
 endif;

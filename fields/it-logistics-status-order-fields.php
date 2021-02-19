@@ -158,7 +158,7 @@ acf_add_local_field_group(array(
 			),
 		),
 	),
-	'menu_order' => 3,
+	'menu_order' => 6,
 	'position' => 'normal',
 	'style' => 'seamless',
 	'label_placement' => 'left',
