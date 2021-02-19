@@ -4,32 +4,6 @@
 
 /* Change save and publish buttons for wsorder post edit pages. */
 body.wp-admin.post-type-wsorder {
-	input#publish {
-		display: none;
-	}
-
-	#minor-publishing-actions {
-		#save-action {
-			position: relative;
-
-			&:before {
-				content: "Save";
-				display: block;
-				position: absolute;
-				top: 6px;
-				left: 26px;
-				color: #0071A1;
-				font-size: 13px;
-				pointer-events: none;
-			}
-		}
-
-		#save-post,
-		#save-post.button.disabled {
-			color: transparent!important;
-		}
-	}
-
 	/* Hide post status on edit page*/
 	.inline-edit-wsorder .inline-edit-status,
 	.inline-edit-wsorder .inline-edit-group,
@@ -37,7 +11,45 @@ body.wp-admin.post-type-wsorder {
 	.misc-pub-section.misc-pub-curtime {
 		display: none;
 	}
+
+	&:not(.publish) {
+		#minor-publishing-actions {
+			#save-action {
+				position: relative;
+
+				&:before {
+					content: "Save";
+					display: block;
+					position: absolute;
+					top: 6px;
+					left: 26px;
+					color: #0071A1;
+					font-size: 13px;
+					pointer-events: none;
+				}
+			}
+
+			#save-post,
+			#save-post.button.disabled {
+				color: transparent!important;
+			}
+		}
+	}
+
+	&:not(.wso_admin) input#publish {
+		display: none;
+	}
+
+	&.wso_admin.completed input#publish {
+		display: inline-block;
+	}
 }
+
+// body.hide-save-button.wp-admin.post-type-wsorder {
+// 	input#publish {
+// 		display: none;
+// 	}
+// }
 
 .edit-php.post-type-wsorder {
 	.approval {
@@ -78,7 +90,8 @@ body.wp-admin.post-type-wsorder {
 			background-color: #DC3545;
 		}
 
-		&.completed {
+		&.completed,
+		&.publish {
 			background-color: #C3E6CB;
 		}
 
@@ -98,4 +111,11 @@ body.wp-admin.post-type-wsorder {
 		font-weight: bold;
 		line-height: 40px;
 	}
+}
+
+// User profile page.
+#application-passwords-section,
+#wpfooter,
+#your-profile tr.user-url-wrap {
+	display: none;
 }
