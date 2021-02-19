@@ -666,9 +666,9 @@ class WSOrder_PostType {
 		$enable_logistics_email = get_field( 'enable_emails_to_logistics', 'option' );
 		// Get confirmation statuses.
 		$old_post_it_confirm  = (int) get_post_meta( $post_id, 'it_rep_status_confirmed', true );
-		$new_post_it_confirm    = (int) $_POST['acf']['field_5fff6b46a22af']['field_5fff6b71a22b0'];
+		$new_post_it_confirm  = (int) $_POST['acf']['field_5fff6b46a22af']['field_5fff6b71a22b0'];
 		$old_post_log_confirm = (int) get_post_meta( $post_id, 'it_logistics_status_confirmed', true );
-		$new_post_log_confirm   = (int) $_POST['acf']['field_5fff6f3cee555']['field_5fff6f3cef757'];
+		$new_post_log_confirm = (int) $_POST['acf']['field_5fff6f3cee555']['field_5fff6f3cef757'];
 		$old_post_bus_confirm = (int) get_post_meta( $post_id, 'business_staff_status_confirmed', true );
 		if ( array_key_exists( 'field_5fff6ec0e4385', $_POST['acf']['field_5fff6ec0e2f7e'] ) ) {
 			$new_post_bus_confirm = (int) $_POST['acf']['field_5fff6ec0e2f7e']['field_5fff6ec0e4385'];
