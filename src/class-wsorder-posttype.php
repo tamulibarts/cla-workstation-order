@@ -447,6 +447,13 @@ class WSOrder_PostType {
     }
 	}
 
+	/**
+	 * Prevent subscribers from seeing other peoples' orders.
+	 *
+	 * @param object $query The query object.
+	 *
+	 * @return void
+	 */
 	public function admin_list_posts_filter( $query ){
 		global $pagenow;
 		$type = 'post';
@@ -857,6 +864,11 @@ class WSOrder_PostType {
 
 	}
 
+	/**
+	 * Redirect visits from new order edit page to public order form.
+	 *
+	 * @return void
+	 */
 	public function redirect_to_order_form() {
 
 	  global $pagenow;
@@ -876,6 +888,13 @@ class WSOrder_PostType {
 
 	}
 
+	/**
+	 * Filter admin_url to rewrite new order URLs so users must use the public order form.
+	 *
+	 * @param string $url     Current URL.
+	 * @param string $path    Current path.
+	 * @param int    $blog_id The current site ID
+	 */
 	public function replace_new_order_url ( $url, $path, $blog_id ) {
 
 		if ( 'post-new.php?post_type=wsorder' === $path ) {
