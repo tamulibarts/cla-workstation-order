@@ -4,13 +4,11 @@ WordPress plugin for ordering workstations
 Todo:
 * Create lead and approval email system for new orders
 * Implement returned comment field.
-* Move the "user" order field to a role-protected group so the user can't change it themself.
 * Implement Bundles
 * Create custom theme similar to old one
 * Create navigation menu similar to old app
-* Ensure users can edit their own orders but cannot change who they are assigned to
 * Sanitize inputs for form submission -> create post process
-* Fix auth_redirect() from causing errors for cron
+* Remove public view template from some custom post types like programs, orders, and products
 
 * Once user submits order ->
 	subject: Workstation Order Received
