@@ -154,7 +154,7 @@ class WSOrder_PostType {
 	}
 
 	/**
-	 * Register the post type.
+	 * Register the post type and post statuses.
 	 *
 	 * @return void
 	 */
@@ -232,6 +232,11 @@ class WSOrder_PostType {
 
 	}
 
+	/**
+	 * Add JS for edit wsorder pages in admin.
+	 *
+	 * @return void
+	 */
 	public function admin_script() {
 		global $post_type;
 		if( 'wsorder' == $post_type ) {
@@ -239,12 +244,18 @@ class WSOrder_PostType {
 		}
 	}
 
+	/**
+	 * Add HTML for custom post statuses.
+	 *
+	 * @return void
+	 */
 	public function post_status_add_to_dropdown() {
 
 		global $post;
 		if( $post->post_type != 'wsorder' ) {
 			return false;
 		}
+
 		$status = '';
 		switch ( $post->post_status ) {
 			case 'action_required':
