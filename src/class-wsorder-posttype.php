@@ -643,8 +643,8 @@ class WSOrder_PostType {
 		$user_department_post    = get_field( 'department', "user_{$user_id}" );
 		$user_department_post_id = $user_department_post ? $user_department_post->ID : 0;
 		$department_abbreviation = get_field( 'abbreviation', $user_department_post_id );
-		$order_program = get_field( 'program', $post_id );
 		// Get the order post's business admin email address
+		$order_program           = get_field( 'program', $post_id );
 		if ( $order_program ) {
 			$order_program_id = $order_program ? $order_program->ID : 0;
 
