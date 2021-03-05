@@ -34,7 +34,7 @@
                         "role": [
                             "wso_business_admin"
                         ],
-                        "allow_null": 0,
+                        "allow_null": 1,
                         "multiple": 0,
                         "return_format": "array"
                     },
@@ -45,7 +45,14 @@
                         "type": "textarea",
                         "instructions": "",
                         "required": 0,
-                        "conditional_logic": 0,
+                        "conditional_logic": [
+                            [
+                                {
+                                    "field": "field_5fff70b84ffe4",
+                                    "operator": "!=empty"
+                                }
+                            ]
+                        ],
                         "wrapper": {
                             "width": "",
                             "class": "",
@@ -63,8 +70,15 @@
                         "name": "account_number",
                         "type": "text",
                         "instructions": "You must enter the correct business account number before you can confirm the order.",
-                        "required": 0,
-                        "conditional_logic": 0,
+                        "required": 1,
+                        "conditional_logic": [
+                            [
+                                {
+                                    "field": "field_5fff70b84ffe4",
+                                    "operator": "!=empty"
+                                }
+                            ]
+                        ],
                         "wrapper": {
                             "width": "",
                             "class": "",
@@ -109,7 +123,7 @@
                         "name": "date",
                         "type": "date_time_picker",
                         "instructions": "",
-                        "required": 0,
+                        "required": 1,
                         "conditional_logic": [
                             [
                                 {

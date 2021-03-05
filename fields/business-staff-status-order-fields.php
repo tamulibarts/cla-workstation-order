@@ -45,7 +45,7 @@ acf_add_local_field_group(array(
 					'role' => array(
 						0 => 'wso_business_admin',
 					),
-					'allow_null' => 0,
+					'allow_null' => 1,
 					'multiple' => 0,
 					'return_format' => 'array',
 				),
@@ -56,7 +56,14 @@ acf_add_local_field_group(array(
 					'type' => 'textarea',
 					'instructions' => '',
 					'required' => 0,
-					'conditional_logic' => 0,
+					'conditional_logic' => array(
+						array(
+							array(
+								'field' => 'field_5fff70b84ffe4',
+								'operator' => '!=empty',
+							),
+						),
+					),
 					'wrapper' => array(
 						'width' => '',
 						'class' => '',
@@ -74,8 +81,15 @@ acf_add_local_field_group(array(
 					'name' => 'account_number',
 					'type' => 'text',
 					'instructions' => 'You must enter the correct business account number before you can confirm the order.',
-					'required' => 0,
-					'conditional_logic' => 0,
+					'required' => 1,
+					'conditional_logic' => array(
+						array(
+							array(
+								'field' => 'field_5fff70b84ffe4',
+								'operator' => '!=empty',
+							),
+						),
+					),
 					'wrapper' => array(
 						'width' => '',
 						'class' => '',
@@ -120,7 +134,7 @@ acf_add_local_field_group(array(
 					'name' => 'date',
 					'type' => 'date_time_picker',
 					'instructions' => '',
-					'required' => 0,
+					'required' => 1,
 					'conditional_logic' => array(
 						array(
 							array(

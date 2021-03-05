@@ -73,7 +73,7 @@ acf_add_local_field_group(array(
 					'name' => 'date',
 					'type' => 'date_time_picker',
 					'instructions' => '',
-					'required' => 0,
+					'required' => 1,
 					'conditional_logic' => array(
 						array(
 							array(
@@ -99,7 +99,15 @@ acf_add_local_field_group(array(
 					'type' => 'true_false',
 					'instructions' => '',
 					'required' => 0,
-					'conditional_logic' => 0,
+					'conditional_logic' => array(
+						array(
+							array(
+								'field' => 'field_5fff6f3cef757',
+								'operator' => '==',
+								'value' => '1',
+							),
+						),
+					),
 					'wrapper' => array(
 						'width' => '',
 						'class' => '',
@@ -117,7 +125,7 @@ acf_add_local_field_group(array(
 					'name' => 'ordered_at',
 					'type' => 'date_time_picker',
 					'instructions' => '',
-					'required' => 0,
+					'required' => 1,
 					'conditional_logic' => array(
 						array(
 							array(
@@ -147,9 +155,16 @@ acf_add_local_field_group(array(
 				'value' => 'wso_logistics',
 			),
 			array(
+				'param' => 'post_type',
+				'operator' => '==',
+				'value' => 'wsorder',
+			),
+		),
+		array(
+			array(
 				'param' => 'current_user_role',
 				'operator' => '==',
-				'value' => 'wso_it_rep',
+				'value' => 'wso_admin',
 			),
 			array(
 				'param' => 'post_type',

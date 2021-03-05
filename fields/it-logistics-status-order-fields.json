@@ -62,7 +62,7 @@
                         "name": "date",
                         "type": "date_time_picker",
                         "instructions": "",
-                        "required": 0,
+                        "required": 1,
                         "conditional_logic": [
                             [
                                 {
@@ -88,7 +88,15 @@
                         "type": "true_false",
                         "instructions": "",
                         "required": 0,
-                        "conditional_logic": 0,
+                        "conditional_logic": [
+                            [
+                                {
+                                    "field": "field_5fff6f3cef757",
+                                    "operator": "==",
+                                    "value": "1"
+                                }
+                            ]
+                        ],
                         "wrapper": {
                             "width": "",
                             "class": "",
@@ -106,7 +114,7 @@
                         "name": "ordered_at",
                         "type": "date_time_picker",
                         "instructions": "",
-                        "required": 0,
+                        "required": 1,
                         "conditional_logic": [
                             [
                                 {
@@ -136,9 +144,16 @@
                     "value": "wso_logistics"
                 },
                 {
+                    "param": "post_type",
+                    "operator": "==",
+                    "value": "wsorder"
+                }
+            ],
+            [
+                {
                     "param": "current_user_role",
                     "operator": "==",
-                    "value": "wso_it_rep"
+                    "value": "wso_admin"
                 },
                 {
                     "param": "post_type",
