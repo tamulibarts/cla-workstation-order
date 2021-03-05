@@ -914,7 +914,7 @@ class WSOrder_PostType {
 				// Business admin returned it.
 			}
 			$to             = $returner_email;
-			$title          = "[{$order_name}] Returned Workstation Order - {$department_abbreviation} - {$end_user_name}"
+			$title          = "[{$order_name}] Returned Workstation Order - {$department_abbreviation} - {$end_user_name}";
 			$message        = 'Please check on this work order as the end user has passed it on.';
 			wp_mail( $to, $title, $message, $headers );
 			// Empty the "returned by" post meta.
