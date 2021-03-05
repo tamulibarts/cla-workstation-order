@@ -36,7 +36,8 @@
 		// Get elements and values.
 		var $this = $(this);
 		var productID = $this.attr('data-product-id');
-		var productName = $('.post-title-' + productID).html();
+		console.log(productID);
+		var productName = $('#product-' + productID + ' .card-header').html();
 		var productPrice = $this.attr('data-product-price');
 		var thumbSrc = $('#product-'+productID+'.card .wp-post-image').attr('src');
 
