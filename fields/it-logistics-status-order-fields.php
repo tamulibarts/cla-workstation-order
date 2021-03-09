@@ -50,7 +50,7 @@ acf_add_local_field_group(array(
 				),
 				array(
 					'key' => 'field_5fff6f3cef757',
-					'label' => 'Confirmed',
+					'label' => 'Confirm the order and notify the end user',
 					'name' => 'confirmed',
 					'type' => 'true_false',
 					'instructions' => '',

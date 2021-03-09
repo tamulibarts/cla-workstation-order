@@ -70,7 +70,7 @@ acf_add_local_field_group(array(
 				),
 				array(
 					'key' => 'field_5fff6b71a22b0',
-					'label' => 'Confirmed',
+					'label' => 'Confirm your approval of this work order and send it on to the next staff member for their approval',
 					'name' => 'confirmed',
 					'type' => 'true_false',
 					'instructions' => '',

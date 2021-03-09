@@ -103,7 +103,7 @@ acf_add_local_field_group(array(
 				),
 				array(
 					'key' => 'field_5fff6ec0e4385',
-					'label' => 'Confirmed',
+					'label' => 'Confirm your approval of this work order and send it on to the IT Logistics staff member',
 					'name' => 'confirmed',
 					'type' => 'true_false',
 					'instructions' => '',
@@ -113,7 +113,7 @@ acf_add_local_field_group(array(
 							array(
 								'field' => 'field_601d731345341',
 								'operator' => '==pattern',
-								'value' => '[0-9]{6}-[a-zA-Z]{4}-[0-9]{5}',
+								'value' => '^\d\d\d\d\d\d-\D\D\D\D-\d\d\d\d\d$',
 							),
 						),
 					),
