@@ -116,6 +116,30 @@
                     "operator": "==",
                     "value": "wsorder"
                 }
+            ],
+            [
+                {
+                    "param": "current_user_role",
+                    "operator": "==",
+                    "value": "wso_logistics"
+                },
+                {
+                    "param": "post_type",
+                    "operator": "==",
+                    "value": "wsorder"
+                }
+            ],
+            [
+                {
+                    "param": "current_user_role",
+                    "operator": "==",
+                    "value": "wso_admin"
+                },
+                {
+                    "param": "post_type",
+                    "operator": "==",
+                    "value": "wsorder"
+                }
             ]
         ],
         "menu_order": 4,
