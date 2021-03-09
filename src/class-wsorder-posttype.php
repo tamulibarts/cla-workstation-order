@@ -583,42 +583,46 @@ class WSOrder_PostType {
 		  'wsorder' !== $post->post_type
 			|| $new_status === 'auto-draft'
 			|| ! array_key_exists( 'acf', $_POST )
-			|| ! current_user_can( 'wso_it_rep' )
-			|| ! current_user_can( 'wso_admin' )
 		) {
 			return;
 		}
 
-		// Get confirmation statuses.
-		$old_post_it_confirm = (int) get_post_meta( $post->ID, 'it_rep_status_confirmed', true );
-		$new_post_it_confirm = (int) $_POST['acf']['field_5fff6b46a22af']['field_5fff6b71a22b0'];
-		// If business admin is assigned, continue.
-		$business_admin_id = $_POST['acf']['field_5fff70b84ffe4'];
-
 		if (
-			0 === $old_post_it_confirm
-			&& 1 === $new_post_it_confirm
-			&& ! empty( $business_admin_id )
+			current_user_can( 'wso_it_rep' )
+			|| current_user_can( 'wso_admin' )
 		) {
 
-			// Get the order name.
-			$order_name = get_the_title( $post->ID );
-			// Declare end user variables.
-			$user_id                 = $post->post_author;
-			$end_user                = get_user_by( 'id', $user_id );
-			$end_user_name           = $end_user->user_name;
-			$user_department_post    = get_field( 'department', "user_{$user_id}" );
-			$department_abbreviation = get_field( 'abbreviation', $user_department_post->ID );
-			// Declare business admin variables.
-			$business_admin_obj   = get_userdata( $business_admin_id );
-			$business_admin_email = $business_admin_obj->user_email;
-			// Send email.
-			$to      = $business_admin_email;
-			$title   = "[{$order_name}] Workstation Order Approval - {$department_abbreviation} - {$end_user_name}";
-			$message = $this->email_body_it_rep_to_business( $post->ID, $_POST['acf'] );
-			$headers = array('Content-Type: text/html; charset=UTF-8');
-			wp_mail( $to, $title, $message, $headers );
+			// Get confirmation statuses.
+			$old_post_it_confirm = (int) get_post_meta( $post->ID, 'it_rep_status_confirmed', true );
+			$new_post_it_confirm = (int) $_POST['acf']['field_5fff6b46a22af']['field_5fff6b71a22b0'];
+			// If business admin is assigned, continue.
+			$business_admin_id = isset( $_POST['acf']['field_5fff70b84ffe4'] ) ? $_POST['acf']['field_5fff70b84ffe4'] : '';
 
+			if (
+				0 === $old_post_it_confirm
+				&& 1 === $new_post_it_confirm
+				&& ! empty( $business_admin_id )
+			) {
+
+				// Get the order name.
+				$order_name = get_the_title( $post->ID );
+				// Declare end user variables.
+				$user_id                 = $post->post_author;
+				$end_user                = get_user_by( 'id', $user_id );
+				$end_user_name           = $end_user->user_name;
+				$user_department_post    = get_field( 'department', "user_{$user_id}" );
+				$department_abbreviation = get_field( 'abbreviation', $user_department_post->ID );
+				// Declare business admin variables.
+				$business_admin_obj   = get_userdata( $business_admin_id );
+				$business_admin_email = $business_admin_obj->user_email;
+				// Send email.
+				$to      = $business_admin_email;
+				$title   = "[{$order_name}] Workstation Order Approval - {$department_abbreviation} - {$end_user_name}";
+				$message = $this->email_body_it_rep_to_business( $post->ID, $_POST['acf'], $end_user_name );
+				$headers = array('Content-Type: text/html; charset=UTF-8');
+				wp_mail( $to, $title, $message, $headers );
+
+			}
 		}
 	}
 
@@ -638,44 +642,48 @@ class WSOrder_PostType {
 		  'wsorder' !== $post->post_type
 			|| $new_status === 'auto-draft'
 			|| ! array_key_exists( 'acf', $_POST )
-			|| ! current_user_can( 'wso_it_rep' )
-			|| ! current_user_can( 'wso_admin' )
 		) {
 			return;
 		}
 
-		// Get confirmation statuses.
-		$old_post_it_confirm = (int) get_post_meta( $post->ID, 'it_rep_status_confirmed', true );
-		$new_post_it_confirm = (int) $_POST['acf']['field_5fff6b46a22af']['field_5fff6b71a22b0'];
-		// If business admin is assigned, continue.
-		$business_admin_id = $_POST['acf']['field_5fff70b84ffe4'];
-		// Get logistics email setting.
-		$enable_logistics_email = get_field( 'enable_emails_to_logistics', 'option' );
-
 		if (
-			0 === $old_post_it_confirm
-			&& 1 === $new_post_it_confirm
-			&& empty( $business_admin_id )
-			&& 1 === $enable_logistics_email
+			current_user_can( 'wso_it_rep' )
+			|| current_user_can( 'wso_admin' )
 		) {
 
-			// Get the order name.
-			$order_name = get_the_title( $post->ID );
-			// Declare end user variables.
-			$user_id                 = $post->post_author;
-			$end_user                = get_user_by( 'id', $user_id );
-			$end_user_name           = $end_user->user_name;
-			$user_department_post    = get_field( 'department', "user_{$user_id}" );
-			$department_abbreviation = get_field( 'abbreviation', $user_department_post->ID );
-			// Get logistics email.
-			$logistics_email = get_field( 'logistics_email', 'option' );
-			// Send email.
-			$to      = $logistics_email;
-			$title   = "[{$order_name}] Workstation Order Approval - {$department_abbreviation} - {$end_user_name}";
-			$message = $this->email_body_it_rep_to_business( $post->ID, $_POST['acf'] );
-			$headers = array('Content-Type: text/html; charset=UTF-8');
-			wp_mail( $to, $title, $message, $headers );
+			// Get confirmation statuses.
+			$old_post_it_confirm = (int) get_post_meta( $post->ID, 'it_rep_status_confirmed', true );
+			$new_post_it_confirm = (int) $_POST['acf']['field_5fff6b46a22af']['field_5fff6b71a22b0'];
+			// If business admin is assigned, continue.
+			$business_admin_id = isset( $_POST['acf']['field_5fff70b84ffe4'] ) ? (int) $_POST['acf']['field_5fff70b84ffe4'] : '';
+			// Get logistics email setting.
+			$enable_logistics_email = (int) get_field( 'enable_emails_to_logistics', 'option' );
 
+			if (
+				0 === $old_post_it_confirm
+				&& 1 === $new_post_it_confirm
+				&& empty( $business_admin_id )
+				&& 1 === $enable_logistics_email
+			) {
+
+				// Get the order name.
+				$order_name = get_the_title( $post->ID );
+				// Declare end user variables.
+				$user_id                 = $post->post_author;
+				$end_user                = get_user_by( 'id', $user_id );
+				$end_user_name           = $end_user->user_name;
+				$user_department_post    = get_field( 'department', "user_{$user_id}" );
+				$department_abbreviation = get_field( 'abbreviation', $user_department_post->ID );
+				// Get logistics email.
+				$logistics_email = get_field( 'logistics_email', 'option' );
+				// Send email.
+				$to      = $logistics_email;
+				$title   = "[{$order_name}] Workstation Order Approval - {$department_abbreviation} - {$end_user_name}";
+				$message = $this->email_body_to_logistics( $post->ID, $_POST['acf'] );
+				$headers = array('Content-Type: text/html; charset=UTF-8');
+				wp_mail( $to, $title, $message, $headers );
+
+			}
 		}
 	}
 
@@ -695,42 +703,46 @@ class WSOrder_PostType {
 		  'wsorder' !== $post->post_type
 			|| $new_status === 'auto-draft'
 			|| ! array_key_exists( 'acf', $_POST )
-			|| ! current_user_can( 'wso_business_admin' )
-			|| ! current_user_can( 'wso_admin' )
 		) {
 			return;
 		}
 
-		// Get confirmation statuses.
-		$old_post_bus_confirm = (int) get_post_meta( $post_id, 'business_staff_status_confirmed', true );
-		$new_post_bus_confirm = 0;
-		if ( array_key_exists( 'field_5fff6ec0e4385', $_POST['acf']['field_5fff6ec0e2f7e'] ) ) {
-			$new_post_bus_confirm = (int) $_POST['acf']['field_5fff6ec0e2f7e']['field_5fff6ec0e4385'];
-		}
-
 		if (
-			0 === $old_post_bus_confirm
-			&& 1 === $new_post_bus_confirm
-			&& 1 === $enable_logistics_email
+			current_user_can( 'wso_business_admin' )
+			|| current_user_can( 'wso_admin' )
 		) {
 
-			// Get the order name.
-			$order_name = get_the_title( $post->ID );
-			// Declare end user variables.
-			$user_id                 = $post->post_author;
-			$end_user                = get_user_by( 'id', $user_id );
-			$end_user_name           = $end_user->user_name;
-			$user_department_post    = get_field( 'department', "user_{$user_id}" );
-			$department_abbreviation = get_field( 'abbreviation', $user_department_post->ID );
-			// Get logistics email.
-			$logistics_email = get_field( 'logistics_email', 'option' );
-			// Send email.
-			$to      = $logistics_email;
-			$title   = "[{$order_name}] Workstation Order Approval - {$department_abbreviation} - {$end_user_name}";
-			$message = $this->email_body_to_logistics( $post_id, $_POST['acf'] );
-			$headers = array('Content-Type: text/html; charset=UTF-8');
-			wp_mail( $to, $title, $message, $headers );
+			// Get confirmation statuses.
+			$old_post_bus_confirm = (int) get_post_meta( $post->ID, 'business_staff_status_confirmed', true );
+			$new_post_bus_confirm = 0;
+			if ( array_key_exists( 'field_5fff6ec0e4385', $_POST['acf']['field_5fff6ec0e2f7e'] ) ) {
+				$new_post_bus_confirm = (int) $_POST['acf']['field_5fff6ec0e2f7e']['field_5fff6ec0e4385'];
+			}
 
+			if (
+				0 === $old_post_bus_confirm
+				&& 1 === $new_post_bus_confirm
+				&& 1 === $enable_logistics_email
+			) {
+
+				// Get the order name.
+				$order_name = get_the_title( $post->ID );
+				// Declare end user variables.
+				$user_id                 = $post->post_author;
+				$end_user                = get_user_by( 'id', $user_id );
+				$end_user_name           = $end_user->user_name;
+				$user_department_post    = get_field( 'department', "user_{$user_id}" );
+				$department_abbreviation = get_field( 'abbreviation', $user_department_post->ID );
+				// Get logistics email.
+				$logistics_email = get_field( 'logistics_email', 'option' );
+				// Send email.
+				$to      = $logistics_email;
+				$title   = "[{$order_name}] Workstation Order Approval - {$department_abbreviation} - {$end_user_name}";
+				$message = $this->email_body_to_logistics( $post_id, $_POST['acf'] );
+				$headers = array('Content-Type: text/html; charset=UTF-8');
+				wp_mail( $to, $title, $message, $headers );
+
+			}
 		}
 	}
 
@@ -750,39 +762,42 @@ class WSOrder_PostType {
 		  'wsorder' !== $post->post_type
 			|| $new_status === 'auto-draft'
 			|| ! array_key_exists( 'acf', $_POST )
-			|| ! current_user_can( 'wso_logistics' )
-			|| ! current_user_can( 'wso_admin' )
 		) {
 			return;
 		}
 
-		// Get confirmation statuses.
-		$old_post_log_confirm = (int) get_post_meta( $post_id, 'it_logistics_status_confirmed', true );
-		$new_post_log_confirm = (int) $_POST['acf']['field_5fff6f3cee555']['field_5fff6f3cef757'];
-
 		if (
-			0 === $old_post_log_confirm
-			&& 1 === $new_post_log_confirm
+			current_user_can( 'wso_logistics' )
+			|| current_user_can( 'wso_admin' )
 		) {
 
-			// Get the order name.
-			$order_name = get_the_title( $post->ID );
-			// Declare end user variables.
-			$user_id                 = $post->post_author;
-			$end_user                = get_user_by( 'id', $user_id );
-			$end_user_email          = $end_user->user_email;
-			$end_user_name           = $end_user->user_name;
-			$user_department_post    = get_field( 'department', "user_{$user_id}" );
-			$department_abbreviation = get_field( 'abbreviation', $user_department_post->ID );
-			// Send email.
-			$to      = $end_user_email;
-			$title   = "[{$order_name}] Workstation Order Approval - {$department_abbreviation} - {$end_user_name}";
-			$message = $this->email_body_order_approved( $post_id, $_POST['acf'] );
-			$headers = array('Content-Type: text/html; charset=UTF-8');
-			wp_mail( $to, $title, $message, $headers );
+			// Get confirmation statuses.
+			$old_post_log_confirm = (int) get_post_meta( $post->ID, 'it_logistics_status_confirmed', true );
+			$new_post_log_confirm = (int) $_POST['acf']['field_5fff6f3cee555']['field_5fff6f3cef757'];
 
+			if (
+				0 === $old_post_log_confirm
+				&& 1 === $new_post_log_confirm
+			) {
+
+				// Get the order name.
+				$order_name = get_the_title( $post->ID );
+				// Declare end user variables.
+				$user_id                 = $post->post_author;
+				$end_user                = get_user_by( 'id', $user_id );
+				$end_user_email          = $end_user->user_email;
+				$end_user_name           = $end_user->user_name;
+				$user_department_post    = get_field( 'department', "user_{$user_id}" );
+				$department_abbreviation = get_field( 'abbreviation', $user_department_post->ID );
+				// Send email.
+				$to      = $end_user_email;
+				$title   = "[{$order_name}] Workstation Order Approval - {$department_abbreviation} - {$end_user_name}";
+				$message = $this->email_body_order_approved( $post_id, $_POST['acf'] );
+				$headers = array('Content-Type: text/html; charset=UTF-8');
+				wp_mail( $to, $title, $message, $headers );
+
+			}
 		}
-
 	}
 
 	/**
@@ -795,7 +810,7 @@ class WSOrder_PostType {
 	 * @return void
 	 */
 	public function handle_returned_order_emails( $new_status, $old_status, $post ) {
-		error_log( $old_status . ' -> ' . $new_status );
+
 		if (
 			$old_status === $new_status
 			|| 'wsorder' !== $post->post_type
@@ -890,7 +905,7 @@ class WSOrder_PostType {
 			}
 			$to      = implode( ',', $to );
 			$title   = "[{$order_name}] Returned Workstation Order - {$department_abbreviation} - {$end_user_name}";
-			$message = $this->email_body_return_to_user_forward( $post_id, $_POST['acf'] );
+			$message = $this->email_body_return_to_user_forward( $post_id, $_POST['acf'], $end_user_name );
 			wp_mail( $to, $title, $message, $headers );
 
 		}
@@ -915,7 +930,8 @@ class WSOrder_PostType {
 			}
 			$to             = $returner_email;
 			$title          = "[{$order_name}] Returned Workstation Order - {$department_abbreviation} - {$end_user_name}";
-			$message        = 'Please check on this work order as the end user has passed it on.';
+			$admin_order_url = admin_url() . "post.php?post={$post_id}&action=edit";
+			$message        = 'Please check on this work order as the end user has passed it on: $admin_order_url';
 			wp_mail( $to, $title, $message, $headers );
 			// Empty the "returned by" post meta.
 			update_post_meta( $post_id, 'returned_by', '' );
@@ -924,8 +940,8 @@ class WSOrder_PostType {
 
 	}
 
-	private function email_body_it_rep_to_business( $order_post_id, $acf_data ) {
-
+	private function email_body_it_rep_to_business( $order_post_id, $acf_data, $end_user_name ) {
+		error_log( 'end user: (' . gettype($end_user_name) . $end_user_name );
 		$program_name    = get_the_title( $acf_data['field_5ffcc2590682b'] );
 		$addfund_amount  = $acf_data['field_5ffcc10806825'];
 		$addfund_account = $acf_data['field_5ffcc16306826'];
@@ -934,7 +950,7 @@ class WSOrder_PostType {
   Howdy<br />
   <strong>There is a new {$program_name} order that requires your attention for financial resolution.</strong></p>
 <p>
-  {$user_name} elected to contribute additional funds toward their order in the amount of {$addfund_amount}. An account reference of \"{$addfund_account}\" needs to be confirmed or replaced with the correct account number that will be used on the official requisition.
+  {$end_user_name} elected to contribute additional funds toward their order in the amount of {$addfund_amount}. An account reference of \"{$addfund_account}\" needs to be confirmed or replaced with the correct account number that will be used on the official requisition.
 </p>
 <p>
   You can view the order at this link: {$admin_order_url}.
@@ -973,7 +989,7 @@ class WSOrder_PostType {
 	private function email_body_return_to_user( $order_post_id, $acf_data ) {
 
 		$program_name     = get_the_title( $acf_data['field_5ffcc2590682b'] );
-		$actor_user       = get_current_user();
+		$actor_user       = wp_get_current_user();
 		$actor_name       = $actor_user->display_name;
 		$returned_comment = '';
 		$admin_order_url  = admin_url() . "post.php?post={$order_post_id}&action=edit";
@@ -1000,13 +1016,11 @@ class WSOrder_PostType {
 
 	}
 
-	private function email_body_return_to_user_forward( $order_post_id, $acf_data ) {
+	private function email_body_return_to_user_forward( $order_post_id, $acf_data, $end_user_name ) {
 
 		$program_name     = get_the_title( $acf_data['field_5ffcc2590682b'] );
-		$actor_user       = get_current_user();
+		$actor_user       = wp_get_current_user();
 		$actor_name       = $actor_user->display_name;
-		$user             = get_userdata( $acf_data['field_601d4a61e8ace'] );
-		$user_name        = $user->display_name;
 		$returned_comment = $acf_data['field_601d52f2e5418'];
 		$admin_order_url  = admin_url() . "post.php?post={$order_post_id}&action=edit";
 		$message          = "<p>
@@ -1110,7 +1124,15 @@ class WSOrder_PostType {
 			$post_id = absint($_GET['post']); // Always sanitize
 			$author_id = (int) get_post_field( 'post_author', $post_id );
 			$it_rep_id = (int) get_field( 'it_rep_status', $post_id )['it_rep']['ID'];
-			$business_admin_id = (int) get_field( 'business_staff_status', $post_id )['business_staff']['ID'];
+			$business_admin_field = get_field( 'business_staff_status', $post_id );
+			$business_admin_id = 0;
+			if (
+				! empty( $business_admin_field )
+				&& array_key_exists( 'business_staff', $business_admin_field )
+				&& is_array( $business_admin_field['business_staff'] )
+			) {
+				$business_admin_id = (int) $business_admin_field['business_staff']['ID'];
+			}
 			if (
 				'post.php' === $pagenow
 				&& isset($_GET['post'])
