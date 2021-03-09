@@ -173,6 +173,10 @@ class Order_Form_Helper {
 		$current_program_post_meta = get_post_meta( $current_program_id );
 		$current_program_prefix    = $current_program_post_meta['prefix'][0];
 
+		// Get new wsorder ID.
+		$last_wsorder_id = $this->get_last_order_id( $current_program_id );
+		$new_wsorder_id  = $last_wsorder_id + 1;
+
 		// Insert post.
 		$postarr = array(
 			'post_author'    => $user_id,
@@ -205,8 +209,6 @@ class Order_Form_Helper {
 			 */
 
 			// Save order ID.
-			$last_wsorder_id = $this->get_last_order_id( $current_program_id );
-			$new_wsorder_id  = $last_wsorder_id + 1;
 			$value = $new_wsorder_id;
 			update_field( 'order_id', $value, $post_id );
 
