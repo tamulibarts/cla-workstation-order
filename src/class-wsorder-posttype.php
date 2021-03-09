@@ -991,7 +991,7 @@ class WSOrder_PostType {
 		$program_name     = get_the_title( $acf_data['field_5ffcc2590682b'] );
 		$actor_user       = wp_get_current_user();
 		$actor_name       = $actor_user->display_name;
-		$returned_comment = '';
+		$returned_comment = $acf_data['field_601d52f2e5418'];
 		$admin_order_url  = admin_url() . "post.php?post={$order_post_id}&action=edit";
 		$message          = "<p>
   Howdy,
