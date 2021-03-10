@@ -28,6 +28,8 @@ class WSOrder_PostType {
 
 		// Register_post_type.
 		add_action( 'init', array( $this, 'register_post_type' ) );
+		// Redirect users trying to view all orders to the current year's program.
+		add_action( 'admin_init', array( $this, 'redirect_to_current_program_orders' ) );
 		// Register custom fields.
 		add_action( 'acf/init', array( $this, 'register_custom_fields' ) );
 		// Add custom post status elements to dropdown box.
@@ -96,6 +98,20 @@ class WSOrder_PostType {
 		}
 
 		return $classes;
+	}
+
+	/**
+	 * Redirect visitors trying to see all orders to the current program year's orders.
+	 */
+	public function redirect_to_current_program_orders() {
+
+		global $pagenow;
+
+		if ( 'edit.php' === $pagenow && isset($_GET['post_type']) && $_GET['post_type'] === 'wsorder' && ! isset( $_GET['program'] ) ) {
+			$current_program_id = get_site_option( 'options_current_program' );
+			wp_safe_redirect( get_admin_url() . "edit.php?post_type=wsorder&program={$current_program_id}" );
+		}
+
 	}
 
 	/**
@@ -482,16 +498,6 @@ class WSOrder_PostType {
         );
 		    $query->query_vars['meta_query'][] = $meta_query; // add meta queries to $query
 		    $query->query_vars['name'] = '';
-			} else {
-				$current_program_id = get_site_option( 'options_current_program' );
-				if ( ! empty( $current_program_id ) ) {
-					$meta_query = array (
-						'key'   => 'program',
-						'value' => $current_program_id,
-					);
-					$query->query_vars['meta_query'][] = $meta_query; // add meta queries to $query
-					$query->query_vars['name'] = '';
-				}
 			}
 		}
 	}
