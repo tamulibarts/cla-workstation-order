@@ -41,6 +41,68 @@
                 "allow_null": 0,
                 "multiple": 0,
                 "return_format": "array"
+            },
+            {
+                "key": "field_6048dfb535163",
+                "label": "Author's Department",
+                "name": "author_department",
+                "type": "post_object",
+                "instructions": "",
+                "required": 0,
+                "conditional_logic": 0,
+                "wrapper": {
+                    "width": "",
+                    "class": "",
+                    "id": ""
+                },
+                "post_type": [
+                    "department"
+                ],
+                "taxonomy": "",
+                "allow_null": 0,
+                "multiple": 0,
+                "return_format": "id",
+                "ui": 1
+            },
+            {
+                "key": "field_6048e8d2b575a",
+                "label": "Affiliated IT Reps",
+                "name": "affiliated_it_reps",
+                "type": "user",
+                "instructions": "",
+                "required": 0,
+                "conditional_logic": 0,
+                "wrapper": {
+                    "width": "",
+                    "class": "",
+                    "id": ""
+                },
+                "role": [
+                    "wso_it_rep"
+                ],
+                "allow_null": 0,
+                "multiple": 1,
+                "return_format": "id"
+            },
+            {
+                "key": "field_6048e9f6b575b",
+                "label": "Affiliated Business Staff",
+                "name": "affiliated_business_staff",
+                "type": "user",
+                "instructions": "",
+                "required": 0,
+                "conditional_logic": 0,
+                "wrapper": {
+                    "width": "",
+                    "class": "",
+                    "id": ""
+                },
+                "role": [
+                    "wso_business_admin"
+                ],
+                "allow_null": 0,
+                "multiple": 1,
+                "return_format": "id"
             }
         ],
         "location": [
