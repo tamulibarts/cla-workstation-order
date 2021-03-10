@@ -395,8 +395,13 @@ class Order_Form_Helper {
 		// Get user information.
 		$current_user_name  = $current_user->display_name;
 		$current_user_email = $current_user->user_email;
-		$it_rep_user        = get_userdata( $it_rep_id );
-		$it_rep_email       = $it_rep_user->user_email;
+		$it_reps            = get_field( 'affiliated_it_reps', $post_id );
+		$it_rep_emails      = array();
+		foreach ($it_reps as $rep_user_id ) {
+			$user_data       = get_userdata( $rep_user_id );
+			$it_rep_emails[] = $user_data->user_email;
+		}
+		$it_rep_emails = implode(',', $it_rep_emails);
 
 		// Email settings.
 		$headers = array('Content-Type: text/html; charset=UTF-8');

@@ -627,8 +627,15 @@ class WSOrder_PostType {
 				// Declare business admin variables.
 				$business_admin_obj   = get_userdata( $business_admin_id );
 				$business_admin_email = $business_admin_obj->user_email;
+				$business_admins = get_field( 'affiliated_business_staff', $post_id );
+				$business_admin_emails = array();
+				foreach ( $business_admins as $bus_user_id ) {
+					$user_data               = get_userdata( $bus_user_id );
+					$business_admin_emails[] = $user_data->user_email;
+				}
+				$business_admin_emails = implode(',', $business_admin_emails);
 				// Send email.
-				$to      = $business_admin_email;
+				$to      = $business_admin_emails;
 				$title   = "[{$order_name}] Workstation Order Approval - {$department_abbreviation} - {$end_user_name}";
 				$message = $this->email_body_it_rep_to_business( $post->ID, $_POST['acf'], $end_user_name );
 				$headers = array('Content-Type: text/html; charset=UTF-8');
