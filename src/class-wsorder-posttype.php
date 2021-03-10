@@ -513,12 +513,14 @@ class WSOrder_PostType {
 			$meta_query        = array(
 				'relation' => 'OR',
 				array(
-					'key'   => 'it_rep_status_it_rep',
-					'value' => $current_user_id,
+					'key'   => 'affiliated_it_reps',
+					'value' => '"' . $current_user_id . '"',
+					'compare' => 'LIKE',
 				),
 				array(
-					'key'   => 'business_staff_status_business_staff',
-					'value' => $current_user_id,
+					'key'   => 'affiliated_business_staff',
+					'value' => '"' . $current_user_id . '"',
+					'compare' => 'LIKE',
 				),
 				array(
 					'key'   => 'order_author',
