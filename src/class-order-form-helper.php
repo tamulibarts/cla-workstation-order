@@ -154,6 +154,46 @@ class Order_Form_Helper {
 	}
 
 	/**
+	 * Get the department fields within a program based from the department associated with the given user ID.
+	 * Todo
+	 */
+	private function get_program_department_fields( $department_id, $program_id ) {
+
+		// Get users assigned to active user's department for current program, as array.
+		$program_meta_keys_departments = array(
+			'assign_political_science_department_post_id',
+			'assign_sociology_department_post_id',
+			'assign_philosophy_humanities_department_post_id',
+			'assign_performance_studies_department_post_id',
+			'assign_international_studies_department_post_id',
+			'assign_history_department_post_id',
+			'assign_hispanic_studies_department_post_id',
+			'assign_english_department_post_id',
+			'assign_economics_department_post_id',
+			'assign_communication_department_post_id',
+			'assign_anthropology_department_post_id',
+			'assign_psychology_department_post_id',
+			'assign_dean_department_post_id',
+		);
+		$current_program_post_meta     = get_post_meta( $program_id );
+		$value                         = array();
+
+		foreach ( $program_meta_keys_departments as $meta_key ) {
+			$assigned_dept = (int) $current_program_post_meta[ $meta_key ][0];
+			if ( $department_id === $assigned_dept ) {
+				$base_key        = preg_replace( '/_department_post_id$/', '', $meta_key );
+				$it_reps         = $current_program_post_meta[ "{$base_key}_it_reps" ];
+				$value['business_admins'] = unserialize( $current_program_post_meta[ "{$base_key}_business_admins" ][0] );
+				$value['it_reps']         = unserialize( $current_program_post_meta[ "{$base_key}_it_reps" ][0] );
+				break;
+			}
+		}
+
+		return $value;
+
+	}
+
+	/**
 	 * Create the wsorder post after the form is submitted.
 	 *
 	 * @param object $entry The Entry Object that was just created.
@@ -215,6 +255,18 @@ class Order_Form_Helper {
 			// Save order author.
 			$value = $user_id;
 			update_field( 'order_author', $value, $post_id );
+
+			// Save order author.
+			$value = $user_department_post_id;
+			update_field( 'author_department', $value, $post_id );
+
+			// Save order affiliated it reps.
+			// Save order affiliated business reps.
+			$program_department_fields = $this->get_program_department_fields( $user_department_post_id, $current_program_id );
+			$value = $program_department_fields['it_reps'];
+			update_field( 'affiliated_it_reps', $value, $post_id );
+			$value = $program_department_fields['business_admins'];
+			update_field( 'affiliated_business_staff', $value, $post_id );
 
 			// Save program.
 			$value = $current_program_id;
