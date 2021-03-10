@@ -477,12 +477,22 @@ class WSOrder_PostType {
 	    if (isset($_GET['program']) && $_GET['program'] != '') {
         // first meta key/value
         $meta_query = array (
-          'key'      => 'program',
-          'value'    => $_GET['program']
+          'key'   => 'program',
+          'value' => $_GET['program']
         );
 		    $query->query_vars['meta_query'][] = $meta_query; // add meta queries to $query
 		    $query->query_vars['name'] = '';
-	    }
+			} else {
+				$current_program_id = get_site_option( 'options_current_program' );
+				if ( ! empty( $current_program_id ) ) {
+					$meta_query = array (
+						'key'   => 'program',
+						'value' => $current_program_id,
+					);
+					$query->query_vars['meta_query'][] = $meta_query; // add meta queries to $query
+					$query->query_vars['name'] = '';
+				}
+			}
 		}
 	}
 
