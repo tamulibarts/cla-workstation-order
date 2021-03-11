@@ -447,7 +447,7 @@ class Order_Form_Helper {
   <em>-Liberal Arts IT</em>
 </p>
 <p><em>This email was sent from an unmonitored email address. Please do not reply to this email.</em></p>";
-		wp_mail( $it_rep_email, 'Workstation Order Received', $message, $headers );
+		wp_mail( $it_rep_emails, 'Workstation Order Received', $message, $headers );
 
 	}
 
