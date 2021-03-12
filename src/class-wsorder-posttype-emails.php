@@ -350,16 +350,28 @@ class WSOrder_PostType_Emails {
 		$department_abbreviation = get_field( 'abbreviation', $user_department_post_id );
 		// Declare IT Rep user variables.
 		$it_rep_user_id = (int) $_POST['acf']['field_5fff6b46a22af']['field_5fff703a5289f'];
+		$it_reps        = get_field( 'affiliated_it_reps', $post_id );
+		$it_rep_emails  = array();
+		foreach ($it_reps as $rep_user_id ) {
+			$user_data       = get_userdata( $rep_user_id );
+			$it_rep_emails[] = $user_data->user_email;
+		}
+		$it_rep_emails = implode(',', $it_rep_emails);
 		// Declare business approval variables.
 		$contribution_amount  = $_POST['acf']['field_5ffcc10806825'];
 		$order_program        = get_field( 'program', $post_id );
 		$order_program_id     = $order_program->ID;
 		// $business_admin_id    = $this->get_program_business_admin_user_id( $order_program_id, $user_department_post_id );
-		$business_admin_id    = $_POST['acf']['field_5fff70b84ffe4'];
-		$business_admin_email = '';
+		$business_admin_id     = $_POST['acf']['field_5fff70b84ffe4'];
+		$business_admin_emails = '';
 		if ( ! empty( $business_admin_id ) ) {
-			$business_admin_obj   = get_userdata( $business_admin_id );
-			$business_admin_email = $business_admin_obj->user_email;
+			$business_admins = get_field( 'affiliated_business_staff', $post_id );
+			$business_admin_emails = array();
+			foreach ( $business_admins as $bus_user_id ) {
+				$user_data               = get_userdata( $bus_user_id );
+				$business_admin_emails[] = $user_data->user_email;
+			}
+			$business_admin_emails = implode( ',', $business_admin_emails );
 		}
 		// Get logistics email settings.
 		$logistics_email        = get_field( 'logistics_email', 'option' );
@@ -408,17 +420,18 @@ class WSOrder_PostType_Emails {
 	  	 * body: email_body_return_to_user_forward( $post->ID, $_POST['acf'] );
 	  	 */
 			$to = array();
-			if ( ! empty( $it_rep_user_id ) ) {
-				$it_rep_data = get_userdata( $it_rep_user_id );
-				$to[] = $it_rep_data->user_email;
+			if ( ! empty( $it_rep_emails ) ) {
+				$to[] = $it_rep_emails;
 			}
-			if ( ! empty( $business_admin_email ) ) {
-				$to[] = $business_admin_email;
+			if ( ! empty( $business_admin_emails ) ) {
+				$to[] = $business_admin_emails;
 			}
-			$to      = implode( ',', $to );
-			$title   = "[{$order_name}] Returned Workstation Order - {$department_abbreviation} - {$end_user_name}";
-			$message = $this->email_body_return_to_user_forward( $post_id, $_POST['acf'], $end_user_name );
-			wp_mail( $to, $title, $message, $headers );
+			$to = implode( ',', $to );
+			if ( ! empty( $to ) ) {
+				$title   = "[{$order_name}] Returned Workstation Order - {$department_abbreviation} - {$end_user_name}";
+				$message = $this->email_body_return_to_user_forward( $post_id, $_POST['acf'], $end_user_name );
+				wp_mail( $to, $title, $message, $headers );
+			}
 
 		}
 
@@ -431,16 +444,22 @@ class WSOrder_PostType_Emails {
 		) {
 
 			// Notify the person who returned the request.
-			$returner_id    = get_post_meta( $post_id, 'returned_by', true );
-			$returner_data  = get_userdata( $returner_id );
-			$returner_email = $returner_data->user_email;
+			$returner_id          = get_post_meta( $post_id, 'returned_by', true );
+			$returner_data        = get_userdata( $returner_id );
+			$returner_roles       = $returner_data->roles;
+			$returner_email       = $returner_data->user_email;
+			$returner_role_emails = array();
 			// Figure out who returned it.
-			if ( $returner_id === $it_rep_user_id ) {
+			if ( in_array( 'wso_admin', $returner_roles ) ) {
+				$returner_role_emails = $returner_email;
+			} elseif ( in_array( 'wso_it_rep', $returner_roles ) ) {
 				// IT Rep returned it.
-			} else if ( $returner_id === $business_admin_id ) {
+				$returner_role_emails = $it_rep_emails;
+			} elseif ( in_array( 'wso_business_admin', $returner_roles ) ) {
 				// Business admin returned it.
+				$returner_role_emails = $business_admin_emails;
 			}
-			$to             = $returner_email;
+			$to             = $returner_role_emails;
 			$title          = "[{$order_name}] Returned Workstation Order - {$department_abbreviation} - {$end_user_name}";
 			$admin_order_url = admin_url() . "post.php?post={$post_id}&action=edit";
 			$message        = 'Please check on this work order as the end user has passed it on: $admin_order_url';
