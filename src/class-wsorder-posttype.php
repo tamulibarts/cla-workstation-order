@@ -48,6 +48,7 @@ class WSOrder_PostType {
 		// Prevent users from seeing posts they aren't involved with.
 		add_action( 'pre_get_posts', array( $this, 'pre_get_posts' ) );
 		// Redirect new order post creation to the order page.
+		add_filter( 'admin_url', array( $this, 'replace_all_orders_url' ), 10, 3 );
 		add_filter( 'admin_url', array( $this, 'replace_new_order_url' ), 10, 3 );
 		add_action( 'admin_init', array( $this, 'redirect_to_order_form' ) );
 		// Hide the publish button from users other than admins.
@@ -104,10 +105,15 @@ class WSOrder_PostType {
 	public function redirect_to_current_program_orders() {
 
 		global $pagenow;
-
-		if ( 'edit.php' === $pagenow && isset($_GET['post_type']) && $_GET['post_type'] === 'wsorder' && ! isset( $_GET['program'] ) ) {
+		if (
+			'edit.php' === $pagenow
+			&& isset($_GET['post_type'])
+			&& $_GET['post_type'] === 'wsorder'
+			&& ! isset( $_GET['program'] )
+		) {
 			$current_program_id = get_site_option( 'options_current_program' );
-			wp_safe_redirect( get_admin_url() . "edit.php?post_type=wsorder&program={$current_program_id}" );
+			$url = get_admin_url() . "edit.php?".$_SERVER['QUERY_STRING']."&program={$current_program_id}";
+			wp_redirect( $url ); exit;
 		}
 
 	}
@@ -586,6 +592,24 @@ class WSOrder_PostType {
 
 		if ( 'post-new.php?post_type=wsorder' === $path ) {
 			$url = get_site_url( $blog_id, 'order-form/' );
+		}
+
+  	return $url;
+
+	}
+
+	/**
+	 * Filter admin_url to rewrite all order URLs so users see the current program year.
+	 *
+	 * @param string $url     Current URL.
+	 * @param string $path    Current path.
+	 * @param int    $blog_id The current site ID
+	 */
+	public function replace_all_orders_url ( $url, $path, $blog_id ) {
+
+		if ( 'edit.php?post_type=wsorder' === $path ) {
+			$current_program_id = get_site_option( 'options_current_program' );
+			$url = get_site_url( $blog_id, $path . '&program=' . $current_program_id );
 		}
 
   	return $url;
