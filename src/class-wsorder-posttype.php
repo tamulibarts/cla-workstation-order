@@ -28,6 +28,10 @@ class WSOrder_PostType {
 
 		// Register_post_type.
 		add_action( 'init', array( $this, 'register_post_type' ) );
+		add_filter( 'query_vars', function($vars){
+			$vars[] = 'program';
+			return $vars;
+		});
 		// Redirect users trying to view all orders to the current year's program.
 		add_action( 'admin_init', array( $this, 'redirect_to_current_program_orders' ) );
 		// Register custom fields.
