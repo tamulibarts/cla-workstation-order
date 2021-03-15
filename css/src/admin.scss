@@ -14,25 +14,25 @@ body.wp-admin.post-type-wsorder {
 
 	&:not(.publish) {
 		#minor-publishing-actions {
-			#save-action {
-				position: relative;
+			// #save-action {
+			// 	position: relative;
 
-				&:before {
-					content: "Save";
-					display: block;
-					position: absolute;
-					top: 6px;
-					left: 26px;
-					color: #0071A1;
-					font-size: 13px;
-					pointer-events: none;
-				}
-			}
+			// 	&:before {
+			// 		content: "Save";
+			// 		display: block;
+			// 		position: absolute;
+			// 		top: 6px;
+			// 		left: 26px;
+			// 		color: #0071A1;
+			// 		font-size: 13px;
+			// 		pointer-events: none;
+			// 	}
+			// }
 
-			#save-post,
-			#save-post.button.disabled {
-				color: transparent!important;
-			}
+			// #save-post,
+			// #save-post.button.disabled {
+			// 	color: transparent!important;
+			// }
 		}
 	}
 
