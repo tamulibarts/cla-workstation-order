@@ -535,8 +535,8 @@ class WSOrder_PostType {
     	}
     } elseif ( 'business_status' === $column_name ) {
     	// Determine status message.
-    	$requires_business_approval = $this->order_requires_business_approval( $post_id );
-    	if ( $requires_business_approval ) {
+    	$business_staff_id = get_post_meta( $post_id, 'business_staff_status_business_staff', true );
+    	if ( ! empty( $business_staff_id ) ) {
 	    	$status = get_field( 'business_staff_status', $post_id );
 	    	if ( empty( $status['confirmed'] ) ) {
 	    		echo '<span class="approval not-confirmed">Not yet confirmed</span>';
