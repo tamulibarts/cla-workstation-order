@@ -717,16 +717,8 @@ class WSOrder_PostType {
 			$current_user_id = $user->ID;
 			$post_id = absint($_GET['post']); // Always sanitize
 			$author_id = (int) get_post_field( 'post_author', $post_id );
-			$it_rep_id = (int) get_field( 'it_rep_status', $post_id )['it_rep']['ID'];
-			$business_admin_field = get_field( 'business_staff_status', $post_id );
-			$business_admin_id = 0;
-			if (
-				! empty( $business_admin_field )
-				&& array_key_exists( 'business_staff', $business_admin_field )
-				&& is_array( $business_admin_field['business_staff'] )
-			) {
-				$business_admin_id = (int) $business_admin_field['business_staff']['ID'];
-			}
+			$it_rep_ids = (int) get_field( 'affiliated_it_reps', $post_id );
+			$business_admin_ids = get_field( 'affiliated_business_staff', $post_id );
 			if (
 				'post.php' === $pagenow
 				&& isset($_GET['post'])
@@ -735,8 +727,8 @@ class WSOrder_PostType {
 				&& ! current_user_can( 'wso_admin' )
 				&& ! current_user_can( 'wso_logistics' ) // Not a logistics user
 				&& $current_user_id !== $author_id // Not the author
-				&& $current_user_id !== $it_rep_id // Not the IT rep
-				&& $current_user_id !== $business_admin_id // Not the business admin
+				&& ! in_array( $current_user_id, $it_rep_ids ) // Not the IT rep
+				&& ! in_array( $current_user_id, $business_admin_ids ) // Not the business admin
 			) {
 				// User isn't involved with this order and should be redirected away.
 				$location = admin_url() . 'edit.php?post_type=wsorder';
