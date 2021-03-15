@@ -35,9 +35,11 @@ class WSOrder_PostType_Emails {
 
 	}
 
+	/**
+	 * Get users assigned to active user's department for current program, as array.
+	 */
 	private function get_program_business_admin_user_id( $program_id, $user_department_post_id ) {
 
-		// Get users assigned to active user's department for current program, as array.
 		$program_meta_keys_departments = array(
 			'assign_political_science_department_post_id',
 			'assign_sociology_department_post_id',
