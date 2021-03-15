@@ -306,7 +306,7 @@ class WSOrder_PostType_Emails {
 				// Send email.
 				$to      = $end_user_email;
 				$title   = "[{$order_name}] Workstation Order Approval - {$department_abbreviation} - {$end_user_name}";
-				$message = $this->email_body_order_approved( $post_id, $_POST['acf'] );
+				$message = $this->email_body_order_approved( $post->ID, $_POST['acf'] );
 				$headers = array('Content-Type: text/html; charset=UTF-8');
 				wp_mail( $to, $title, $message, $headers );
 
@@ -584,7 +584,7 @@ class WSOrder_PostType_Emails {
 	private function email_body_order_approved( $order_post_id, $acf_data ) {
 
 		$program_name = get_the_title( $acf_data['field_5ffcc2590682b'] );
-		$user         = get_userdata( $acf_data['field_601d4a61e8ace'] );
+		$user         = get_userdata( $acf_data['field_60302052bab04'] );
 		$user_name    = $user->display_name;
 		$message      = "<p>
 	Howdy,
