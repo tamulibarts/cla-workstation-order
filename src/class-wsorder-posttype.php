@@ -56,6 +56,77 @@ class WSOrder_PostType {
 		// Prevent users uninvolved with an order from editing it.
 		add_action( 'admin_init', array( $this, 'redirect_uninvolved_users_from_editing' ) );
 
+		add_action( 'post_submitbox_misc_actions', function( $post ){
+	    if ( ! $post
+	         || 'publish' !== $post->post_status
+	         || 'wsorder' !== $post->post_type ) {
+	        return;
+	    }
+	    $meta = get_post_meta( $post->ID );
+	    foreach ($meta as $key => $value) {
+	    	if ( strpos($key, '_') === 0 ) {
+	    		unset($meta[$key]);
+	    	} elseif ( count( $value ) === 1 ) {
+	    		$meta[$key] = $value[0];
+	    	}
+	    }
+	    $meta['logo'] = CLA_WORKSTATION_ORDER_DIR_URL . 'images/logo-support-center.png';
+	    // Extra basic order data.
+	    $publish_date = strtotime( $post->post_date );
+	    $meta['publish_date_formatted'] = date('M j, Y \a\t g:i a', $publish_date);
+	    $meta['post_title'] = $post->post_title;
+	    $meta['now'] = date( 'M j, Y \a\t g:i a' );
+	    $meta['program_name'] = get_the_title( $meta['program'] );
+	    $meta['program_fiscal_year'] = get_post_meta( $meta['program'], 'fiscal_year', true );
+	    // Extra author data.
+	    $author = get_userdata( $post->post_author );
+	    $meta['author'] = $author->data->display_name;
+	    $meta['first_name'] = get_user_meta( $post->post_author, 'first_name', true );
+	    $meta['last_name'] = get_user_meta( $post->post_author, 'last_name', true );
+	    $meta['author_email'] = $author->data->user_email;
+	    $meta['author_department'] = get_the_title( $meta['author_department'] );
+	    // Extra IT Rep data.
+	    $it_rep_user = get_user_by( 'id', intval( $meta['it_rep_status_it_rep'] ) );
+	    $meta['it_rep_status_it_rep'] = $it_rep_user->data->display_name;
+	    $it_rep_confirm_date = strtotime( $meta['it_rep_status_date'] );
+	    $meta['it_rep_status_date'] = 'Confirmed - ' . date('M j, Y \a\t g:i a', $it_rep_confirm_date);
+	    // Extra Business Staff data.
+	    if ( '0' === $meta['business_staff_status_confirmed'] ) {
+	    	$meta['business_staff_status_date'] = 'Not required';
+	    } else {
+		    $business_staff_confirm_date = strtotime( $meta['business_staff_status_date'] );
+	    	$meta['business_staff_status_date'] = 'Confirmed - ' . date('M j, Y \a\t g:i a', $business_staff_confirm_date);
+		    $business_user = get_user_by('id', intval( $meta['business_staff_status_business_staff'] ) );
+		    $meta['business_staff_status_business_staff'] = $business_user->data->display_name;
+	    }
+	    // Extra Logistics data.
+	    $logistics_confirm_date = strtotime( $meta['it_logistics_status_date'] );
+	    $meta['it_logistics_status_date'] = 'Confirmed - ' . date('M j, Y \a\t g:i a', $logistics_confirm_date);
+	    // Modify purchase item data.
+	    $meta['products_subtotal'] = '$' . number_format( $meta['products_subtotal'], 2, '.', ',' );
+	    for ($inc=0; $inc < $meta['order_items']; $inc++) {
+	    	$price = $meta["order_items_{$inc}_price"];
+	    	$meta["order_items_{$inc}_price"] = '$' . number_format( $price, 2, '.', ',' );
+	    	$date = $meta["order_items_{$inc}_requisition_date"];
+	    	if ( ! empty( $date ) ) {
+	    		$date = strtotime( $date );
+	    		$date = date('M j, Y', $date);
+	    		$meta["order_items_{$inc}_requisition_date"] = $date;
+	    	}
+	    }
+	    $json = json_encode( $meta, JSON_FORCE_OBJECT );
+	    echo '<pre>';
+	    print_r($meta);
+	    echo '</pre>';
+      $html  = '<div id="major-publishing-actions" style="overflow:hidden">';
+      $html .= '<div id="publishing-action">';
+      $html .= '<button type="button" accesskey="p" tabindex="5" class="button-primary" id="print" name="print">Print</button>';
+      $html .= '<script type="text/javascript">var wsorder_data=' . $json . '</script>';
+      $html .= '</div>';
+      $html .= '</div>';
+      echo $html;
+		}, 10, 1 );
+
 		// Register email action hooks/filters
 		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-wsorder-posttype-emails.php';
 		new \CLA_Workstation_Order\WSOrder_PostType_Emails();
