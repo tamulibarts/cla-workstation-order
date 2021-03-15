@@ -568,7 +568,7 @@ class WSOrder_PostType {
 	}
 
 	/**
-	 * Prevent subscribers from seeing other peoples' orders.
+	 * Filter orders based on program URL variable.
 	 *
 	 * @param object $query The query object.
 	 *
