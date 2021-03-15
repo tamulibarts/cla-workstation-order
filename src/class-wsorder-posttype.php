@@ -353,6 +353,11 @@ class WSOrder_PostType {
 						'select[name=\"post_status\"]' ).val('awaiting_another')";
 				break;
 
+			case 'publish':
+				$status = "jQuery( '#post-status-display' ).text( 'Published' ); jQuery(
+						'select[name=\"post_status\"]' ).val('publish')";
+				break;
+
 			default:
 				break;
 		}
@@ -377,9 +382,17 @@ class WSOrder_PostType {
 				$it_rep_disabled = ' disabled="disabled"';
 			}
 		}
+
+		$non_logistics_disabled = '';
+		if (
+			! current_user_can( 'wso_logistics' )
+			&& ! current_user_can( 'wso_admin' )
+		) {
+			$non_logistics_disabled = ' disabled="disabled"';
+		}
 		echo "<script>
 			jQuery(document).ready( function() {
-				jQuery( 'select[name=\"post_status\"]' ).html( '<option value=\"action_required\">Action Required</option><option value=\"returned\"$subscriber_disabled>Returned</option><option value=\"completed\"{$it_rep_disabled}{$subscriber_disabled}>Completed</option><option value=\"awaiting_another\"$subscriber_disabled>Awaiting Another</option>' );
+				jQuery( 'select[name=\"post_status\"]' ).html( '<option value=\"action_required\">Action Required</option><option value=\"returned\"$subscriber_disabled>Returned</option><option value=\"completed\"{$it_rep_disabled}{$subscriber_disabled}>Completed</option><option value=\"awaiting_another\"$subscriber_disabled>Awaiting Another</option><option value=\"publish\"$non_logistics_disabled>Publish</option>' );
 				".$status."
 			});
 		</script>";
