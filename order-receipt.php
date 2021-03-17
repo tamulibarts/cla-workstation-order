@@ -358,5 +358,5 @@ $pdf->Cell(25, 5, $meta['products_subtotal'], 0, 0, 'R');
 /**
  * Finish
  */
-$pdf->Output('I','order-receipt-' . $meta['post_title'] . '.pdf');
+$pdf->Output('D','order-receipt-' . $meta['post_title'] . '.pdf');
 ?>
