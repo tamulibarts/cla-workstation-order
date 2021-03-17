@@ -106,7 +106,7 @@ class PDF extends FPDF
     // Draw line
     $this->Line(10, 266, 206, 266);
     // Page number
-    $this->Cell(0,10,$meta['program_name'] . '   |   ' . $meta['post_title'] . '   |   ' . $meta['first_name'] . ' ' . $meta['last_name'] . ' - ' . $meta['author_department'] . '   |   Generated at: ' . $meta['now'],0,0,'C');
+    $this->MultiCell(196,10,$meta['program_name'] . '   |   ' . $meta['post_title'] . '   |   ' . $meta['first_name'] . ' ' . $meta['last_name'] . ' - ' . $meta['author_department'] . '   |   Generated at: ' . $meta['now'],0,'C');
 	}
 }
 
