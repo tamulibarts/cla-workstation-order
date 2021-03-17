@@ -10,6 +10,7 @@
     ],
     "minimum-stability": "stable",
     "require": {
+        "setasign/fpdf": "^1.8"
     },
     "require-dev": {
         "wp-coding-standards/wpcs": "^1.0"
