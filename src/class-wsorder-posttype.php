@@ -119,12 +119,9 @@ class WSOrder_PostType {
 	    	}
 	    }
 	    $json = json_encode( $meta, JSON_FORCE_OBJECT );
-	    echo '<pre>';
-	    print_r($meta);
-	    echo '</pre>';
       $html  = '<div id="major-publishing-actions" style="overflow:hidden">';
       $html .= '<div id="publishing-action">';
-      $html .= '<button type="button" accesskey="p" tabindex="5" class="button-primary" id="print" name="print">Print</button>';
+      $html .= '<a class="button-primary" href="https://wsorder.wpengine.com/wp-content/plugins/cla-workstation-order/order-receipt.php?postid='.$post->ID.'" id="printpdf" target="_blank">Save as PDF</a>';
       $html .= '<script type="text/javascript">var wsorder_data=' . $json . '</script>';
       $html .= '</div>';
       $html .= '</div>';
