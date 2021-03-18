@@ -13,6 +13,9 @@ if ( ! is_user_logged_in() ) {
 	exit();
 }
 
+// Validate nonce.
+check_admin_referer( 'auth-post_'.$_GET['postid'], 'token' );
+
 // Load PDF library.
 require CLA_WORKSTATION_ORDER_DIR_PATH . 'vendor/setasign/fpdf/fpdf.php';
 

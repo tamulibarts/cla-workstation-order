@@ -59,7 +59,7 @@ class WSOrder_PostType {
 		add_action( 'admin_body_class', array( $this, 'set_admin_body_class' ) );
 		// Prevent users uninvolved with an order from editing it.
 		add_action( 'admin_init', array( $this, 'redirect_uninvolved_users_from_editing' ) );
-
+		// Generate a print button for the order.
 		add_action( 'post_submitbox_misc_actions', array( $this, 'pdf_print_receipt' ) );
 
 		// Register email action hooks/filters
@@ -675,15 +675,18 @@ class WSOrder_PostType {
 	 */
 	public function pdf_print_receipt ( $post ) {
     if ( ! $post
-         || 'publish' !== $post->post_status
-         || 'wsorder' !== $post->post_type ) {
+			|| 'publish' !== $post->post_status
+			|| 'wsorder' !== $post->post_type
+		) {
         return;
     }
-    $html  = '<div id="major-publishing-actions" style="overflow:hidden">';
-    $html .= '<div id="publishing-action">';
-    $html .= '<a class="button-primary" href="https://wsorder.wpengine.com/wp-content/plugins/cla-workstation-order/order-receipt.php?postid='.$post->ID.'" id="printpdf" target="_blank">Save as PDF</a>';
-    $html .= '</div>';
-    $html .= '</div>';
+    $bare_url     = CLA_WORKSTATION_ORDER_DIR_URL . 'order-receipt.php?postid='.$post->ID;
+    $complete_url = wp_nonce_url( $bare_url, 'auth-post_'.$post->ID, 'token' );
+    $html         = '<div id="major-publishing-actions" style="overflow:hidden">';
+    $html         .= '<div id="publishing-action">';
+    $html         .= '<a class="button-primary" href="'.$complete_url.'" id="printpdf" target="_blank">Save as PDF</a>';
+    $html         .= '</div>';
+    $html         .= '</div>';
     echo $html;
 	}
 }
