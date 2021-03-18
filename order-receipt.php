@@ -1,15 +1,19 @@
 <?php
+
+// Check if we should exit the file.
 if ( ! isset( $_GET['postid'] ) ) {
 	exit();
 }
 
-define( 'WP_DEBUG', true );
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
-
 // Require files.
 require dirname( dirname( dirname( dirname( __FILE__ ) ) ) ) . '/wp-load.php';
 wp();
+
+if ( ! is_user_logged_in() ) {
+	exit();
+}
+
+// Load PDF library.
 require CLA_WORKSTATION_ORDER_DIR_PATH . 'vendor/setasign/fpdf/fpdf.php';
 
 // Gather post meta.
