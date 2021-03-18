@@ -61,6 +61,8 @@ class WSOrder_PostType {
 		add_action( 'admin_init', array( $this, 'redirect_uninvolved_users_from_editing' ) );
 		// Generate a print button for the order.
 		add_action( 'post_submitbox_misc_actions', array( $this, 'pdf_print_receipt' ) );
+		// When a user other than the assigned user confirms an order, update the assigned user to that user.
+		add_action( 'save_post', array( $this, 'update_affiliated_it_bus_user_confirmed' ) );
 
 		// Register email action hooks/filters
 		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-wsorder-posttype-emails.php';
@@ -688,5 +690,57 @@ class WSOrder_PostType {
     $html         .= '</div>';
     $html         .= '</div>';
     echo $html;
+	}
+
+	/**
+	 * When a user other than the assigned user confirms an order, update the assigned user to that user.
+	 *
+	 * @param int $post_id The post ID.
+	 *
+	 * @return void
+	 */
+	public function update_affiliated_it_bus_user_confirmed( $post_id ) {
+
+		// IT Rep confirmed by someone other than the designated IT rep.
+		if (
+			isset( $_POST['acf']['field_5fff6b46a22af'] )
+			&& isset( $_POST['acf']['field_5fff6b46a22af']['field_5fff6b71a22b0'] )
+		) {
+			$old_post_it_confirm = (int) get_post_meta( $post_id, 'it_rep_status_confirmed', true );
+			$new_post_it_confirm = (int) $_POST['acf']['field_5fff6b46a22af']['field_5fff6b71a22b0'];
+
+			if (
+				0 === $old_post_it_confirm
+				&& 1 === $new_post_it_confirm
+			) {
+				$current_user    = wp_get_current_user();
+				$current_user_id = (int) $current_user->ID;
+				$it_rep_user_id = (int) $_POST['acf']['field_5fff6b46a22af']['field_5fff703a5289f'];
+				if ( $current_user_id != $it_rep_user_id ) {
+					update_post_meta( $post_id, 'it_rep_status_it_rep', $current_user_id );
+				}
+			}
+		}
+
+		// Business Staff confirmed by someone other than the designated business staff.
+		if (
+			isset( $_POST['acf']['field_5fff6ec0e2f7e'] )
+			&& isset( $_POST['acf']['field_5fff6ec0e2f7e']['field_5fff6ec0e4385'] )
+		) {
+			$old_post_bus_confirm = (int) get_post_meta( $post_id, 'business_staff_status_confirmed', true );
+			$new_post_bus_confirm = (int) $_POST['acf']['field_5fff6ec0e2f7e']['field_5fff6ec0e4385'];
+
+			if (
+				0 === $old_post_bus_confirm
+				&& 1 === $new_post_bus_confirm
+			) {
+				$current_user    = wp_get_current_user();
+				$current_user_id = (int) $current_user->ID;
+				$business_user_id = (int) $_POST['acf']['field_5fff6ec0e2f7e']['field_5fff70b84ffe4'];
+				if ( $current_user_id != $business_user_id ) {
+					update_post_meta( $post_id, 'business_staff_status_business_staff', $current_user_id );
+				}
+			}
+		}
 	}
 }
