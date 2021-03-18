@@ -570,9 +570,6 @@ class WSOrder_PostType {
 				)
 			);
 			$query->set('meta_query', $meta_query);
-			// echo '<pre>';
-			// print_r($query);
-			// echo '</pre>';
 		}
 	}
 
