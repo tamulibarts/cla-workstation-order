@@ -38,7 +38,6 @@ check_admin_referer( 'auth-post_'.$post_id, 'token' );
 require CLA_WORKSTATION_ORDER_DIR_PATH . 'vendor/setasign/fpdf/fpdf.php';
 
 // Gather post meta.
-$post_id      = $_GET['postid'];
 $post         = get_post( $post_id );
 $meta         = get_post_meta( $post_id );
 $meta['logo'] = CLA_WORKSTATION_ORDER_DIR_URL . 'images/logo-support-center.png';
