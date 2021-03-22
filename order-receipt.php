@@ -9,12 +9,14 @@ if ( ! isset( $_GET['postid'] ) ) {
 require dirname( dirname( dirname( dirname( __FILE__ ) ) ) ) . '/wp-load.php';
 wp();
 
+$post_id = $_GET['postid'];
+
 // Authenticate user-based access permission
 $current_user              = wp_get_current_user();
 $current_user_id           = (int) $current_user->ID;
-$affiliated_it_reps        = get_post_meta( $_GET['postid'], 'affiliated_it_reps', true );
-$affiliated_business_staff = get_post_meta( $_GET['postid'], 'affiliated_business_staff', true );
-$author_id                 = (int) get_post_field( 'post_author', $_GET['postid'] );
+$affiliated_it_reps        = get_post_meta( $post_id, 'affiliated_it_reps', true );
+$affiliated_business_staff = get_post_meta( $post_id, 'affiliated_business_staff', true );
+$author_id                 = (int) get_post_field( 'post_author', $post_id );
 
 if (
 	! is_user_logged_in()
@@ -30,7 +32,7 @@ if (
 }
 
 // Validate nonce.
-check_admin_referer( 'auth-post_'.$_GET['postid'], 'token' );
+check_admin_referer( 'auth-post_'.$post_id, 'token' );
 
 // Load PDF library.
 require CLA_WORKSTATION_ORDER_DIR_PATH . 'vendor/setasign/fpdf/fpdf.php';
