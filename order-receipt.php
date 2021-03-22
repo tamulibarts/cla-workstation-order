@@ -9,7 +9,23 @@ if ( ! isset( $_GET['postid'] ) ) {
 require dirname( dirname( dirname( dirname( __FILE__ ) ) ) ) . '/wp-load.php';
 wp();
 
-if ( ! is_user_logged_in() ) {
+// Authenticate user-based access permission
+$current_user              = wp_get_current_user();
+$current_user_id           = (int) $current_user->ID;
+$affiliated_it_reps        = get_post_meta( $_GET['postid'], 'affiliated_it_reps', true );
+$affiliated_business_staff = get_post_meta( $_GET['postid'], 'affiliated_business_staff', true );
+$author_id                 = (int) get_post_field( 'post_author', $_GET['postid'] );
+
+if (
+	! is_user_logged_in()
+	|| (
+		! in_array( $current_user_id, $affiliated_it_reps )
+		&& ! in_array( $current_user_id, $affiliated_business_staff )
+		&& $current_user_id !== $author_id
+		&& ! current_user_can( 'wso_logistics' )
+		&& ! current_user_can( 'wso_admin' )
+	)
+) {
 	exit();
 }
 
