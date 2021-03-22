@@ -36,63 +36,53 @@ check_admin_referer( 'auth-post_'.$_GET['postid'], 'token' );
 require CLA_WORKSTATION_ORDER_DIR_PATH . 'vendor/setasign/fpdf/fpdf.php';
 
 // Gather post meta.
-$post_id = $_GET['postid'];
-$post = get_post( $post_id );
-$meta = get_post_meta( $post_id );
-foreach ($meta as $key => $value) {
-	if ( strpos($key, '_') === 0 ) {
-		unset($meta[$key]);
-	} elseif ( count( $value ) === 1 ) {
-		$meta[$key] = $value[0];
-	}
-}
+$post_id      = $_GET['postid'];
+$post         = get_post( $post_id );
+$meta         = get_post_meta( $post_id );
 $meta['logo'] = CLA_WORKSTATION_ORDER_DIR_URL . 'images/logo-support-center.png';
 // Extra basic order data.
-$publish_date = strtotime( $post->post_date );
+$publish_date                   = strtotime( $post->post_date );
 $meta['publish_date_formatted'] = date( 'M j, Y \a\t g:i a', $publish_date );
-$meta['post_title'] = $post->post_title;
-$meta['now'] = date( 'M j, Y \a\t g:i a' );
-$meta['program_name'] = get_the_title( $meta['program'] );
-$meta['program_fiscal_year'] = get_post_meta( $meta['program'], 'fiscal_year', true );
+$meta['post_title']             = $post->post_title;
+$meta['now']                    = date( 'M j, Y \a\t g:i a' );
+$meta['program_name']           = get_the_title( $meta['program'] );
+$meta['program_fiscal_year']    = get_post_meta( $meta['program'], 'fiscal_year', true );
 // Extra author data.
-$author = get_userdata( $post->post_author );
-$meta['author'] = $author->data->display_name;
-$meta['first_name'] = get_user_meta( $post->post_author, 'first_name', true );
-$meta['last_name'] = get_user_meta( $post->post_author, 'last_name', true );
-$meta['author_email'] = $author->data->user_email;
+$author                    = get_userdata( $post->post_author );
+$meta['author']            = $author->data->display_name;
+$meta['first_name']        = get_user_meta( $post->post_author, 'first_name', true );
+$meta['last_name']         = get_user_meta( $post->post_author, 'last_name', true );
+$meta['author_email']      = $author->data->user_email;
 $meta['author_department'] = get_the_title( $meta['author_department'] );
 // Extra IT Rep data.
-$it_rep_user = get_user_by( 'id', intval( $meta['it_rep_status_it_rep'] ) );
+$it_rep_user                  = get_user_by( 'id', intval( $meta['it_rep_status_it_rep'] ) );
 $meta['it_rep_status_it_rep'] = $it_rep_user->data->display_name;
-$it_rep_confirm_date = strtotime( $meta['it_rep_status_date'] );
-$meta['it_rep_status_date'] = 'Confirmed - ' . date( 'M j, Y \a\t g:i a', $it_rep_confirm_date );
+$it_rep_confirm_date          = strtotime( $meta['it_rep_status_date'] );
+$meta['it_rep_status_date']   = 'Confirmed - ' . date( 'M j, Y \a\t g:i a', $it_rep_confirm_date );
 // Extra Business Staff data.
 if ( '0' === $meta['business_staff_status_confirmed'] ) {
 	$meta['business_staff_status_date'] = 'Not required';
 } else {
-  $business_staff_confirm_date = strtotime( $meta['business_staff_status_date'] );
-	$meta['business_staff_status_date'] = 'Confirmed - ' . date( 'M j, Y \a\t g:i a', $business_staff_confirm_date );
-  $business_user = get_user_by('id', intval( $meta['business_staff_status_business_staff'] ) );
+  $business_staff_confirm_date                  = strtotime( $meta['business_staff_status_date'] );
+	$meta['business_staff_status_date']           = 'Confirmed - ' . date( 'M j, Y \a\t g:i a', $business_staff_confirm_date );
+  $business_user                                = get_user_by('id', intval( $meta['business_staff_status_business_staff'] ) );
   $meta['business_staff_status_business_staff'] = $business_user->data->display_name;
 }
 // Extra Logistics data.
-$logistics_confirm_date = strtotime( $meta['it_logistics_status_date'] );
+$logistics_confirm_date           = strtotime( $meta['it_logistics_status_date'] );
 $meta['it_logistics_status_date'] = 'Confirmed - ' . date( 'M j, Y \a\t g:i a', $logistics_confirm_date );
 // Modify purchase item data.
 $meta['products_subtotal'] = '$' . number_format( $meta['products_subtotal'], 2, '.', ',' );
 for ($inc=0; $inc < $meta['order_items']; $inc++) {
-	$price = $meta["order_items_{$inc}_price"];
+	$price                            = $meta["order_items_{$inc}_price"];
 	$meta["order_items_{$inc}_price"] = '$' . number_format( $price, 2, '.', ',' );
-	$date = $meta["order_items_{$inc}_requisition_date"];
+	$date                             = $meta["order_items_{$inc}_requisition_date"];
 	if ( ! empty( $date ) ) {
-		$date = strtotime( $date );
-		$date = date('M j, Y', $date);
+		$date                                        = strtotime( $date );
+		$date                                        = date('M j, Y', $date);
 		$meta["order_items_{$inc}_requisition_date"] = $date;
 	}
 }
-// echo '<pre>';
-// print_r($meta);
-// echo '</pre>';
 
 // Generate the PDF.
 class PDF extends FPDF
