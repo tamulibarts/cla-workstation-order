@@ -40,6 +40,13 @@ require CLA_WORKSTATION_ORDER_DIR_PATH . 'vendor/setasign/fpdf/fpdf.php';
 // Gather post meta.
 $post         = get_post( $post_id );
 $meta         = get_post_meta( $post_id );
+foreach ( $meta as $key => $value ) {
+	if ( strpos($key, '_') === 0 ) {
+		unset($meta[$key]);
+	} elseif ( count( $value ) === 1 ) {
+		$meta[$key] = $value[0];
+	}
+}
 $meta['logo'] = CLA_WORKSTATION_ORDER_DIR_URL . 'images/logo-support-center.png';
 // Extra basic order data.
 $publish_date                   = strtotime( $post->post_date );
