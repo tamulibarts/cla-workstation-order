@@ -28,10 +28,7 @@ class WSOrder_PostType {
 
 		// Register_post_type.
 		add_action( 'init', array( $this, 'register_post_type' ) );
-		add_filter( 'query_vars', function($vars){
-			$vars[] = 'program';
-			return $vars;
-		});
+		add_filter( 'query_vars', array( $this, 'add_program_url_var' ) );
 		// Redirect users trying to view all orders to the current year's program.
 		add_action( 'admin_init', array( $this, 'redirect_to_current_program_orders' ) );
 		// Register custom fields.
@@ -42,15 +39,8 @@ class WSOrder_PostType {
 		add_filter( 'display_post_states', array( $this, 'display_status_state' ) );
 		// Enqueue JavaScript file for admin
 		add_action( 'admin_print_scripts-post.php', array( $this, 'admin_script' ), 11 );
-		// Add columns to dashboard post list screen.
-		add_filter( 'manage_wsorder_posts_columns', array( $this, 'add_list_view_columns' ) );
-		add_action( 'manage_wsorder_posts_custom_column', array( $this, 'output_list_view_columns' ), 10, 2 );
 		// Manipulate post title into a certain format.
 		add_filter( 'default_title', array( $this, 'default_post_title' ), 11, 2 );
-		// Allow programs to link to a list of associated orders in admin.
-		add_filter( 'parse_query', array( $this, 'admin_list_posts_filter' ) );
-		// Prevent users from seeing posts they aren't involved with.
-		add_action( 'pre_get_posts', array( $this, 'pre_get_posts' ) );
 		// Redirect new order post creation to the order page.
 		add_filter( 'admin_url', array( $this, 'replace_all_orders_url' ), 10, 3 );
 		add_filter( 'admin_url', array( $this, 'replace_new_order_url' ), 10, 3 );
@@ -67,6 +57,13 @@ class WSOrder_PostType {
 		/**
 		 * Change features of edit.php list view for order posts.
 		 */
+		// Add columns to dashboard post list screen.
+		add_filter( 'manage_wsorder_posts_columns', array( $this, 'add_list_view_columns' ) );
+		add_action( 'manage_wsorder_posts_custom_column', array( $this, 'output_list_view_columns' ), 10, 2 );
+		// Prevent users from seeing posts they aren't involved with.
+		add_action( 'pre_get_posts', array( $this, 'pre_get_posts' ) );
+		// Allow programs to link to a list of associated orders in admin.
+		add_filter( 'parse_query', array( $this, 'admin_list_posts_filter' ) );
 		// Change post type counts and URLs based on currently viewed program.
 		add_filter( 'views_edit-wsorder', array( $this, 'change_order_list_status_link_counts_and_urls' ) );
 		// Add the currently viewed program name before the list of posts.
@@ -246,6 +243,11 @@ class WSOrder_PostType {
 			'label_count'               => _n_noop( 'Awaiting Another <span class="count">(%s)</span>', 'Awaiting Another <span class="count">(%s)</span>' )
 		) );
 
+	}
+
+	public function add_program_url_var( $vars ) {
+		$vars[] = 'program';
+		return $vars;
 	}
 
 	/**
@@ -669,7 +671,8 @@ class WSOrder_PostType {
 				&& ! in_array( $current_user_id, $business_admin_ids ) // Not the business admin
 			) {
 				// User isn't involved with this order and should be redirected away.
-				$location = admin_url() . 'edit.php?post_type=wsorder';
+				$current_program_id = get_site_option( 'options_current_program' );
+				$location = admin_url() . 'edit.php?post_type=wsorder&program=' . $current_program_id;
 				wp_safe_redirect($location);
 				exit();
 			}
