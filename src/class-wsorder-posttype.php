@@ -64,6 +64,14 @@ class WSOrder_PostType {
 		// When a user other than the assigned user confirms an order, update the assigned user to that user.
 		add_action( 'save_post', array( $this, 'update_affiliated_it_bus_user_confirmed' ) );
 
+		/**
+		 * Change features of edit.php list view for order posts.
+		 */
+		// Change post type counts and URLs based on currently viewed program.
+		add_filter( 'views_edit-wsorder', array( $this, 'change_order_list_status_link_counts_and_urls' ) );
+		// Add the currently viewed program name before the list of posts.
+		add_action( 'in_admin_header', array( $this, 'program_name_before_order_list_view' ) );
+
 		// Register email action hooks/filters
 		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-wsorder-posttype-emails.php';
 		new \CLA_Workstation_Order\WSOrder_PostType_Emails();
@@ -742,5 +750,114 @@ class WSOrder_PostType {
 				}
 			}
 		}
+	}
+
+	/**
+	 *
+	 */
+	public function change_order_list_status_link_counts_and_urls( $views ) {
+
+		if ( isset( $_GET['post_type'] ) && $_GET['post_type'] === 'wsorder' ) {
+
+			$program_id      = $_GET['program'];
+			$user            = wp_get_current_user();
+			$current_user_id = $user->ID;
+			$args            = array(
+				'post_type'  => 'wsorder',
+				'meta_query' => array(
+					'relation' => 'AND',
+					array(
+						'key'   => 'program',
+						'value' => $program_id,
+					)
+				),
+				'fields' => 'ids'
+			);
+			if ( ! current_user_can( 'wso_admin' ) && ! current_user_can( 'wso_logistics' ) ) {
+				$args['meta_query'][] = array(
+					'relation' => 'OR',
+					array(
+						'key'     => 'affiliated_it_reps',
+						'value'   => '"' . $current_user_id . '"',
+						'compare' => 'LIKE',
+					),
+					array(
+						'key'     => 'affiliated_business_staff',
+						'value'   => '"' . $current_user_id . '"',
+						'compare' => 'LIKE',
+					),
+					array(
+						'key'   => 'order_author',
+						'value' => $current_user_id,
+					)
+				);
+			}
+			// All link.
+			$query = new \WP_Query( $args );
+			$count = $query->post_count;
+			$views['all'] = preg_replace( '/<span class="count">\(\d+\)<\/span>/', '<span class="count">('.$count.')</span></a>', $views['all'] );
+			$views['all'] = str_replace( 'edit.php?post_type=wsorder', "edit.php?post_type=wsorder&program={$program_id}", $views['all'] );
+			// Mine link.
+			unset( $mine_args['meta_query'] );
+			$mine_args           = $args;
+			$mine_args['author'] = $current_user_id;
+			$mine_query          = new \WP_Query( $mine_args );
+			$count               = $mine_query->post_count;
+			$views['mine']       = preg_replace( '/<span class="count">\(\d+\)<\/span>/', '<span class="count">('.$count.')</span></a>', $views['mine'] );
+			$views['mine']       = str_replace( 'post_type=wsorder', "post_type=wsorder&program={$program_id}", $views['mine'] );
+			// Publish link.
+			if ( isset( $views['publish'] ) ) {
+				$pub_args                = $args;
+				$pub_args['post_status'] = 'publish';
+				$pub_query               = new \WP_Query( $pub_args );
+				$count                   = $pub_query->post_count;
+				$views['publish']        = preg_replace( '/<span class="count">\(\d+\)<\/span>/', '<span class="count">('.$count.')</span></a>', $views['publish'] );
+				$views['publish']        = str_replace( 'post_type=wsorder', "post_type=wsorder&program={$program_id}", $views['publish'] );
+			}
+			// Action Required link.
+			if ( isset( $views['action_required'] ) ) {
+				$args['post_status']      = 'action_required';
+				$ar_query                 = new \WP_Query( $args );
+				$count                    = $ar_query->post_count;
+				$views['action_required'] = preg_replace( '/<span class="count">\(\d+\)<\/span>/', '<span class="count">('.$count.')</span></a>', $views['action_required'] );
+				$views['action_required'] = str_replace( 'post_type=wsorder', "post_type=wsorder&program={$program_id}", $views['action_required'] );
+			}
+			// Returned link.
+			if ( isset( $views['returned'] ) ) {
+				$args['post_status'] = 'returned';
+				$ar_query            = new \WP_Query( $args );
+				$count               = $ar_query->post_count;
+				$views['returned']   = preg_replace( '/<span class="count">\(\d+\)<\/span>/', '<span class="count">('.$count.')</span></a>', $views['returned'] );
+				$views['returned']   = str_replace( 'post_type=wsorder', "post_type=wsorder&program={$program_id}", $views['returned'] );
+			}
+			// Completed link.
+			if ( isset( $views['completed'] ) ) {
+				$args['post_status'] = 'completed';
+				$ar_query            = new \WP_Query( $args );
+				$count               = $ar_query->post_count;
+				$views['completed']  = preg_replace( '/<span class="count">\(\d+\)<\/span>/', '<span class="count">('.$count.')</span></a>', $views['completed'] );
+				$views['completed']  = str_replace( 'post_type=wsorder', "post_type=wsorder&program={$program_id}", $views['completed'] );
+			}
+			// Awaiting Another link.
+			if ( isset( $views['awaiting_another'] ) ) {
+				$args['post_status']       = 'awaiting_another';
+				$ar_query                  = new \WP_Query( $args );
+				$count                     = $ar_query->post_count;
+				$views['awaiting_another'] = preg_replace( '/<span class="count">\(\d+\)<\/span>/', '<span class="count">('.$count.')</span></a>', $views['awaiting_another'] );
+				$views['awaiting_another'] = str_replace( 'post_type=wsorder', "post_type=wsorder&program={$program_id}", $views['awaiting_another'] );
+			}
+		}
+		return $views;
+	}
+
+	/**
+	 * Show the current admin Order post query's program name before the list.
+	 */
+	public function program_name_before_order_list_view () {
+
+		$program_id   = $_GET['program'];
+		$program_post = get_post( $program_id );
+		echo '<div class="h1" style="font-size:23px;font-weight:400;line-height:29.9px;padding-top:16px;">Orders - '.$program_post->post_title.'</div><style type="text/css">.wrap h1.wp-heading-inline{display:none;}</style>';
+
 	}
 }
