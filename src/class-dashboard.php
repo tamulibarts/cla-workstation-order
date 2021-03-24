@@ -38,37 +38,71 @@ class Dashboard {
 	 * @return void
 	 */
 	public function dashboard_widget_function() {
-		$url       = get_site_url();
-		$admin_url = get_admin_url();
-		$user_id   = get_current_user_id();
-		$all_query = new \WP_Query(
-			array(
-				'post_type' => 'wsorder',
-				'author' => $user_id,
-			)
+		$url        = get_site_url();
+		$admin_url  = get_admin_url();
+		$program_id = get_site_option( 'options_current_program' );
+		$user       = wp_get_current_user();
+		$user_id    = $user->ID;
+		$all_query_args = array(
+			'post_type' => 'wsorder',
+			'author' => $user_id,
+			'meta_query' => array(
+				'relation' => 'AND',
+				array(
+					'key'   => 'program',
+					'value' => $program_id,
+				)
+			),
+			'fields' => 'ids',
 		);
-		$returned_query = new \WP_Query(
-			array(
-				'post_type' => 'wsorder',
-				'author' => $user_id,
-				'post_status' => 'returned',
-			)
-		);
-		$action_required_query = new \WP_Query(
-			array(
-				'post_type' => 'wsorder',
-				'author' => $user_id,
-				'post_status' => 'action_required',
-			)
-		);
-		$completed_query = new \WP_Query(
-			array(
-				'post_type' => 'wsorder',
-				'author' => $user_id,
-				'post_status' => 'completed',
-			)
-		);
-		echo "<ul><li><a href=\"{$url}/order-form/\">+ Place a New Order</a></li><li><a href=\"{$admin_url}edit.php?post_type=wsorder&author={$user_id}\">All Orders ({$all_query->post_count})</a></li><li><a href=\"{$admin_url}edit.php?post_type=wsorder&author={$user_id}&post_status=action_required\">Action Required ({$action_required_query->post_count})</a></li><li><a href=\"{$admin_url}edit.php?post_type=wsorder&author={$user_id}&post_status=returned\">Returned ({$returned_query->post_count})</a></li><li><a href=\"{$admin_url}edit.php?post_type=wsorder&author={$user_id}&post_status=completed\">Completed ($completed_query->post_count)</a></li></ul>";
+
+		if ( ! current_user_can( 'wso_admin' ) && ! current_user_can( 'wso_logistics' ) ) {
+			$all_query_args['meta_query'][] = array(
+				'relation' => 'OR',
+				array(
+					'key'     => 'affiliated_it_reps',
+					'value'   => '"' . $user_id . '"',
+					'compare' => 'LIKE',
+				),
+				array(
+					'key'     => 'affiliated_business_staff',
+					'value'   => '"' . $user_id . '"',
+					'compare' => 'LIKE',
+				),
+				array(
+					'key'   => 'order_author',
+					'value' => $user_id,
+				)
+			);
+		}
+		$mine_query = new \WP_Query( $all_query_args );
+		// Output all links.
+		echo '<ul>';
+		echo "<li><a href=\"{$url}/order-form/\">+ Place a New Order</a></li><li><a href=\"{$admin_url}edit.php?post_type=wsorder&author={$user_id}&program={$program_id}\">My Orders ({$mine_query->post_count})</a></li>";
+
+		if (
+			current_user_can( 'wso_admin' )
+			|| current_user_can( 'wso_logistics' )
+			|| current_user_can( 'wso_it_rep' )
+			|| current_user_can( 'wso_business_staff' )
+		) {
+			// Returned posts link.
+			$returned_args = $all_query_args;
+			$returned_args['post_status'] = 'returned';
+			$returned_query = new \WP_Query( $returned_args );
+			// Action Required posts link.
+			$action_required_args = $all_query_args;
+			$action_required_args['post_status'] = 'action_required';
+			$action_required_query = new \WP_Query( $action_required_args );
+			// Completed posts link.
+			$completed_args = $all_query_args;
+			$completed_args['post_status'] = 'completed';
+			$completed_query = new \WP_Query( $completed_args );
+			// Output links.
+			echo "<li><a href=\"{$admin_url}edit.php?post_type=wsorder&author={$user_id}&program={$program_id}&post_status=action_required\">Action Required ({$action_required_query->post_count})</a></li><li><a href=\"{$admin_url}edit.php?post_type=wsorder&author={$user_id}&program={$program_id}&post_status=returned\">Returned ({$returned_query->post_count})</a></li><li><a href=\"{$admin_url}edit.php?post_type=wsorder&author={$user_id}&program={$program_id}&post_status=completed\">Completed ($completed_query->post_count)</a></li>";
+		}
+
+		echo '</ul>';
 	}
 
 	/**
@@ -77,9 +111,11 @@ class Dashboard {
 	 * @return void
 	 */
 	public function wpexplorer_add_dashboard_widgets() {
+		$program_id = (int) get_site_option( 'options_current_program' );
+		$program_post = get_post( $program_id );
 		wp_add_dashboard_widget(
 			'cla_dashboard_widget', // Widget slug.
-			'My Orders', // Title.
+			'Orders - ' . $program_post->post_title, // Title.
 			array( $this, 'dashboard_widget_function' ) // Display function.
 		);
 	}
