@@ -26,28 +26,6 @@
                 "ui": 1
             },
             {
-                "key": "field_60007d784dd15",
-                "label": "Category",
-                "name": "category",
-                "type": "post_object",
-                "instructions": "",
-                "required": 0,
-                "conditional_logic": 0,
-                "wrapper": {
-                    "width": "",
-                    "class": "",
-                    "id": ""
-                },
-                "post_type": [
-                    "post"
-                ],
-                "taxonomy": "",
-                "allow_null": 0,
-                "multiple": 0,
-                "return_format": "object",
-                "ui": 1
-            },
-            {
                 "key": "field_60007d6704a3f",
                 "label": "Description",
                 "name": "description",
@@ -65,6 +43,68 @@
                 "maxlength": "",
                 "rows": "",
                 "new_lines": ""
+            },
+            {
+                "key": "field_605b721b77d24",
+                "label": "Products",
+                "name": "products",
+                "type": "post_object",
+                "instructions": "",
+                "required": 0,
+                "conditional_logic": 0,
+                "wrapper": {
+                    "width": "",
+                    "class": "",
+                    "id": ""
+                },
+                "post_type": [
+                    "product"
+                ],
+                "taxonomy": "",
+                "allow_null": 0,
+                "multiple": 1,
+                "return_format": "id",
+                "ui": 1
+            },
+            {
+                "key": "field_605baea241f80",
+                "label": "Price",
+                "name": "price",
+                "type": "number",
+                "instructions": "",
+                "required": 0,
+                "conditional_logic": 0,
+                "wrapper": {
+                    "width": "",
+                    "class": "",
+                    "id": ""
+                },
+                "default_value": "",
+                "placeholder": "",
+                "prepend": "$",
+                "append": "",
+                "min": "",
+                "max": "",
+                "step": ""
+            },
+            {
+                "key": "field_60007d6704a8b",
+                "label": "Descriptors",
+                "name": "descriptors",
+                "type": "wysiwyg",
+                "instructions": "These will display in the product's More Info pop-up window",
+                "required": 0,
+                "conditional_logic": 0,
+                "wrapper": {
+                    "width": "",
+                    "class": "",
+                    "id": ""
+                },
+                "default_value": "",
+                "tabs": "visual",
+                "toolbar": "basic",
+                "media_upload": 0,
+                "delay": 0
             },
             {
                 "key": "field_60007d6704a62",
@@ -88,46 +128,6 @@
                 "toggle": 0,
                 "return_format": "value",
                 "save_custom": 0
-            },
-            {
-                "key": "field_60007d6704a8b",
-                "label": "Descriptors",
-                "name": "descriptors",
-                "type": "repeater",
-                "instructions": "These will display as list items in the product description",
-                "required": 0,
-                "conditional_logic": 0,
-                "wrapper": {
-                    "width": "",
-                    "class": "",
-                    "id": ""
-                },
-                "collapsed": "",
-                "min": 0,
-                "max": 0,
-                "layout": "table",
-                "button_label": "+",
-                "sub_fields": [
-                    {
-                        "key": "field_60007d670e7ff",
-                        "label": "",
-                        "name": "descriptor",
-                        "type": "text",
-                        "instructions": "",
-                        "required": 0,
-                        "conditional_logic": 0,
-                        "wrapper": {
-                            "width": "",
-                            "class": "",
-                            "id": ""
-                        },
-                        "default_value": "",
-                        "placeholder": "",
-                        "prepend": "",
-                        "append": "",
-                        "maxlength": 144
-                    }
-                ]
             }
         ],
         "location": [

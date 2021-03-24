@@ -56,8 +56,8 @@ class CLA_Workstation_Order {
 		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-product-posttype.php';
 		new \CLA_Workstation_Order\Product_PostType();
 
-		// require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-bundle-posttype.php';
-		// new \CLA_Workstation_Order\Bundle_PostType();
+		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-bundle-posttype.php';
+		new \CLA_Workstation_Order\Bundle_PostType();
 
 		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-program-posttype.php';
 		new \CLA_Workstation_Order\Program_PostType();
