@@ -801,13 +801,15 @@ class WSOrder_PostType {
 			$views['all'] = preg_replace( '/<span class="count">\(\d+\)<\/span>/', '<span class="count">('.$count.')</span></a>', $views['all'] );
 			$views['all'] = str_replace( 'edit.php?post_type=wsorder', "edit.php?post_type=wsorder&program={$program_id}", $views['all'] );
 			// Mine link.
-			unset( $mine_args['meta_query'] );
-			$mine_args           = $args;
-			$mine_args['author'] = $current_user_id;
-			$mine_query          = new \WP_Query( $mine_args );
-			$count               = $mine_query->post_count;
-			$views['mine']       = preg_replace( '/<span class="count">\(\d+\)<\/span>/', '<span class="count">('.$count.')</span></a>', $views['mine'] );
-			$views['mine']       = str_replace( 'post_type=wsorder', "post_type=wsorder&program={$program_id}", $views['mine'] );
+			if ( isset( $views['mine'] ) ) {
+				$mine_args           = $args;
+				unset( $mine_args['meta_query'] );
+				$mine_args['author'] = $current_user_id;
+				$mine_query          = new \WP_Query( $mine_args );
+				$count               = $mine_query->post_count;
+				$views['mine']       = preg_replace( '/<span class="count">\(\d+\)<\/span>/', '<span class="count">('.$count.')</span></a>', $views['mine'] );
+				$views['mine']       = str_replace( 'post_type=wsorder', "post_type=wsorder&program={$program_id}", $views['mine'] );
+			}
 			// Publish link.
 			if ( isset( $views['publish'] ) ) {
 				$pub_args                = $args;
@@ -858,9 +860,13 @@ class WSOrder_PostType {
 	 */
 	public function program_name_before_order_list_view () {
 
-		$program_id   = $_GET['program'];
-		$program_post = get_post( $program_id );
-		echo '<div class="h1" style="font-size:23px;font-weight:400;line-height:29.9px;padding-top:16px;">Orders - '.$program_post->post_title.'</div><style type="text/css">.wrap h1.wp-heading-inline{display:none;}</style>';
+		global $pagenow;
+
+		if ( $pagenow === 'edit.php' && isset( $_GET['post_type'] ) && $_GET['post_type'] === 'wsorder' ) {
+			$program_id   = $_GET['program'];
+			$program_post = get_post( $program_id );
+			echo '<div class="h1" style="font-size:23px;font-weight:400;line-height:29.9px;padding-top:16px;">Orders - '.$program_post->post_title.'</div><style type="text/css">.wrap h1.wp-heading-inline{display:none;}</style>';
+		}
 
 	}
 }
