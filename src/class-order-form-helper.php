@@ -357,6 +357,22 @@ class Order_Form_Helper {
 			$product_count    = count( $product_post_ids );
 			$product_subtotal = 0;
 			if ( $product_count > 0 ) {
+				$product_fields = array();
+
+				// Break down bundles into individual product post ids.
+				$bundle_product_collection = array();
+				$actual_product_collection = array();
+				foreach ($product_post_ids as $post_id) {
+					$product_post_type = get_post_type( $post_id );
+					if ( 'bundle' === $product_post_type ) {
+						// Get products in bundle as post IDs.
+						$bundle_products = get_field( 'products', $post_id );
+						$bundle_product_collection = array_merge( $bundle_product_collection, $bundle_products );
+					} else {
+						$actual_product_collection[] = $post_id;
+					}
+				}
+				$product_post_ids = array_merge( $bundle_product_collection, $actual_product_collection );
 
 				$product_fields   = array();
 				for ($i=0; $i < $product_count; $i++) {
