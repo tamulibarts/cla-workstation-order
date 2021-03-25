@@ -515,7 +515,7 @@ class Order_Form_Helper {
 
 		// Return product category only, if chosen.
 		if ( false !== $category ) {
-			$args['tax_query'] = array(
+			$product_args['tax_query'] = array(
 				array(
 					'taxonomy' => 'product-category',
 					'field'    => 'slug',
@@ -523,7 +523,7 @@ class Order_Form_Helper {
 				)
 			);
 		}
-		$products      = new \WP_Query( $args );
+		$products      = new \WP_Query( $product_args );
 		$product_posts = $products->posts;
 
 		return $product_posts;
