@@ -296,10 +296,6 @@ class Order_Form_Helper {
 			$value = $data['cla_current_asset_number'];
 			update_field( 'current_asset', $value, $post_id );
 
-			// Save product subtotal.
-			$value = $data['cla_total_purchase'];
-			update_field( 'products_subtotal', $value, $post_id );
-
 			// Save no computer yet field.
 			if ( array_key_exists( 'cla_no_computer_yet', $data ) ) {
 				$value = $data['cla_no_computer_yet'];
@@ -359,10 +355,12 @@ class Order_Form_Helper {
 			$product_post_ids = preg_replace('/^,|,$/', '', $data['cla_product_ids']);
 			$product_post_ids = explode( ',', $product_post_ids );
 			$product_count    = count( $product_post_ids );
+			$product_subtotal = 0;
 			if ( $product_count > 0 ) {
 
 				$product_fields   = array();
 				for ($i=0; $i < $product_count; $i++) {
+					$product_subtotal = $product_subtotal + get_field( 'price', $product_post_id );
 					$product_fields[$i] = array(
 						'sku' => get_field( 'sku', $product_post_ids[$i] ),
 						'item' => get_the_title( $product_post_ids[$i] ),
@@ -372,6 +370,10 @@ class Order_Form_Helper {
 				update_field( 'order_items', $product_fields, $post_id );
 
 			}
+
+			// Save product subtotal.
+			$value = $product_subtotal;
+			update_field( 'products_subtotal', $value, $post_id );
 
 		}
 
