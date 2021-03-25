@@ -110,7 +110,7 @@
                 "key": "field_60007d6704a62",
                 "label": "Visibility",
                 "name": "visibility",
-                "type": "checkbox",
+                "type": "group",
                 "instructions": "",
                 "required": 0,
                 "conditional_logic": 0,
@@ -119,15 +119,28 @@
                     "class": "",
                     "id": ""
                 },
-                "choices": {
-                    "archived": "This product is archived and should no longer be used."
-                },
-                "allow_custom": 0,
-                "default_value": [],
-                "layout": "vertical",
-                "toggle": 0,
-                "return_format": "value",
-                "save_custom": 0
+                "layout": "block",
+                "sub_fields": [
+                    {
+                        "key": "field_605c9f518e801",
+                        "label": "This product is archived and should no longer be used.",
+                        "name": "archived",
+                        "type": "true_false",
+                        "instructions": "",
+                        "required": 0,
+                        "conditional_logic": 0,
+                        "wrapper": {
+                            "width": "",
+                            "class": "",
+                            "id": ""
+                        },
+                        "message": "",
+                        "default_value": 0,
+                        "ui": 0,
+                        "ui_on_text": "",
+                        "ui_off_text": ""
+                    }
+                ]
             }
         ],
         "location": [
