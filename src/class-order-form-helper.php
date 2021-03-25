@@ -570,7 +570,7 @@ class Order_Form_Helper {
 		}
 		asort($posts_sorted);
 
-		return $posts;
+		return $posts_sorted;
 
 	}
 
@@ -591,12 +591,10 @@ class Order_Form_Helper {
 
 		// Output posts.
 		$output = '<div class="products grid-x grid-margin-x grid-margin-y">';
-		foreach ( $product_posts as $key => $post ) {
+		foreach ( $product_posts as $post_id => $post_title ) {
 
 			// Define the card variables.
-			$post_id     = $post->ID;
 			$permalink   = get_permalink($post->ID);
-			$post_title  = $post->post_title;
 			$price       = (int) get_post_meta( $post->ID, 'price', true );
 			$price       = number_format( $price, 2, '.', ',' );
 			$thumbnail   = get_the_post_thumbnail( $post, 'post-thumbnail', 'style=""' );
