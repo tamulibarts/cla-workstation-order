@@ -627,7 +627,9 @@ class Order_Form_Helper {
 			$output .= "<h5 class=\"card-header\"><span class=\"post-title post-title-{$post_id}\">{$post_title}</span></h5>";
 			$output .= "<div class=\"card-body\">{$thumbnail}<p>$description</p></div>";
 			$output .= "<div class=\"card-footer\"><div class=\"grid-x grid-padding-x grid-padding-y\">";
-			$output .= "<div class=\"more-details-wrap align-left cell shrink\"><button class=\"more-details link\" type=\"button\">More Details<div class=\"info\">$more_info<a href=\"#\" class=\"close\">Close</a></div></button></div>";
+			if ( ! empty( $more_info ) ) {
+				$output .= "<div class=\"more-details-wrap align-left cell shrink\"><button class=\"more-details link\" type=\"button\">More Details<div class=\"info\">$more_info<a href=\"#\" class=\"close\">Close</a></div></button></div>";
+			}
 			$output .= "<div class=\"cell auto align-right display-price price-{$post_id}\">\${$price}</div>";
 			$output .= "<div class=\"cart-cell cell small-12 align-left\"><button id=\"cart-btn-{$post_id}\" data-product-id=\"{$post_id}\" data-product-price=\"\${$price}\" type=\"button\" class=\"add-product\">Add</button></div>";
 			$output .= "</div></div>";
