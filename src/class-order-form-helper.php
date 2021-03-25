@@ -526,7 +526,44 @@ class Order_Form_Helper {
 		$products      = new \WP_Query( $product_args );
 		$product_posts = $products->posts;
 
-		return $product_posts;
+		// Get bundles.
+		// Filter out hidden products for department.
+		$hidden_bundles = get_post_meta( $user_department_post_id, 'hidden_bundles', true );
+		$bundle_args = array(
+			'post_type'  => 'bundle',
+			'nopaging'   => true,
+			'post__not_in' => $hidden_bundles,
+			'fields'       => 'ids',
+			'meta_query' => array( //phpcs:ignore
+				'relation' => 'AND',
+				array(
+					'key'   => 'program', //phpcs:ignore
+					'value' => $current_program_id, //phpcs:ignore
+					'compare' => '=',
+				),
+				array(
+					'key'     => 'visibility_archived',
+					'value'   => '1',
+					'compare' => '!='
+				),
+			),
+		);
+		if ( false !== $category ) {
+			$bundle_args['tax_query'] = array(
+				array(
+					'taxonomy' => 'product-category',
+					'field'    => 'slug',
+					'terms'    => $category,
+				)
+			);
+		}
+		$bundles      = new \WP_Query( $bundle_args );
+		$bundle_posts = $bundles->posts;
+
+		// Merge posts.
+		$posts = array_merge( $product_posts, $bundle_posts );
+
+		return $posts;
 
 	}
 
