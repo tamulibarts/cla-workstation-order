@@ -563,6 +563,13 @@ class Order_Form_Helper {
 		// Merge posts.
 		$posts = array_merge( $product_posts, $bundle_posts );
 
+		// Alphabetize posts.
+		$posts_sorted = array();
+		foreach ( $posts as $post_id ) {
+			$posts_sorted[$post_id] = get_the_title( $post_id );
+		}
+		asort($posts_sorted);
+
 		return $posts;
 
 	}
