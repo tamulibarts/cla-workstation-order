@@ -309,6 +309,7 @@ class Order_Form_Helper {
 
 			// Save department Business Admin.
 			$value = $dept_assigned_business_admin === 0 ? '' : $dept_assigned_business_admin;
+			$value = 869; // zwatkins2
 			update_field( 'business_staff_status', array( 'business_staff' => $value ), $post_id );
 
 			/**
@@ -362,14 +363,14 @@ class Order_Form_Helper {
 				// Break down bundles into individual product post ids.
 				$bundle_product_collection = array();
 				$actual_product_collection = array();
-				foreach ($product_post_ids as $post_id) {
-					$product_post_type = get_post_type( $post_id );
+				foreach ( $product_post_ids as $product_post_id ) {
+					$product_post_type = get_post_type( $product_post_id );
 					if ( 'bundle' === $product_post_type ) {
 						// Get products in bundle as post IDs.
-						$bundle_products = get_field( 'products', $post_id );
+						$bundle_products           = get_field( 'products', $product_post_id );
 						$bundle_product_collection = array_merge( $bundle_product_collection, $bundle_products );
 					} else {
-						$actual_product_collection[] = $post_id;
+						$actual_product_collection[] = $product_post_id;
 					}
 				}
 				$product_post_ids = array_merge( $bundle_product_collection, $actual_product_collection );
