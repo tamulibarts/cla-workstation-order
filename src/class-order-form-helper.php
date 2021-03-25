@@ -374,13 +374,15 @@ class Order_Form_Helper {
 				}
 				$product_post_ids = array_merge( $bundle_product_collection, $actual_product_collection );
 
-				$product_fields   = array();
+				// Convert products into ACF fields.
 				for ($i=0; $i < $product_count; $i++) {
+					$product_post_id = $product_post_ids[$i];
+					// Add to subtotal.
 					$product_subtotal = $product_subtotal + get_field( 'price', $product_post_id );
 					$product_fields[$i] = array(
-						'sku' => get_field( 'sku', $product_post_ids[$i] ),
-						'item' => get_the_title( $product_post_ids[$i] ),
-						'price' => get_field( 'price', $product_post_ids[$i] ),
+						'sku'   => get_field( 'sku', $product_post_id ),
+						'item'  => get_the_title( $product_post_id ),
+						'price' => get_field( 'price', $product_post_id ),
 					);
 				}
 				update_field( 'order_items', $product_fields, $post_id );
