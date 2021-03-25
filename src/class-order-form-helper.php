@@ -478,10 +478,11 @@ class Order_Form_Helper {
 		$hidden_products = get_post_meta( $user_department_post_id, 'hidden_products', true );
 
 		// Find the posts.
-		$args          = array(
-			'post_type'  => 'product',
-			'nopaging'   => true,
+		$product_args = array(
+			'post_type'    => 'product',
+			'nopaging'     => true,
 			'post__not_in' => $hidden_products,
+			'fields'       => 'ids',
 			'meta_query' => array( //phpcs:ignore
 				'relation' => 'AND',
 				array(
