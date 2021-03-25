@@ -594,14 +594,13 @@ class Order_Form_Helper {
 		foreach ( $product_posts as $post_id => $post_title ) {
 
 			// Define the card variables.
-			$permalink   = get_permalink($post->ID);
-			$price       = (int) get_post_meta( $post->ID, 'price', true );
+			$permalink   = get_permalink( $post_id );
+			$price       = (int) get_post_meta( $post_id, 'price', true );
 			$price       = number_format( $price, 2, '.', ',' );
-			$thumbnail   = get_the_post_thumbnail( $post, 'post-thumbnail', 'style=""' );
+			$thumbnail   = get_the_post_thumbnail( $post_id, 'post-thumbnail', 'style=""' );
 			$thumbnail   = preg_replace( '/ style="[^"]*"/', '', $thumbnail );
-			$description = get_post_meta( $post->ID, 'description', true );
-			$more_info   = get_post_meta( $post->ID, 'descriptors', true );
-
+			$description = get_post_meta( $post_id, 'description', true );
+			$more_info   = get_post_meta( $post_id, 'descriptors', true );
 
 			// Build the card output.
 			$output .= "<div id=\"product-{$post_id}\" class=\"card cell small-12 medium-3\">";
