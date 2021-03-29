@@ -497,12 +497,14 @@ class Order_Form_Helper {
 
 		// Filter out hidden products for department.
 		$hidden_products = get_post_meta( $user_department_post_id, 'hidden_products', true );
+		$hidden_bundles = get_field( 'hidden_products', $user_department_post_id );
+		$hidden_products_and_bundles = array_merge( $hidden_products, $hidden_bundles );
 
 		// Find the posts.
 		$product_args = array(
 			'post_type'    => 'product',
 			'nopaging'     => true,
-			'post__not_in' => $hidden_products,
+			'post__not_in' => $hidden_products_and_bundles,
 			'fields'       => 'ids',
 			'meta_query' => array( //phpcs:ignore
 				'relation' => 'AND',
