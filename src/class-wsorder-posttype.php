@@ -60,18 +60,416 @@ class WSOrder_PostType {
 		// Add columns to dashboard post list screen.
 		add_filter( 'manage_wsorder_posts_columns', array( $this, 'add_list_view_columns' ) );
 		add_action( 'manage_wsorder_posts_custom_column', array( $this, 'output_list_view_columns' ), 10, 2 );
-		// Prevent users from seeing posts they aren't involved with.
+		// Prevent users from seeing posts they aren't involved with and filter orders based on program URL variable.
 		add_action( 'pre_get_posts', array( $this, 'pre_get_posts' ) );
-		// Allow programs to link to a list of associated orders in admin.
-		add_filter( 'parse_query', array( $this, 'admin_list_posts_filter' ) );
 		// Change post type counts and URLs based on currently viewed program.
 		add_filter( 'views_edit-wsorder', array( $this, 'change_order_list_status_link_counts_and_urls' ) );
 		// Add the currently viewed program name before the list of posts.
 		add_action( 'in_admin_header', array( $this, 'program_name_before_order_list_view' ) );
 
-		// Register email action hooks/filters
+		// Register email action hooks/filters.
 		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-wsorder-posttype-emails.php';
 		new \CLA_Workstation_Order\WSOrder_PostType_Emails();
+
+		// Create order posts from form.
+		add_action( 'wp_ajax_make_order', array( $this, 'make_order' ) );
+
+	}
+
+	public function get_disallowed_product_and_bundle_ids(){
+
+		$user                    = wp_get_current_user();
+		$user_id                 = $user->get( 'ID' );
+		$user_department_post    = get_field( 'department', "user_{$user_id}" );
+		$user_department_post_id = $user_department_post->ID;
+		$disallowed_product_ids  = get_field( 'hidden_products', $user_department_post_id );
+		$disallowed_bundle_ids   = get_field( 'hidden_bundles', $user_department_post_id );
+		$disallowed              = array_merge( $disallowed_product_ids, $disallowed_bundle_ids );
+		return $disallowed;
+
+	}
+
+	public function make_order() {
+
+		// Ensure nonce is valid.
+		check_ajax_referer( 'make_order' );
+
+		// Convert form data.
+		$fields = explode( '&', $_POST['fields'] );
+		$data = array();
+		foreach ( $fields as $key => $value ) {
+			preg_match('/([^=]*)=(.*)/', $value, $matches);
+			$data_value = urldecode( $matches[2] );
+			$data[$matches[1]] = $data_value;
+		}
+
+		// Validate data.
+		$product_post_ids = $data['cla_product_ids'];
+		$product_post_ids = explode( ',', $product_post_ids );
+		// Get product IDs user is not allowed to buy.
+		$disallowed_product_ids = $this->get_disallowed_product_and_bundle_ids();
+		if ( ! empty( $disallowed_product_ids ) ) {
+			foreach ( $product_post_ids as $id ) {
+				if ( in_array( $id, $disallowed_product_ids ) ) {
+					echo '<p>That product is no longer available.</p>';
+					die();
+				}
+			}
+		}
+		echo '<pre>';
+		print_r($data);
+		echo '</pre>';
+
+		// Get current user and user ID.
+		$user    = wp_get_current_user();
+		$user_id = $user->get( 'ID' );
+
+		// Get current program meta.
+		$current_program_post      = get_field( 'current_program', 'option' );
+		$current_program_id        = $current_program_post->ID;
+		$current_program_post_meta = get_post_meta( $current_program_id );
+		$current_program_prefix    = $current_program_post_meta['prefix'][0];
+
+		// Get new wsorder ID.
+		$last_wsorder_id = $this->get_last_order_id( $current_program_id );
+		$new_wsorder_id  = $last_wsorder_id + 1;
+
+		// Insert post.
+		$postarr = array(
+			'post_author'    => $user_id,
+			'post_status'    => 'action_required',
+			'post_type'      => 'wsorder',
+			'comment_status' => 'closed',
+			'post_title'     => "{$current_program_prefix}-{$new_wsorder_id}",
+			'post_content'   => '',
+		);
+		$post_id = wp_insert_post( $postarr, true );
+
+		if ( is_wp_error( $post_id ) ) {
+
+			// Failed to generate a new post.
+			error_log( $post_id );
+			return 0;
+
+		} else {
+
+			// Get user's department.
+			$user_department_post    = get_field( 'department', "user_{$user_id}" );
+			$user_department_post_id = $user_department_post->ID;
+
+			// Get users assigned to active user's department for current program, as array.
+			$dept_assigned_business_admin = $this->get_program_business_admin_user_id( $current_program_id, $user_department_post_id );
+
+			/**
+			 * Save ACF field values.
+			 * https://www.advancedcustomfields.com/resources/update_field/
+			 */
+
+			// Save order ID.
+			$value = $new_wsorder_id;
+			update_field( 'order_id', $value, $post_id );
+
+			// Save order author.
+			$value = $user_id;
+			update_field( 'order_author', $value, $post_id );
+
+			// Save order author.
+			$value = $user_department_post_id;
+			update_field( 'author_department', $value, $post_id );
+
+			// Save order affiliated it reps.
+			// Save order affiliated business reps.
+			$program_department_fields = $this->get_program_department_fields( $user_department_post_id, $current_program_id );
+			$value = $program_department_fields['it_reps'];
+			update_field( 'affiliated_it_reps', $value, $post_id );
+			$value = $program_department_fields['business_admins'];
+			update_field( 'affiliated_business_staff', $value, $post_id );
+
+			// Save program.
+			$value = $current_program_id;
+			update_field( 'program', $value, $post_id );
+
+			// Save building location.
+			$value = $data['cla_building_name'];
+			update_field( 'building', $value, $post_id );
+
+			// Save office location.
+			$value = $data['cla_room_number'];
+			update_field( 'office_location', $value, $post_id );
+
+			// Save contribution amount.
+			$value = $data['cla_contribution_amount'];
+			update_field( 'contribution_amount', $value, $post_id );
+
+			// Save account number.
+			$value = $data['cla_account_number'];
+			update_field( 'contribution_account', $value, $post_id );
+
+			// Save order comment.
+			$value = $data['cla_order_comments'];
+			update_field( 'order_comment', $value, $post_id );
+
+			// Save current asset.
+			$value = $data['cla_current_asset_number'];
+			update_field( 'current_asset', $value, $post_id );
+
+			// Save no computer yet field.
+			if ( array_key_exists( 'cla_no_computer_yet', $data ) ) {
+				$value = $data['cla_no_computer_yet'];
+				update_field( 'i_dont_have_a_computer_yet', $value, $post_id );
+			}
+
+			// Save department IT Rep.
+			// $value = $dept_assigned_users['it_rep'];
+			$value = $data['cla_it_rep_id'];
+			update_field( 'it_rep_status', array( 'it_rep' => $value ), $post_id );
+
+			// Save department Business Admin.
+			$value = $dept_assigned_business_admin === 0 ? '' : $dept_assigned_business_admin;
+			$value = 869; // zwatkins2
+			update_field( 'business_staff_status', array( 'business_staff' => $value ), $post_id );
+
+			// Let WordPress handle the upload.
+			// Remember, 'cla_quote_0_file' is the name of our file input in our form above.
+			// Here post_id is 0 because we are not going to attach the media to any post.
+			$quote_count  = $data['cla_quote_count'];
+			if ( $quote_count > 0 ) {
+
+				/**
+				 * Handle quote fields and file uploads.
+				 */
+				// These files need to be included as dependencies when on the front end.
+				require_once( ABSPATH . 'wp-admin/includes/image.php' );
+				require_once( ABSPATH . 'wp-admin/includes/file.php' );
+				require_once( ABSPATH . 'wp-admin/includes/media.php' );
+
+				$quote_fields = array();
+				for ($i=0; $i < $quote_count; $i++) {
+
+					$quote_fields[$i] = array(
+						'name'        => $data["cla_quote_{$i}_name"],
+						'price'       => $data["cla_quote_{$i}_price"],
+						'description' => $data["cla_quote_{$i}_description"],
+					);
+
+					// Handle uploading quote file.
+					$attachment_id = media_handle_upload( "cla_quote_{$i}_file", 0 );
+					if ( is_wp_error( $attachment_id ) ) {
+						// There was an error uploading the image.
+						error_log($attachment_id->get_error_message());
+					} else {
+						// Attach file.
+						$quote_fields[$i]['file'] = $attachment_id;
+					}
+
+				}
+				update_field( 'quotes', $quote_fields, $post_id );
+
+			}
+
+			/**
+			 * Save product information.
+			 */
+			$product_post_ids = $data['cla_product_ids'];
+			$product_post_ids = explode( ',', $product_post_ids );
+			$product_count    = count( $product_post_ids );
+			$product_subtotal = 0;
+			if ( $product_count > 0 ) {
+				$product_fields = array();
+
+				// Break down bundles into individual product post ids.
+				$bundle_product_collection = array();
+				$actual_product_collection = array();
+				foreach ( $product_post_ids as $product_post_id ) {
+					$product_post_type = get_post_type( $product_post_id );
+					if ( 'bundle' === $product_post_type ) {
+						// Get products in bundle as post IDs.
+						$bundle_products           = get_field( 'products', $product_post_id );
+						$bundle_product_collection = array_merge( $bundle_product_collection, $bundle_products );
+					} else {
+						$actual_product_collection[] = $product_post_id;
+					}
+				}
+				$product_post_ids = array_merge( $bundle_product_collection, $actual_product_collection );
+
+				// Convert products into ACF fields.
+				for ($i=0; $i < $product_count; $i++) {
+					$product_post_id = $product_post_ids[$i];
+					// Add to subtotal.
+					$product_subtotal = $product_subtotal + get_field( 'price', $product_post_id );
+					$product_fields[$i] = array(
+						'sku'   => get_field( 'sku', $product_post_id ),
+						'item'  => get_the_title( $product_post_id ),
+						'price' => get_field( 'price', $product_post_id ),
+					);
+				}
+				update_field( 'order_items', $product_fields, $post_id );
+
+			}
+
+			// Save product subtotal.
+			$value = $product_subtotal;
+			update_field( 'products_subtotal', $value, $post_id );
+
+		}
+
+		$this->send_confirmation_email( "{$current_program_prefix}-{$new_wsorder_id}", $user, $data['cla_it_rep_id'], $post_id, $data );
+
+		die();
+
+	}
+
+	/**
+	 * Get the user ID of the designated business admin within a program's department.
+	 */
+	private function get_program_business_admin_user_id( $program_id, $user_department_post_id ) {
+
+		// Get users assigned to active user's department for current program, as array.
+		$program_meta_keys_departments = array(
+			'assign_political_science_department_post_id',
+			'assign_sociology_department_post_id',
+			'assign_philosophy_humanities_department_post_id',
+			'assign_performance_studies_department_post_id',
+			'assign_international_studies_department_post_id',
+			'assign_history_department_post_id',
+			'assign_hispanic_studies_department_post_id',
+			'assign_english_department_post_id',
+			'assign_economics_department_post_id',
+			'assign_communication_department_post_id',
+			'assign_anthropology_department_post_id',
+			'assign_psychology_department_post_id',
+			'assign_dean_department_post_id',
+		);
+		$current_program_post_meta     = get_post_meta( $program_id );
+		$value                         = 0;
+
+		foreach ( $program_meta_keys_departments as $meta_key ) {
+			$assigned_dept = (int) $current_program_post_meta[ $meta_key ][0];
+			if ( $user_department_post_id === $assigned_dept ) {
+				$base_key   = preg_replace( '/_department_post_id$/', '', $meta_key );
+				$meta_value = $current_program_post_meta[ "{$base_key}_business_admins" ];
+				if ( gettype( $meta_value ) === 'boolean' ) {
+					$value = 0;
+				} else {
+					$meta_value                   = unserialize( $meta_value[0] );
+					$dept_assigned_business_admin = $meta_value[0];
+					$value                        = $dept_assigned_business_admin[0];
+				}
+				break;
+			}
+		}
+
+		return $value;
+
+	}
+
+	/**
+	 * Get the department fields within a program based from the department associated with the given user ID.
+	 * Todo
+	 */
+	private function get_program_department_fields( $department_id, $program_id ) {
+
+		// Get users assigned to active user's department for current program, as array.
+		$program_meta_keys_departments = array(
+			'assign_political_science_department_post_id',
+			'assign_sociology_department_post_id',
+			'assign_philosophy_humanities_department_post_id',
+			'assign_performance_studies_department_post_id',
+			'assign_international_studies_department_post_id',
+			'assign_history_department_post_id',
+			'assign_hispanic_studies_department_post_id',
+			'assign_english_department_post_id',
+			'assign_economics_department_post_id',
+			'assign_communication_department_post_id',
+			'assign_anthropology_department_post_id',
+			'assign_psychology_department_post_id',
+			'assign_dean_department_post_id',
+		);
+		$current_program_post_meta     = get_post_meta( $program_id );
+		$value                         = array();
+
+		foreach ( $program_meta_keys_departments as $meta_key ) {
+			$assigned_dept = (int) $current_program_post_meta[ $meta_key ][0];
+			if ( $department_id === $assigned_dept ) {
+				$base_key        = preg_replace( '/_department_post_id$/', '', $meta_key );
+				$it_reps         = $current_program_post_meta[ "{$base_key}_it_reps" ];
+				$value['business_admins'] = unserialize( $current_program_post_meta[ "{$base_key}_business_admins" ][0] );
+				$value['it_reps']         = unserialize( $current_program_post_meta[ "{$base_key}_it_reps" ][0] );
+				break;
+			}
+		}
+
+		return $value;
+
+	}
+
+	/**
+	 * Send the order form submission confirmation email to the end user and the IT rep.
+	 *
+	 * @param string $order_name   The order post's name.
+	 * @param object $current_user The current WP_User object.
+	 * @param int    $it_rep_id    The user ID of the IT rep.
+	 * @param int    $post_id      The post ID of the new wsorder post.
+	 * @param array  $data         The submission data.
+	 */
+	private function send_confirmation_email( $order_name, $current_user, $it_rep_id, $post_id, $data ) {
+
+		// Get user information.
+		$current_user_name  = $current_user->display_name;
+		$current_user_email = $current_user->user_email;
+		$it_reps            = get_field( 'affiliated_it_reps', $post_id );
+		$it_rep_emails      = array();
+		foreach ($it_reps as $rep_user_id ) {
+			$user_data       = get_userdata( $rep_user_id );
+			$it_rep_emails[] = $user_data->user_email;
+		}
+		$it_rep_emails = implode(',', $it_rep_emails);
+
+		// Email settings.
+		$headers = array('Content-Type: text/html; charset=UTF-8');
+
+		// Get current program meta.
+		$current_program_post = get_field( 'current_program', 'option' );
+		$current_program_id   = $current_program_post->ID;
+		$program_name         = get_the_title( $current_program_id );
+
+		// Get order information.
+		$order_url = admin_url() . "post.php?post={$post_id}&action=edit";
+
+		// Email end user.
+		$message = "<p>Howdy,</p>
+<p>Liberal Arts IT has received your order.</p>
+
+<p>Your {$program_name} order will be reviewed to ensure all necessary information and funding is in place.</p>
+<p>
+  Following review, your workstation request will be combined with others from your department to create a consolidated {$program_name} purchase. Consolidated orders are placed to maximize efficiency. Your order will be processed and received by IT Logistics in 4-6 weeks, depending on how early in the order cycle you make your selection. Once received, your workstation will be released to departmental IT staff who will then image your workstation, install software and prepare the device for delivery. These final steps generally take one to two days.
+</p>
+<p>You may view your order online at any time using this link: {$order_url}.</p>
+
+<p>
+  Have a great day!
+  <em>-Liberal Arts IT</em>
+</p>
+<p><em>This email was sent from an unmonitored email address. Please do not reply to this email.</em></p>";
+		wp_mail( $current_user_email, 'Workstation Order Received', $message, $headers );
+
+		// Email IT Rep.
+		$admin_url = admin_url() . "post.php?post={$post_id}&action=edit";
+		$message = "<p>
+  <strong>There is a new {$program_name} order that requires your attention.</strong>
+</p>
+<p>
+  Please review this order carefully for any errors or omissions, then confirm it to pass along in the ordering workflow, or return it to the customer with your feedback and ask that they correct the order.
+</p>
+<p>
+  You can view the order at this link: {$order_url}.
+</p>
+<p>
+  Have a great day!
+  <em>-Liberal Arts IT</em>
+</p>
+<p><em>This email was sent from an unmonitored email address. Please do not reply to this email.</em></p>";
+		wp_mail( $it_rep_emails, 'Workstation Order Received', $message, $headers );
 
 	}
 
