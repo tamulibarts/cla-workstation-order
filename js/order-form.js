@@ -30,28 +30,35 @@
 	// Add product to shopping cart.
 	var addProductToCart = function(e){
 
-		// Prevent default behavior on click.
-		e.preventDefault();
-
 		// Get elements and values.
 		var $this = $(this);
 		var productID = $this.attr('data-product-id');
-		console.log(productID);
 		var productName = $('#product-' + productID + ' .card-header').html();
 		var productPrice = $this.attr('data-product-price');
-		var thumbSrc = $('#product-'+productID+'.card .wp-post-image').attr('src');
+		var $thumb = $('#product-'+productID+'.card .wp-post-image');
 
 		// Add product ID to form field.
 		var $productIDsField = $('#cla_product_ids');
-		var newProductIDs = $productIDsField.val() + productID + ',';
+		var products         = $productIDsField.val();
+		if ( products.indexOf(',') >= 0 ) {
+			products = products.split(',');
+		} else if ( '' !== products ) {
+			products = [products];
+		} else {
+			products = [];
+		}
+		products.push(productID);
+		var newProductIDs    = products.join(',');
 		$productIDsField.val( newProductIDs );
 
 		// Generate HTML elements for shopping cart listing.
 		var listItem = '<div class="cart-item shopping-cart-'+productID+' grid-x">';
-				listItem += '<div class="cell shrink"><img width="50" src="'+thumbSrc+'"></div>';
-				listItem += '<div class="cell auto">'+productName+'</div>';
-				listItem += '<div class="cell shrink align-right bold"><button class="trash" type="button" data-product-id="'+productID+'" data-product-price="'+productPrice+'">Remove product from cart</button>'+productPrice+'</div>';
-				listItem += '</div>';
+		if ( $thumb.length > 0 ) {
+			listItem += '<div class="cell shrink"><img width="50" src="'+$thumb.attr('src')+'"></div>';
+		}
+		listItem += '<div class="cell auto">'+productName+'</div>';
+		listItem += '<div class="cell shrink align-right bold"><button class="trash" type="button" data-product-id="'+productID+'" data-product-price="'+productPrice+'">Remove product from cart</button>'+productPrice+'</div>';
+		listItem += '</div>';
 
 		// Append item.
 		$('#list_purchases').append(listItem);
@@ -65,6 +72,10 @@
 
 		// Update total purchase price.
 		updateTotals();
+
+		// Prevent default behavior on click.
+		e.preventDefault();
+		return false;
 
 	};
 
@@ -306,7 +317,7 @@
 
 	};
 
-	var saveForm = function(){
+	var saveForm = function(e){
 
 		$form = $('#cla_order_form');
 		$form.find('input[type="text"],input[type="number"],input[type="hidden"]')
@@ -321,8 +332,10 @@
 			$(this).find('option[value="'+val+'"]').attr('selected','selected');
 		});
 		var cloned = $form.clone(true);
-		// console.log('cloned.html()',cloned.html());
 		localStorage.setItem("cla-order-form", JSON.stringify(cloned.html()));
+
+		e.preventDefault();
+		return false;
 
 	};
 
@@ -336,6 +349,7 @@
 	var validateForm = function(e){
 
 		var valid = true;
+		var message = '';
 
 		// Remove flags.
 		$form.find('.flagged').removeClass('flagged');
@@ -348,6 +362,7 @@
 			// Contribution and account number don't match up.
 			valid = false;
 			$form.find('label[for="cla_account_number"]').addClass('flagged');
+			message += 'Please provide a contribution account.<br>';
 		} else if ( isOverThreshold.allowed === false ) {
 			// Contribution still needed.
 			valid = false;
@@ -404,14 +419,32 @@
 			}
 		});
 
+		// Validate custom quote file selection.
+		$form.find('.cla-quote-file').each(function(){
+			// Validate file extension ('pdf', 'doc', 'docx').
+			var filename  = this.value;
+			var extension = filename.match(/(pdf|doc|docx)$/g)[0];
+			if ( extension !== 'pdf' && extension !== 'doc' && extension !== 'docx' ) {
+				valid = false;
+				$(this).parent().find('label[for="' + this.id + '"]').addClass('flagged');
+			}
+			// Validate file size (1024000).
+			var files = $(this).prop('files');
+			var size = files[0].size;
+			if ( size > 1024000 ) {
+				valid = false;
+				$(this).parent().find('label[for="' + this.id + '"]').addClass('flagged');
+			}
+		});
+
 		// Enable or disable the submit button.
 		if ( ! valid ) {
 			if ( typeof e === 'event' ) {
 				e.preventDefault();
-			} else {
-				return false;
 			}
 		}
+
+		return {status: valid, message: message};
 
 	};
 
@@ -424,7 +457,35 @@
 	$form.find('#cla_add_quote').on('click', addQuoteFieldset);
 	$form.find('textarea, input[type="text"], input[type="number"]').on('blur', saveForm);
 	$form.find('button[type="button"]').on('click', saveForm);
-	$form.on('submit', validateForm);
+	// $form.on('submit', validateForm);
+
+	jQuery('#cla_order_form').submit(ajaxSubmit);
+
+	function ajaxSubmit() {
+ 		var validation = validateForm();
+ 		if ( validation.status === true ) {
+	    var OrderForm = jQuery(this).serialize();
+	    jQuery.ajax({
+	      type: "POST",
+	      url: WSOAjax.ajaxurl,
+	      data: {
+	      	action: 'make_order',
+	      	fields: OrderForm,
+	      	_ajax_nonce: WSOAjax.nonce
+	      },
+	      success: function(data) {
+	        $form.find("#order-message").html(data);
+	      },
+	      error: function( jqXHR, textStatus, errorThrown ) {
+	      	$form.find('#order-message').html('The application encountered a "' + textStatus + '" error while submitting your request (' + errorThrown + ').');
+	      }
+	    });
+ 		} else {
+			// Show error message.
+			$form.find('#order-message').html(validation.message);
+ 		}
+    return false;
+  }
 
 })(jQuery);
 
