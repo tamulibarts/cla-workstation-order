@@ -909,36 +909,6 @@ class WSOrder_PostType {
 	}
 
 	/**
-	 * Filter orders based on program URL variable.
-	 *
-	 * @param object $query The query object.
-	 *
-	 * @return void
-	 */
-	public function admin_list_posts_filter( $query ){
-		global $pagenow;
-		$type = 'post';
-		if (isset($_GET['post_type'])) {
-	    $type = $_GET['post_type'];
-		}
-		// Modify wsorder edit page queries.
-		if ( 'wsorder' === $type && is_admin() && 'edit.php' === $pagenow) {
-
-			// Allow wsorders to be sorted by program ID if "program" URL parameter is present.
-	    $meta_query = array(); // Declare meta query to fill afterwards
-	    if (isset($_GET['program']) && $_GET['program'] != '') {
-        // first meta key/value
-        $meta_query = array (
-          'key'   => 'program',
-          'value' => $_GET['program']
-        );
-		    $query->query_vars['meta_query'][] = $meta_query; // add meta queries to $query
-		    $query->query_vars['name'] = '';
-			}
-		}
-	}
-
-	/**
 	 * Modify the Order post type query in admin so that people not involved with the order
 	 * cannot see the post.
 	 *
@@ -947,22 +917,41 @@ class WSOrder_PostType {
 	 * @return void
 	 */
 	public function pre_get_posts( $query ) {
-		if ( ! is_admin() ) {
-			return;
-		}
-		// Allow admins and logistics to see all orders.
-		if (
-			current_user_can( 'administrator' )
-			|| current_user_can( 'wso_admin' )
-			|| current_user_can( 'wso_logistics' )
-		) {
-			return;
-		}
-		// Everyone else must be restricted.
 		if ( 'wsorder' === $query->get('post_type') ) {
+			if ( ! is_admin() ) {
+				return;
+			}
+			// Fix bugs which should be addressed if I can ever find a solution.
+			$query->query_vars['name'] = '';
+			if ( empty( $query->query_vars['post_status'] ) ) {
+				$query->query_vars['post_status'] = 'any';
+			}
+			// Overwrite existing meta query.
+			$meta_query = $query->get('meta_query');
+			if ( ! is_array( $meta_query ) ) {
+				$meta_query = array();
+			}
+			// Apply "program" URL parameter.
+			$program = get_query_var('program');
+			if ( ! empty( $program ) ) {
+				$meta_query[] = array(
+					'key'   => 'program',
+					'value' => $program,
+				);
+			}
+			$query->set('meta_query', $meta_query);
+			// Allow admins and logistics to see all orders.
+			if (
+				current_user_can( 'administrator' )
+				|| current_user_can( 'wso_admin' )
+				|| current_user_can( 'wso_logistics' )
+			) {
+				return;
+			}
+			// Everyone else must be restricted.
 			$user              = wp_get_current_user();
 			$current_user_id   = $user->ID;
-			$meta_query        = array(
+			$meta_query[]      = array(
 				'relation' => 'OR',
 				array(
 					'key'   => 'affiliated_it_reps',
@@ -1248,6 +1237,14 @@ class WSOrder_PostType {
 				$count                     = $ar_query->post_count;
 				$views['awaiting_another'] = preg_replace( '/<span class="count">\(\d+\)<\/span>/', '<span class="count">('.$count.')</span></a>', $views['awaiting_another'] );
 				$views['awaiting_another'] = str_replace( 'post_type=wsorder', "post_type=wsorder&program={$program_id}", $views['awaiting_another'] );
+			}
+			// Trash link.
+			if ( isset( $views['trash'] ) ) {
+				$args['post_status'] = 'trash';
+				$trash_query         = new \WP_Query( $args );
+				$count               = $trash_query->post_count;
+				$views['trash'] = preg_replace( '/<span class="count">\(\d+\)<\/span>/', '<span class="count">('.$count.')</span></a>', $views['trash'] );
+				$views['trash'] = str_replace( 'post_type=wsorder', "post_type=wsorder&program={$program_id}", $views['trash'] );
 			}
 		}
 		return $views;
