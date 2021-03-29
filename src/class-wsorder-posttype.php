@@ -78,14 +78,20 @@ class WSOrder_PostType {
 
 	public function get_disallowed_product_and_bundle_ids(){
 
-		$user                    = wp_get_current_user();
-		$user_id                 = $user->get( 'ID' );
-		$user_department_post    = get_field( 'department', "user_{$user_id}" );
-		$user_department_post_id = $user_department_post->ID;
-		$disallowed_product_ids  = get_field( 'hidden_products', $user_department_post_id );
-		$disallowed_bundle_ids   = get_field( 'hidden_bundles', $user_department_post_id );
-		$disallowed              = array_merge( $disallowed_product_ids, $disallowed_bundle_ids );
-		return $disallowed;
+		$user                        = wp_get_current_user();
+		$user_id                     = $user->get( 'ID' );
+		$user_department_post        = get_field( 'department', "user_{$user_id}" );
+		$user_department_post_id     = $user_department_post->ID;
+		$hidden_products             = get_field( 'hidden_products', $user_department_post_id );
+		$hidden_bundles              = get_field( 'hidden_products', $user_department_post_id );
+		$hidden_products_and_bundles = array();
+		if ( is_array( $hidden_products ) ) {
+			$hidden_products_and_bundles = array_merge( $hidden_products_and_bundles, $hidden_products );
+		}
+		if ( is_array( $hidden_bundles ) ) {
+			$hidden_products_and_bundles = array_merge( $hidden_products_and_bundles, $hidden_bundles );
+		}
+		return $hidden_products_and_bundles;
 
 	}
 
@@ -111,14 +117,11 @@ class WSOrder_PostType {
 		if ( ! empty( $disallowed_product_ids ) ) {
 			foreach ( $product_post_ids as $id ) {
 				if ( in_array( $id, $disallowed_product_ids ) ) {
-					echo '<p>That product is no longer available.</p>';
+					echo 'That product is no longer available.<br>';
 					die();
 				}
 			}
 		}
-		echo '<pre>';
-		print_r($data);
-		echo '</pre>';
 
 		// Get current user and user ID.
 		$user    = wp_get_current_user();

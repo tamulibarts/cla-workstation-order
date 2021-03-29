@@ -173,9 +173,15 @@ class Order_Form_Helper {
 		$current_program_post_meta = get_post_meta( $current_program_id );
 
 		// Filter out hidden products for department.
-		$hidden_products = get_post_meta( $user_department_post_id, 'hidden_products', true );
+		$hidden_products = get_field( 'hidden_products', $user_department_post_id );
 		$hidden_bundles = get_field( 'hidden_products', $user_department_post_id );
-		$hidden_products_and_bundles = array_merge( $hidden_products, $hidden_bundles );
+		$hidden_products_and_bundles = array();
+		if ( is_array( $hidden_products ) ) {
+			$hidden_products_and_bundles = array_merge( $hidden_products_and_bundles, $hidden_products );
+		}
+		if ( is_array( $hidden_bundles ) ) {
+			$hidden_products_and_bundles = array_merge( $hidden_products_and_bundles, $hidden_bundles );
+		}
 
 		// Find the posts.
 		$product_args = array(
