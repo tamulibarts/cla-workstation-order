@@ -368,6 +368,7 @@
 			valid = false;
 			$form.find('label[for="cla_contribution_amount"]').addClass('flagged');
 			$form.find('label[for="cla_account_number"]').addClass('flagged');
+			message += 'Please provide a contribution amount and account.<br>';
 		}
 
 		// Building name.
@@ -375,6 +376,7 @@
 		if ( $buildingName.val() === '' ) {
 			valid = false;
 			$form.find('label[for="cla_building_name"]').addClass('flagged');
+			message += 'Please provide a building name.<br>';
 		}
 
 		// Room number.
@@ -382,6 +384,7 @@
 		if ( $roomNumber.val() === '' ) {
 			valid = false;
 			$form.find('label[for="cla_room_number"]').addClass('flagged');
+			message += 'Please provide a room number.<br>';
 		}
 
 		// Current workstation.
@@ -391,10 +394,12 @@
 			if ( ! $noComputer.is(':checked') ) {
 				valid = false;
 				$form.find('label[for="cla_current_asset_number"]').addClass('flagged');
+				message += 'Please provide an asset number.<br>';
 			}
 		} else if ( $noComputer.is(':checked') ) {
 			valid = false;
 			$form.find('label[for="cla_current_asset_number"]').addClass('flagged');
+			message += 'Please either uncheck "I don\'t have a computer yet" or clear the field labeled "Current Workstation Asset Number".<br>';
 		}
 
 		// Order comment.
@@ -402,6 +407,7 @@
 		if ( $comments.val() === '' ) {
 			valid = false;
 			$form.find('label[for="cla_order_comments"]').addClass('flagged');
+			message += 'Please provide an order comment.<br>';
 		}
 
 		// Products purchased.
@@ -409,6 +415,7 @@
 		if ( $products.length === 0 ) {
 			valid = false;
 			$form.find('#products .toggle .btn').addClass('flagged');
+			message += 'Please select one or more products.<br>';
 		}
 
 		// Quote Items.
@@ -416,6 +423,7 @@
 			if ( this.value.length === 0 ) {
 				valid = false;
 				$(this).parent().find('label[for="' + this.id + '"]').addClass('flagged');
+				message += 'Please provide details for your custom quote.<br>';
 			}
 		});
 
@@ -427,6 +435,7 @@
 			if ( extension !== 'pdf' && extension !== 'doc' && extension !== 'docx' ) {
 				valid = false;
 				$(this).parent().find('label[for="' + this.id + '"]').addClass('flagged');
+				message += 'Please provide a custom quote file in pdf, doc, or docx format.<br>';
 			}
 			// Validate file size (1024000).
 			var files = $(this).prop('files');
@@ -434,6 +443,7 @@
 			if ( size > 1024000 ) {
 				valid = false;
 				$(this).parent().find('label[for="' + this.id + '"]').addClass('flagged');
+				message += 'Custom quote file size must be less than or equal to 1mb.<br>';
 			}
 		});
 
@@ -474,7 +484,11 @@
 	      	_ajax_nonce: WSOAjax.nonce
 	      },
 	      success: function(data) {
-	        $form.find("#order-message").html(data);
+        	$form.find("#order-message").html(data);
+	      	if ( data.indexOf('Error') === -1 ) {
+	      		// Clear form fields.
+	      		$form.trigger('reset');
+	      	}
 	      },
 	      error: function( jqXHR, textStatus, errorThrown ) {
 	      	$form.find('#order-message').html('The application encountered a "' + textStatus + '" error while submitting your request (' + errorThrown + ').');
