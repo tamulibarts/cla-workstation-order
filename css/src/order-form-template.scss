@@ -30,14 +30,15 @@
 }
 
 .show-for-sr {
+	// sass-lint:disable-block no-important
 	position: absolute !important;
-  width: 1px !important;
-  height: 1px !important;
-  padding: 0 !important;
-  overflow: hidden !important;
-  clip: rect(0, 0, 0, 0) !important;
-  white-space: nowrap !important;
-  border: 0 !important;
+	width: 1px !important;
+	height: 1px !important;
+	padding: 0 !important;
+	overflow: hidden !important;
+	clip: rect(0, 0, 0, 0) !important;
+	white-space: nowrap !important;
+	border: 0 !important;
 }
 
 .align-left {
@@ -59,11 +60,16 @@
 #cla_order_form_wrap {
 	margin-left: auto;
 	margin-right: auto;
+
+	.confirmation-message {
+		text-align: center;
+	}
 }
 
 #cla_order_form,
 #products,
 #shopping_cart {
+	// sass-lint:disable-block max-line-length
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
 
@@ -114,6 +120,15 @@
 		color: #F00;
 	}
 
+	#order-message {
+		font-weight: normal;
+		ul {
+			font-weight: bold;
+			color: #F00;
+			margin-bottom: 0;
+		}
+	}
+
 	.cell.building-name {
 		padding-right: .5rem;
 	}
@@ -139,13 +154,13 @@
 
 	.trash {
 		margin: 0 .25rem;
-    width: 27px;
-    padding: 0;
-    background: transparent url(../images/trash-can.svg) center center/contain no-repeat;
-    overflow: hidden;
-    border: none;
-    text-indent: 300%;
-    white-space: nowrap;
+		width: 27px;
+		padding: 0;
+		background: transparent url(../images/trash-can.svg) center center/contain no-repeat;
+		overflow: hidden;
+		border: none;
+		text-indent: 300%;
+		white-space: nowrap;
 	}
 
 	.remove {
@@ -220,40 +235,40 @@
 
 	.card-header,
 	.card-footer {
-    margin-bottom: 0;
-    background-color: rgba(0, 0, 0, 0.03);
-    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+		margin-bottom: 0;
+		background-color: rgba(0, 0, 0, 0.03);
+		border-bottom: 1px solid rgba(0, 0, 0, 0.125);
   }
 
-  .card-header {
-    padding: 0.75rem 1.25rem;
-    border-radius: calc(0.25rem - 1px) calc(0.25rem - 1px) 0 0;
-    width: 100%;
-    margin-top: 0;
+	.card-header {
+		padding: 0.75rem 1.25rem;
+		border-radius: calc(0.25rem - 1px) calc(0.25rem - 1px) 0 0;
+		width: 100%;
+		margin-top: 0;
 
-    a {
-    	text-decoration: none;
+		a {
+			text-decoration: none;
 
-    	&:hover,
-    	&:focus {
-    		text-decoration: underline;
-    	}
-    }
-  }
+			&:hover,
+			&:focus {
+				text-decoration: underline;
+			}
+		}
+	}
 
-  .card-footer {
-    border-radius: 0 0 calc(0.25rem - 1px) calc(0.25rem - 1px);
-  }
+	.card-footer {
+		border-radius: 0 0 calc(0.25rem - 1px) calc(0.25rem - 1px);
+	}
 
-  .card-body {
-  	flex: 1 1 auto;
-    padding: 1.25rem;
-    text-align: center;
+	.card-body {
+		flex: 1 1 auto;
+		padding: 1.25rem;
+		text-align: center;
 
-    p {
-    	margin-bottom: 0;
-    }
-  }
+		p {
+			margin-bottom: 0;
+		}
+	}
 
 	a.add-product {
 		border-radius: 0.5rem;
@@ -381,7 +396,7 @@
 
 	input#cla_submit[type="submit"] {
 		@extend %button;
-		margin-top: 1rem;
+		margin: 1rem 0;
 
 		&[disabled] {
 			@extend %button-disabled;
