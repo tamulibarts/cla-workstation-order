@@ -498,10 +498,8 @@
 	$form.find('#cla_add_quote').on('click', addQuoteFieldset);
 	$form.find('textarea, input[type="text"], input[type="number"]').on('blur', saveForm);
 	$form.find('button[type="button"]').on('click', saveForm);
-	// $form.on('submit', validateForm);
-
+	// Add submit event handler.
 	jQuery('#cla_order_form').submit(ajaxSubmit);
-
 	function ajaxSubmit() {
  		var validation = validateForm();
  		if ( validation.status === true ) {
