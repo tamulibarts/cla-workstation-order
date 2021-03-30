@@ -470,6 +470,25 @@
 
 	};
 
+	var resetForm = function(){
+		// Empty text fields.
+		$form
+			.find('input[type="text"], input[type="file"], input[type="hidden"]:not(#the_superfluous_nonceity_n8me), textarea')
+			.val('');
+		// Remove HTML elements representing products.
+		$form
+			.find('.cla-quote-item, #list-purchases .cart-item')
+			.remove();
+		// Uncheck checkboxes.
+		$form
+			.find('input[type="checkbox"]:checked')
+			.prop('checked',false);
+		// Reset select elements.
+		$form
+			.find('#cla_it_rep_id')[0]
+			.selectedIndex = 0;
+	};
+
 	// getSavedForm();
 	// validateForm();
 
