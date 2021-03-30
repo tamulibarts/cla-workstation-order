@@ -95,6 +95,9 @@ class WSOrder_PostType {
 
 	}
 
+	/**
+	 * Make the order from AJAX data.
+	 */
 	public function make_order() {
 
 		// Ensure nonce is valid.
@@ -102,10 +105,10 @@ class WSOrder_PostType {
 
 		// Convert form data.
 		$fields = explode( '&', $_POST['fields'] );
-		$data = array();
+		$data   = array();
 		foreach ( $fields as $key => $value ) {
 			preg_match('/([^=]*)=(.*)/', $value, $matches);
-			$data_value = urldecode( $matches[2] );
+			$data_value        = urldecode( $matches[2] );
 			$data[$matches[1]] = $data_value;
 		}
 
