@@ -354,21 +354,12 @@
 		// Remove flags.
 		$form.find('.flagged').removeClass('flagged');
 
-		// Account Number.
-		var $accountNumber = $form.find('#cla_account_number');
-		var $contributionAmount = $form.find('#cla_contribution_amount');
-		var isOverThreshold = isOverageTriggered();
-		if ( $contributionAmount.val() !== '' && $accountNumber.val() === '' ) {
-			// Contribution and account number don't match up.
+		// IT Representative
+		$itRep = $form.find('#cla_it_rep_id');
+		if ( $itRep.val() === '-1' ) {
 			valid = false;
-			$form.find('label[for="cla_account_number"]').addClass('flagged');
-			message += 'Please provide a contribution account.<br>';
-		} else if ( isOverThreshold.allowed === false ) {
-			// Contribution still needed.
-			valid = false;
-			$form.find('label[for="cla_contribution_amount"]').addClass('flagged');
-			$form.find('label[for="cla_account_number"]').addClass('flagged');
-			message += 'Please provide a contribution amount and account.<br>';
+			$form.find('label[for="cla_it_rep_id"]').addClass('flagged');
+			message += '<li>Please choose an IT Representative.</li>';
 		}
 
 		// Building name.
@@ -376,7 +367,7 @@
 		if ( $buildingName.val() === '' ) {
 			valid = false;
 			$form.find('label[for="cla_building_name"]').addClass('flagged');
-			message += 'Please provide a building name.<br>';
+			message += '<li>Please provide a building name.</li>';
 		}
 
 		// Room number.
@@ -384,7 +375,7 @@
 		if ( $roomNumber.val() === '' ) {
 			valid = false;
 			$form.find('label[for="cla_room_number"]').addClass('flagged');
-			message += 'Please provide a room number.<br>';
+			message += '<li>Please provide a room number.</li>';
 		}
 
 		// Current workstation.
@@ -394,12 +385,12 @@
 			if ( ! $noComputer.is(':checked') ) {
 				valid = false;
 				$form.find('label[for="cla_current_asset_number"]').addClass('flagged');
-				message += 'Please provide an asset number.<br>';
+				message += '<li>Please provide an asset number.</li>';
 			}
 		} else if ( $noComputer.is(':checked') ) {
 			valid = false;
 			$form.find('label[for="cla_current_asset_number"]').addClass('flagged');
-			message += 'Please either uncheck "I don\'t have a computer yet" or clear the field labeled "Current Workstation Asset Number".<br>';
+			message += '<li>Please either uncheck "I don\'t have a computer yet" or clear the field labeled "Current Workstation Asset Number".</li>';
 		}
 
 		// Order comment.
@@ -407,7 +398,24 @@
 		if ( $comments.val() === '' ) {
 			valid = false;
 			$form.find('label[for="cla_order_comments"]').addClass('flagged');
-			message += 'Please provide an order comment.<br>';
+			message += '<li>Please provide an order comment.</li>';
+		}
+
+		// Account Number.
+		var $accountNumber = $form.find('#cla_account_number');
+		var $contributionAmount = $form.find('#cla_contribution_amount');
+		var isOverThreshold = isOverageTriggered();
+		if ( $contributionAmount.val() !== '' && $accountNumber.val() === '' ) {
+			// Contribution and account number don't match up.
+			valid = false;
+			$form.find('label[for="cla_account_number"]').addClass('flagged');
+			message += '<li>Please provide a contribution account.</li>';
+		} else if ( isOverThreshold.allowed === false ) {
+			// Contribution still needed.
+			valid = false;
+			$form.find('label[for="cla_contribution_amount"]').addClass('flagged');
+			$form.find('label[for="cla_account_number"]').addClass('flagged');
+			message += '<li>Please provide a contribution amount and account.</li>';
 		}
 
 		// Products purchased.
@@ -415,7 +423,7 @@
 		if ( $products.length === 0 ) {
 			valid = false;
 			$form.find('#products .toggle .btn').addClass('flagged');
-			message += 'Please select one or more products.<br>';
+			message += '<li>Please select one or more products.</li>';
 		}
 
 		// Quote Items.
@@ -423,7 +431,7 @@
 			if ( this.value.length === 0 ) {
 				valid = false;
 				$(this).parent().find('label[for="' + this.id + '"]').addClass('flagged');
-				message += 'Please provide details for your custom quote.<br>';
+				message += '<li>Please provide details for your custom quote.</li>';
 			}
 		});
 
@@ -435,7 +443,7 @@
 			if ( extension !== 'pdf' && extension !== 'doc' && extension !== 'docx' ) {
 				valid = false;
 				$(this).parent().find('label[for="' + this.id + '"]').addClass('flagged');
-				message += 'Please provide a custom quote file in pdf, doc, or docx format.<br>';
+				message += '<li>Please provide a custom quote file in pdf, doc, or docx format.</li>';
 			}
 			// Validate file size (1024000).
 			var files = $(this).prop('files');
@@ -443,7 +451,7 @@
 			if ( size > 1024000 ) {
 				valid = false;
 				$(this).parent().find('label[for="' + this.id + '"]').addClass('flagged');
-				message += 'Custom quote file size must be less than or equal to 1mb.<br>';
+				message += '<li>Custom quote file size must be less than or equal to 1mb.</li>';
 			}
 		});
 
@@ -452,6 +460,10 @@
 			if ( typeof e === 'event' ) {
 				e.preventDefault();
 			}
+		}
+
+		if ( message !== '' ) {
+			message = '<ul>' + message + '</ul>';
 		}
 
 		return {status: valid, message: message};
@@ -486,8 +498,9 @@
 	      success: function(data) {
         	$form.find("#order-message").html(data);
 	      	if ( data.indexOf('Error') === -1 ) {
-	      		// Clear form fields.
-	      		$form.trigger('reset');
+	      		// Clear form.
+	      		$formParent = $form.parent();
+	      		$formParent.html('<div class="confirmation-message"><p>Your order was submitted successfully.</p><p>We will notify you via email when there are updates to your order.</p></div>');
 	      	}
 	      },
 	      error: function( jqXHR, textStatus, errorThrown ) {
@@ -496,7 +509,7 @@
 	    });
  		} else {
 			// Show error message.
-			$form.find('#order-message').html(validation.message);
+			$form.find('#order-message').html('There was a problem with your order. Please look for any errors below.<br>' + validation.message);
  		}
     return false;
   }
