@@ -141,6 +141,15 @@ get_header();
 							'name'    => 'cla_it_rep_id',
 						);
 						$it_rep_dropdown = wp_dropdown_users( $it_rep_args );
+						// Handle when no IT Representatives are found.
+						if ( false === strpos( $it_rep_dropdown, '<option' ) ) {
+							$empty_option    = '<option value="-1">No IT Representatives are available</option>';
+							$it_rep_dropdown = preg_replace( '/(<select[^>]*>)([^<]*)/', '$1$2'.$empty_option, $it_rep_dropdown );
+						} else {
+							// Add "Select a user" default option to it_rep_dropdown.
+							$default_option  = '<option value="-1">Select a representative</option>';
+							$it_rep_dropdown = preg_replace( '/(<select[^>]*>)([^<]*)<option/', '$1$2'.$default_option.'<option', $it_rep_dropdown );
+						}
 
 						/**
 						 * Get product categories.
