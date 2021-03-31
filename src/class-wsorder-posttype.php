@@ -71,6 +71,11 @@ class WSOrder_PostType {
 		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-wsorder-posttype-emails.php';
 		new \CLA_Workstation_Order\WSOrder_PostType_Emails();
 
+		// Register page template for My Orders.
+		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-pagetemplate.php';
+		$my_orders = new \CLA_Workstation_Order\PageTemplate( CLA_WORKSTATION_ORDER_TEMPLATE_PATH, 'my-orders.php', 'My Orders' );
+		$my_orders->register();
+
 		// Create order posts from form.
 		add_action( 'wp_ajax_make_order', array( $this, 'make_order' ) );
 

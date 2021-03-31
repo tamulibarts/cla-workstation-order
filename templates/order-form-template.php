@@ -232,9 +232,11 @@ get_header();
 				<div class=\"cell shrink\">Products Total:</div>
 				<div id=\"products_total\" class=\"cell auto align-right\">$0.00</div>
 			</div>
-			<div id=\"allocation-data\" class=\"grid-x hidden\" data-allocation=\"{$allocation}\" data-allocation-threshold=\"{$allocation_threshold}\">
-				<div class=\"cell shrink\">Contribution Needed:</div>
-				<div id=\"contribution_needed\" class=\"cell auto align-right\">$0.00</div>
+			<div id=\"allocation-data\" class=\"hidden\" data-allocation=\"{$allocation}\" data-allocation-threshold=\"{$allocation_threshold}\">
+				<div class=\"grid-x\">
+					<div class=\"cell shrink\">Contribution Needed:</div>
+					<div id=\"contribution_needed\" class=\"cell auto align-right\">$0.00</div>
+				</div>
 			</div>
 			<hr />
 			<div id=\"order-message\"></div>
