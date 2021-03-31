@@ -361,9 +361,7 @@ class WSOrder_PostType_Emails {
 		$it_rep_emails = implode(',', $it_rep_emails);
 		// Declare business approval variables.
 		$contribution_amount  = $_POST['acf']['field_5ffcc10806825'];
-		$order_program        = get_field( 'program', $post_id );
-		$order_program_id     = $order_program->ID;
-		// $business_admin_id    = $this->get_program_business_admin_user_id( $order_program_id, $user_department_post_id );
+		$order_program_id     = get_field( 'program', $post_id );
 		$business_admin_id     = $_POST['acf']['field_5fff70b84ffe4'];
 		$business_admin_emails = '';
 		if ( ! empty( $business_admin_id ) ) {

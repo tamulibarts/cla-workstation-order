@@ -31,7 +31,7 @@ acf_add_local_field_group(array(
 			'placeholder' => '',
 			'prepend' => '',
 			'append' => '',
-			'min' => '0',
+			'min' => 0,
 			'max' => '',
 			'step' => '',
 		),
@@ -191,7 +191,7 @@ acf_add_local_field_group(array(
 			'taxonomy' => '',
 			'allow_null' => 0,
 			'multiple' => 0,
-			'return_format' => 'object',
+			'return_format' => 'id',
 			'ui' => 1,
 		),
 		array(

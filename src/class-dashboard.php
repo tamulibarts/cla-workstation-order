@@ -78,7 +78,7 @@ class Dashboard {
 		$mine_query = new \WP_Query( $all_query_args );
 		// Output all links.
 		echo '<ul>';
-		echo "<li><a href=\"{$url}/order-form/\">+ Place a New Order</a></li><li><a href=\"{$admin_url}edit.php?post_type=wsorder&author={$user_id}&program={$program_id}\">My Orders ({$mine_query->post_count})</a></li>";
+		echo "<li><a href=\"{$url}/new-order/\">+ Place a New Order</a></li><li><a href=\"{$admin_url}edit.php?post_type=wsorder&author={$user_id}&program={$program_id}\">My Orders ({$mine_query->post_count})</a></li>";
 
 		if (
 			current_user_can( 'wso_admin' )
