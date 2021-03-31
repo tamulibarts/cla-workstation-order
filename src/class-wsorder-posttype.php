@@ -754,35 +754,38 @@ class WSOrder_PostType {
 	public function display_status_state( $states ) {
 
 		global $post;
-		$arg = get_query_var( 'post_status' );
-		switch ( $post->post_status ) {
-			case 'action_required':
-				if ( $arg != $post->post_status ) {
-					return array( 'Action Required' );
-				}
-				break;
+		global $pagenow;
+		if ( $pagenow === 'edit.php' && 'wsorder' === $post->post_type ) {
+			$arg = get_query_var( 'post_status' );
+			switch ( $post->post_status ) {
+				case 'action_required':
+					if ( $arg != $post->post_status ) {
+						return array( 'Action Required' );
+					}
+					break;
 
-			case 'returned':
-				if ( $arg != $post->post_status ) {
-					return array( 'Returned' );
-				}
-				break;
+				case 'returned':
+					if ( $arg != $post->post_status ) {
+						return array( 'Returned' );
+					}
+					break;
 
-			case 'completed':
-				if ( $arg != $post->post_status ) {
-					return array( 'Completed' );
-				}
-				break;
+				case 'completed':
+					if ( $arg != $post->post_status ) {
+						return array( 'Completed' );
+					}
+					break;
 
-			case 'awaiting_another':
-				if ( $arg != $post->post_status ) {
-					return array( 'Awaiting Another' );
-				}
-				break;
+				case 'awaiting_another':
+					if ( $arg != $post->post_status ) {
+						return array( 'Awaiting Another' );
+					}
+					break;
 
-			default:
-				return $states;
-				break;
+				default:
+					return $states;
+					break;
+			}
 		}
 
 	}
