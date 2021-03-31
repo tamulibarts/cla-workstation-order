@@ -2,16 +2,6 @@
 
 @import "foundation";
 @import "settings";
-@include foundation-xy-grid-classes(
-	$base-grid: true,
-	$margin-grid: true,
-	$padding-grid: true,
-	$block-grid: false,
-	$collapse: false,
-	$offset: false,
-	$vertical-grid: true,
-	$frame-grid: false
-);
 
 %button {
 	background-color: #007BFF;
