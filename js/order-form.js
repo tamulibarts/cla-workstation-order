@@ -405,7 +405,7 @@
 		var $accountNumber = $form.find('#cla_account_number');
 		var $contributionAmount = $form.find('#cla_contribution_amount');
 		var isOverThreshold = isOverageTriggered();
-		if ( $contributionAmount.val() !== '' && $accountNumber.val() === '' ) {
+		if ( parseInt( $contributionAmount.val() ) > 0 && $accountNumber.val() === '' ) {
 			// Contribution and account number don't match up.
 			valid = false;
 			$form.find('label[for="cla_account_number"]').addClass('flagged');
@@ -503,15 +503,18 @@
 	function ajaxSubmit() {
  		var validation = validateForm();
  		if ( validation.status === true ) {
-	    var OrderForm = jQuery(this).serialize();
+ 			$form.find('#order-message').html('');
+	    var form_data = {
+      	action: 'make_order',
+      	_ajax_nonce: WSOAjax.nonce
+      }
+      $form.find('input,select,textarea').each(function(){
+      	form_data[this.id] = this.value;
+      });
 	    jQuery.ajax({
 	      type: "POST",
 	      url: WSOAjax.ajaxurl,
-	      data: {
-	      	action: 'make_order',
-	      	fields: OrderForm,
-	      	_ajax_nonce: WSOAjax.nonce
-	      },
+	      data: form_data,
 	      success: function(data) {
         	$form.find("#order-message").html(data);
 	      	if ( data.indexOf('Error') === -1 ) {
@@ -526,6 +529,7 @@
 	    });
  		} else {
 			// Show error message.
+			console.log(validation.message);
 			$form.find('#order-message').html('There was a problem with your order. Please look for any errors below.<br>' + validation.message);
  		}
     return false;

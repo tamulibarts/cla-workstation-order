@@ -79,11 +79,8 @@
 	}
 
 	label {
-		font-weight: bold;
 		cursor: pointer;
-		display: block;
-		margin-top: 10px;
-		margin-bottom: 4px;
+		margin-bottom: .5rem;
 	}
 
 	div.nobreak label {
@@ -96,6 +93,7 @@
 
 	dd {
 		padding-left: 0;
+		margin-bottom: .5rem;
 	}
 
 	hr {
@@ -112,6 +110,14 @@
 			font-weight: bold;
 			color: #F00;
 			margin-bottom: 0;
+		}
+	}
+
+	.form-group {
+		margin-bottom: 1rem;
+
+		small {
+			color: #6C757D;
 		}
 	}
 

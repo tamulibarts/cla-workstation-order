@@ -37,7 +37,7 @@ class WSOrder_PostType {
 		add_action( 'post_submitbox_misc_actions', array( $this, 'post_status_add_to_dropdown' ) );
 		// Return readable custom post status title.
 		add_filter( 'display_post_states', array( $this, 'display_status_state' ) );
-		// Enqueue JavaScript file for admin
+		// Enqueue JavaScript file for admin.
 		add_action( 'admin_print_scripts-post.php', array( $this, 'admin_script' ), 11 );
 		// Manipulate post title into a certain format.
 		add_filter( 'default_title', array( $this, 'default_post_title' ), 11, 2 );
@@ -81,7 +81,12 @@ class WSOrder_PostType {
 
 	}
 
-	public function get_disallowed_product_and_bundle_ids(){
+	/**
+	 * Get disallowed product and bundle IDs.
+	 *
+	 * @return array
+	 */
+	public function get_disallowed_product_and_bundle_ids() {
 
 		$user                        = wp_get_current_user();
 		$user_id                     = $user->get( 'ID' );
@@ -107,29 +112,6 @@ class WSOrder_PostType {
 
 		// Ensure nonce is valid.
 		check_ajax_referer( 'make_order' );
-
-		// Convert form data.
-		$fields = explode( '&', $_POST['fields'] );
-		$data   = array();
-		foreach ( $fields as $key => $value ) {
-			preg_match('/([^=]*)=(.*)/', $value, $matches);
-			$data_value        = urldecode( $matches[2] );
-			$data[$matches[1]] = $data_value;
-		}
-
-		// Validate data.
-		$product_post_ids = $data['cla_product_ids'];
-		$product_post_ids = explode( ',', $product_post_ids );
-		// Get product IDs user is not allowed to buy.
-		$disallowed_product_ids = $this->get_disallowed_product_and_bundle_ids();
-		if ( ! empty( $disallowed_product_ids ) ) {
-			foreach ( $product_post_ids as $id ) {
-				if ( in_array( $id, $disallowed_product_ids ) ) {
-					echo 'That product is no longer available.<br>';
-					die();
-				}
-			}
-		}
 
 		// Get current user and user ID.
 		$user    = wp_get_current_user();
@@ -191,7 +173,7 @@ class WSOrder_PostType {
 			// Save order affiliated it reps.
 			// Save order affiliated business reps.
 			$program_department_fields = $this->get_program_department_fields( $user_department_post_id, $current_program_id );
-			$value = $program_department_fields['it_reps'];
+			$value                     = $program_department_fields['it_reps'];
 			update_field( 'affiliated_it_reps', $value, $post_id );
 			$value = $program_department_fields['business_admins'];
 			update_field( 'affiliated_business_staff', $value, $post_id );
@@ -201,130 +183,170 @@ class WSOrder_PostType {
 			update_field( 'program', $value, $post_id );
 
 			// Save building location.
-			$value = $data['cla_building_name'];
-			update_field( 'building', $value, $post_id );
+			if ( isset( $_POST['cla_building_name'] ) ) {
+				$value = sanitize_text_field( wp_unslash( $_POST['cla_building_name'] ) );
+				update_field( 'building', $value, $post_id );
+			}
 
 			// Save office location.
-			$value = $data['cla_room_number'];
-			update_field( 'office_location', $value, $post_id );
+			if ( isset( $_POST['cla_room_number'] ) ) {
+				$value = sanitize_text_field( wp_unslash( $_POST['cla_room_number'] ) );
+				update_field( 'office_location', $value, $post_id );
+			}
 
 			// Save contribution amount.
-			$value = $data['cla_contribution_amount'];
-			update_field( 'contribution_amount', $value, $post_id );
+			if ( isset( $_POST['cla_contribution_amount'] ) ) {
+				$value = sanitize_text_field( wp_unslash( $_POST['cla_contribution_amount'] ) );
+				update_field( 'contribution_amount', $value, $post_id );
+			}
 
 			// Save account number.
-			$value = $data['cla_account_number'];
-			update_field( 'contribution_account', $value, $post_id );
+			if ( isset( $_POST['cla_account_number'] ) ) {
+				$value = sanitize_text_field( wp_unslash( $_POST['cla_account_number'] ) );
+				update_field( 'contribution_account', $value, $post_id );
+			}
 
 			// Save order comment.
-			$value = $data['cla_order_comments'];
-			update_field( 'order_comment', $value, $post_id );
+			if ( isset( $_POST['cla_order_comments'] ) ) {
+				$value = sanitize_textarea_field( wp_unslash( $_POST['cla_order_comments'] ) );
+				update_field( 'order_comment', $value, $post_id );
+			}
 
 			// Save current asset.
-			$value = $data['cla_current_asset_number'];
-			update_field( 'current_asset', $value, $post_id );
+			if ( isset( $_POST['cla_current_asset_number'] ) ) {
+				$value = sanitize_text_field( wp_unslash( $_POST['cla_current_asset_number'] ) );
+				update_field( 'current_asset', $value, $post_id );
+			}
 
 			// Save no computer yet field.
-			if ( array_key_exists( 'cla_no_computer_yet', $data ) ) {
-				$value = $data['cla_no_computer_yet'];
+			if ( isset( $_POST['cla_no_computer_yet'] ) ) {
+				$value = sanitize_key( wp_unslash( $_POST['cla_no_computer_yet'] ) );
 				update_field( 'i_dont_have_a_computer_yet', $value, $post_id );
 			}
 
 			// Save department IT Rep.
-			// $value = $dept_assigned_users['it_rep'];
-			$value = $data['cla_it_rep_id'];
-			update_field( 'it_rep_status', array( 'it_rep' => $value ), $post_id );
+			if ( isset( $_POST['cla_it_rep_id'] ) ) {
+				$value = sanitize_text_field( wp_unslash( $_POST['cla_it_rep_id'] ) );
+				update_field( 'it_rep_status', array( 'it_rep' => $value ), $post_id );
+			}
 
 			// Save department Business Admin.
-			$value = $dept_assigned_business_admin === 0 ? '' : $dept_assigned_business_admin;
-			$value = 869; // zwatkins2
+			$value = 0 === $dept_assigned_business_admin ? '' : $dept_assigned_business_admin;
 			update_field( 'business_staff_status', array( 'business_staff' => $value ), $post_id );
 
 			// Let WordPress handle the upload.
 			// Remember, 'cla_quote_0_file' is the name of our file input in our form above.
 			// Here post_id is 0 because we are not going to attach the media to any post.
-			$quote_count  = $data['cla_quote_count'];
-			if ( $quote_count > 0 ) {
+			if ( isset( $_POST['cla_quote_count'] ) ) {
 
-				/**
-				 * Handle quote fields and file uploads.
-				 */
-				// These files need to be included as dependencies when on the front end.
-				require_once( ABSPATH . 'wp-admin/includes/image.php' );
-				require_once( ABSPATH . 'wp-admin/includes/file.php' );
-				require_once( ABSPATH . 'wp-admin/includes/media.php' );
+				$quote_count = sanitize_text_field( wp_unslash( $_POST['cla_quote_count'] ) );
 
-				$quote_fields = array();
-				for ($i=0; $i < $quote_count; $i++) {
+				if ( $quote_count > 0 ) {
 
-					$quote_fields[$i] = array(
-						'name'        => $data["cla_quote_{$i}_name"],
-						'price'       => $data["cla_quote_{$i}_price"],
-						'description' => $data["cla_quote_{$i}_description"],
-					);
+					/**
+					 * Handle quote fields and file uploads.
+					 */
+					// These files need to be included as dependencies when on the front end.
+					require_once ABSPATH . 'wp-admin/includes/image.php';
+					require_once ABSPATH . 'wp-admin/includes/file.php';
+					require_once ABSPATH . 'wp-admin/includes/media.php';
 
-					// Handle uploading quote file.
-					$attachment_id = media_handle_upload( "cla_quote_{$i}_file", 0 );
-					if ( is_wp_error( $attachment_id ) ) {
-						// There was an error uploading the image.
-						error_log($attachment_id->get_error_message());
-					} else {
-						// Attach file.
-						$quote_fields[$i]['file'] = $attachment_id;
+					$quote_fields = array();
+					for ( $i = 0; $i < $quote_count; $i++ ) {
+
+						if (
+							isset( $_POST[ "cla_quote_{$i}_name" ] )
+							&& isset( $_POST[ "cla_quote_{$i}_price" ] )
+							&& isset( $_POST[ "cla_quote_{$i}_description" ] )
+						) {
+							$quote_fields[ $i ] = array(
+								'name'        => sanitize_text_field( wp_unslash( $_POST[ "cla_quote_{$i}_name" ] ) ),
+								'price'       => sanitize_text_field( wp_unslash( $_POST[ "cla_quote_{$i}_price" ] ) ),
+								'description' => sanitize_textarea_field( wp_unslash( $_POST[ "cla_quote_{$i}_description" ] ) ),
+							);
+						}
+
+						// Handle uploading quote file.
+						$attachment_id = media_handle_upload( "cla_quote_{$i}_file", 0 );
+						if ( is_wp_error( $attachment_id ) ) {
+							// There was an error uploading the image.
+							error_log( $attachment_id->get_error_message() );
+						} else {
+							// Attach file.
+							$quote_fields[ $i ]['file'] = $attachment_id;
+						}
 					}
+					update_field( 'quotes', $quote_fields, $post_id );
 
 				}
-				update_field( 'quotes', $quote_fields, $post_id );
-
 			}
 
 			/**
 			 * Save product information.
 			 */
-			$product_post_ids = $data['cla_product_ids'];
-			$product_post_ids = explode( ',', $product_post_ids );
-			$product_count    = count( $product_post_ids );
-			$product_subtotal = 0;
-			if ( $product_count > 0 ) {
-				$product_fields = array();
+			// Validate data.
+			if ( isset( $_POST['cla_product_ids'] ) ) {
 
-				// Break down bundles into individual product post ids.
-				$bundle_product_collection = array();
-				$actual_product_collection = array();
-				foreach ( $product_post_ids as $product_post_id ) {
-					$product_post_type = get_post_type( $product_post_id );
-					if ( 'bundle' === $product_post_type ) {
-						// Get products in bundle as post IDs.
-						$bundle_products           = get_field( 'products', $product_post_id );
-						$bundle_product_collection = array_merge( $bundle_product_collection, $bundle_products );
-					} else {
-						$actual_product_collection[] = $product_post_id;
+				$product_post_ids = sanitize_text_field( wp_unslash( $_POST['cla_product_ids'] ) );
+				$product_post_ids = explode( ',', $product_post_ids );
+				$product_count    = count( $product_post_ids );
+				// Ensure no product IDs are included that user is not allowed to buy.
+				$disallowed_product_ids = $this->get_disallowed_product_and_bundle_ids();
+				if ( ! empty( $disallowed_product_ids ) ) {
+					foreach ( $product_post_ids as $id ) {
+						if ( in_array( $id, $disallowed_product_ids, true ) ) {
+							echo 'That product is no longer available.<br>';
+							die();
+						}
 					}
 				}
-				$product_post_ids = array_merge( $bundle_product_collection, $actual_product_collection );
 
-				// Convert products into ACF fields.
-				for ($i=0; $i < $product_count; $i++) {
-					$product_post_id = $product_post_ids[$i];
-					// Add to subtotal.
-					$product_subtotal = $product_subtotal + get_field( 'price', $product_post_id );
-					$product_fields[$i] = array(
-						'sku'   => get_field( 'sku', $product_post_id ),
-						'item'  => get_the_title( $product_post_id ),
-						'price' => get_field( 'price', $product_post_id ),
-					);
+				$product_subtotal = 0;
+
+				if ( $product_count > 0 ) {
+
+					$product_fields = array();
+
+					// Break down bundles into individual product post ids.
+					$bundle_product_collection = array();
+					$actual_product_collection = array();
+					foreach ( $product_post_ids as $product_post_id ) {
+						$product_post_type = get_post_type( $product_post_id );
+						if ( 'bundle' === $product_post_type ) {
+							// Get products in bundle as post IDs.
+							$bundle_products           = get_field( 'products', $product_post_id );
+							$bundle_product_collection = array_merge( $bundle_product_collection, $bundle_products );
+						} else {
+							$actual_product_collection[] = $product_post_id;
+						}
+					}
+					$product_post_ids = array_merge( $bundle_product_collection, $actual_product_collection );
+
+					// Convert products into ACF fields.
+					for ( $i = 0; $i < $product_count; $i++ ) {
+						$product_post_id = $product_post_ids[ $i ];
+						// Add to subtotal.
+						$product_subtotal     = $product_subtotal + get_field( 'price', $product_post_id );
+						$product_fields[ $i ] = array(
+							'sku'   => get_field( 'sku', $product_post_id ),
+							'item'  => get_the_title( $product_post_id ),
+							'price' => get_field( 'price', $product_post_id ),
+						);
+					}
+					update_field( 'order_items', $product_fields, $post_id );
+
+					// Save product subtotal.
+					$value = $product_subtotal;
+					update_field( 'products_subtotal', $value, $post_id );
+
 				}
-				update_field( 'order_items', $product_fields, $post_id );
-
 			}
-
-			// Save product subtotal.
-			$value = $product_subtotal;
-			update_field( 'products_subtotal', $value, $post_id );
-
 		}
 
-		$this->send_confirmation_email( "{$current_program_prefix}-{$new_wsorder_id}", $user, $data['cla_it_rep_id'], $post_id, $data );
+		if ( isset( $_POST['cla_it_rep_id'] ) ) {
+			$it_rep_id = sanitize_text_field( wp_unslash( $_POST['cla_it_rep_id'] ) );
+			$this->send_confirmation_email( "{$current_program_prefix}-{$new_wsorder_id}", $user, $it_rep_id, $post_id, $_POST );
+		}
 
 		die();
 
@@ -332,6 +354,11 @@ class WSOrder_PostType {
 
 	/**
 	 * Get the user ID of the designated business admin within a program's department.
+	 *
+	 * @param int $program_id              The program ID.
+	 * @param int $user_department_post_id The department ID.
+	 *
+	 * @return int
 	 */
 	private function get_program_business_admin_user_id( $program_id, $user_department_post_id ) {
 
@@ -376,7 +403,11 @@ class WSOrder_PostType {
 
 	/**
 	 * Get the department fields within a program based from the department associated with the given user ID.
-	 * Todo
+	 *
+	 * @param int $department_id The department ID.
+	 * @param int $program_id    The program ID.
+	 *
+	 * @return array
 	 */
 	private function get_program_department_fields( $department_id, $program_id ) {
 
@@ -402,8 +433,8 @@ class WSOrder_PostType {
 		foreach ( $program_meta_keys_departments as $meta_key ) {
 			$assigned_dept = (int) $current_program_post_meta[ $meta_key ][0];
 			if ( $department_id === $assigned_dept ) {
-				$base_key        = preg_replace( '/_department_post_id$/', '', $meta_key );
-				$it_reps         = $current_program_post_meta[ "{$base_key}_it_reps" ];
+				$base_key                 = preg_replace( '/_department_post_id$/', '', $meta_key );
+				$it_reps                  = $current_program_post_meta[ "{$base_key}_it_reps" ];
 				$value['business_admins'] = unserialize( $current_program_post_meta[ "{$base_key}_business_admins" ][0] );
 				$value['it_reps']         = unserialize( $current_program_post_meta[ "{$base_key}_it_reps" ][0] );
 				break;
@@ -430,14 +461,14 @@ class WSOrder_PostType {
 		$current_user_email = $current_user->user_email;
 		$it_reps            = get_field( 'affiliated_it_reps', $post_id );
 		$it_rep_emails      = array();
-		foreach ($it_reps as $rep_user_id ) {
+		foreach ( $it_reps as $rep_user_id ) {
 			$user_data       = get_userdata( $rep_user_id );
 			$it_rep_emails[] = $user_data->user_email;
 		}
-		$it_rep_emails = implode(',', $it_rep_emails);
+		$it_rep_emails = implode( ',', $it_rep_emails );
 
 		// Email settings.
-		$headers = array('Content-Type: text/html; charset=UTF-8');
+		$headers = array( 'Content-Type: text/html; charset=UTF-8' );
 
 		// Get current program meta.
 		$current_program_post = get_field( 'current_program', 'option' );
@@ -466,7 +497,7 @@ class WSOrder_PostType {
 
 		// Email IT Rep.
 		$admin_url = admin_url() . "post.php?post={$post_id}&action=edit";
-		$message = "<p>
+		$message   = "<p>
   <strong>There is a new {$program_name} order that requires your attention.</strong>
 </p>
 <p>
@@ -505,17 +536,21 @@ class WSOrder_PostType {
 	/**
 	 * Set the body class with the current post status and user roles so that CSS can hide or show appropriate features.
 	 *
-	 * @return void
+	 * @param array $classes Current class list.
+	 *
+	 * @return array
 	 */
-	public function set_admin_body_class ( $classes ) {
+	public function set_admin_body_class( $classes ) {
 		global $pagenow;
 
-		if ( $pagenow === 'post.php' ) {
-			$post_id      = get_the_ID();
-			$post_status  = get_post_status( $post_id );
-			$user         = wp_get_current_user();
-			$roles        = ( array ) $user->roles;
-			$classes     .= " $post_status " . implode(' ', $roles);
+		if ( 'post.php' === $pagenow ) {
+			$post_id = get_the_ID();
+			if ( 'wsorder' === get_post_type( $post_id ) ) {
+				$post_status = get_post_status( $post_id );
+				$user        = wp_get_current_user();
+				$roles       = (array) $user->roles;
+				$classes    .= " $post_status " . implode( ' ', $roles );
+			}
 		}
 
 		return $classes;
@@ -529,13 +564,15 @@ class WSOrder_PostType {
 		global $pagenow;
 		if (
 			'edit.php' === $pagenow
-			&& isset($_GET['post_type'])
-			&& $_GET['post_type'] === 'wsorder'
+			&& isset( $_GET['post_type'] )
+			&& 'wsorder' === $_GET['post_type']
 			&& ! isset( $_GET['program'] )
+			&& isset( $_SERVER['QUERY_STRING'] )
 		) {
 			$current_program_id = get_site_option( 'options_current_program' );
-			$url = get_admin_url() . "edit.php?".$_SERVER['QUERY_STRING']."&program={$current_program_id}";
-			wp_redirect( $url ); exit;
+			$url                = get_admin_url() . 'edit.php?' . sanitize_text_field( wp_unslash( $_SERVER['QUERY_STRING'] ) ) . "&program={$current_program_id}";
+			wp_safe_redirect( $url );
+			exit();
 		}
 
 	}
@@ -543,16 +580,18 @@ class WSOrder_PostType {
 	/**
 	 * Determine if business approval is required.
 	 *
-	 * @var int $post_id The wsorder post ID to check.
+	 * @param int $post_id The wsorder post ID to check.
+	 *
+	 * @return boolean
 	 */
 	private function order_requires_business_approval( $post_id ) {
 
-  	// Get order subtotal.
-  	$subtotal = (float) get_field( 'products_subtotal', $post_id );
-  	// Get order program post ID.
-  	$program_id = get_field( 'program', $post_id );
+		// Get order subtotal.
+		$subtotal = (float) get_field( 'products_subtotal', $post_id );
+		// Get order program post ID.
+		$program_id = get_field( 'program', $post_id );
 
-  	if ( ! empty( $program_id ) ) {
+		if ( ! empty( $program_id ) ) {
 
 			// Get order's program allocation threshold.
 			$program_threshold = (float) get_field( 'threshold', $program_id );
@@ -566,12 +605,11 @@ class WSOrder_PostType {
 				return false;
 
 			}
+		} else {
 
-  	} else {
+			return true;
 
-  		return true;
-
-  	}
+		}
 
 	}
 
@@ -595,65 +633,88 @@ class WSOrder_PostType {
 			'dashicons-portfolio',
 			array( 'title' ),
 			array(
-				'capabilities' => array(
-	        'edit_post'                 => 'edit_wsorder',
-	        'read_post'                 => 'read_wsorder',
-	        'delete_post'               => 'delete_wsorder',
-	        'create_posts'              => 'create_wsorders',
-	        'delete_posts'              => 'delete_wsorders',
-	        'delete_others_posts'       => 'delete_others_wsorders',
-	        'delete_private_posts'      => 'delete_private_wsorders',
-	        'delete_published_posts'    => 'delete_published_wsorders',
-	        'edit_posts'                => 'edit_wsorders',
-	        'edit_others_posts'         => 'edit_others_wsorders',
-	        'edit_private_posts'        => 'edit_private_wsorders',
-	        'edit_published_posts'      => 'edit_published_wsorders',
-	        'publish_posts'             => 'publish_wsorders',
-	        'read_private_posts'        => 'read_private_wsorders'
+				'capabilities'       => array(
+					'edit_post'              => 'edit_wsorder',
+					'read_post'              => 'read_wsorder',
+					'delete_post'            => 'delete_wsorder',
+					'create_posts'           => 'create_wsorders',
+					'delete_posts'           => 'delete_wsorders',
+					'delete_others_posts'    => 'delete_others_wsorders',
+					'delete_private_posts'   => 'delete_private_wsorders',
+					'delete_published_posts' => 'delete_published_wsorders',
+					'edit_posts'             => 'edit_wsorders',
+					'edit_others_posts'      => 'edit_others_wsorders',
+					'edit_private_posts'     => 'edit_private_wsorders',
+					'edit_published_posts'   => 'edit_published_wsorders',
+					'publish_posts'          => 'publish_wsorders',
+					'read_private_posts'     => 'read_private_wsorders',
 				),
-				'map_meta_cap' => true,
+				'map_meta_cap'       => true,
 				'publicly_queryable' => false,
 			)
 		);
 
-		register_post_status( 'action_required', array(
-			'label'                     => _x( 'Action Required', 'post' ),
-			'public'                    => true,
-      'exclude_from_search'       => false,
-			'show_in_admin_all_list'    => true,
-			'show_in_admin_status_list' => true,
-			'label_count'               => _n_noop( 'Action Required <span class="count">(%s)</span>', 'Action Required <span class="count">(%s)</span>' )
-		) );
+		register_post_status(
+			'action_required',
+			array(
+				'label'                     => _x( 'Action Required', 'post' ),
+				'public'                    => true,
+				'exclude_from_search'       => false,
+				'show_in_admin_all_list'    => true,
+				'show_in_admin_status_list' => true,
+				/* translators: placeholder is the post count */
+				'label_count'               => _n_noop( 'Action Required <span class="count">(%s)</span>', 'Action Required <span class="count">(%s)</span>' ),
+			)
+		);
 
-		register_post_status( 'returned', array(
-			'label'                     => _x( 'Returned', 'post' ),
-			'public'                    => true,
-      'exclude_from_search'       => false,
-			'show_in_admin_all_list'    => true,
-			'show_in_admin_status_list' => true,
-			'label_count'               => _n_noop( 'Returned <span class="count">(%s)</span>', 'Returned <span class="count">(%s)</span>' )
-		) );
+		register_post_status(
+			'returned',
+			array(
+				'label'                     => _x( 'Returned', 'post' ),
+				'public'                    => true,
+				'exclude_from_search'       => false,
+				'show_in_admin_all_list'    => true,
+				'show_in_admin_status_list' => true,
+				/* translators: placeholder is the post count */
+				'label_count'               => _n_noop( 'Returned <span class="count">(%s)</span>', 'Returned <span class="count">(%s)</span>' ),
+			)
+		);
 
-		register_post_status( 'completed', array(
-			'label'                     => _x( 'Completed', 'post' ),
-			'public'                    => true,
-      'exclude_from_search'       => false,
-			'show_in_admin_all_list'    => true,
-			'show_in_admin_status_list' => true,
-			'label_count'               => _n_noop( 'Completed <span class="count">(%s)</span>', 'Completed <span class="count">(%s)</span>' )
-		) );
+		register_post_status(
+			'completed',
+			array(
+				'label'                     => _x( 'Completed', 'post' ),
+				'public'                    => true,
+				'exclude_from_search'       => false,
+				'show_in_admin_all_list'    => true,
+				'show_in_admin_status_list' => true,
+				/* translators: placeholder is the post count */
+				'label_count'               => _n_noop( 'Completed <span class="count">(%s)</span>', 'Completed <span class="count">(%s)</span>' ),
+			)
+		);
 
-		register_post_status( 'awaiting_another', array(
-			'label'                     => _x( 'Awaiting Another', 'post' ),
-			'public'                    => true,
-      'exclude_from_search'       => false,
-			'show_in_admin_all_list'    => true,
-			'show_in_admin_status_list' => true,
-			'label_count'               => _n_noop( 'Awaiting Another <span class="count">(%s)</span>', 'Awaiting Another <span class="count">(%s)</span>' )
-		) );
+		register_post_status(
+			'awaiting_another',
+			array(
+				'label'                     => _x( 'Awaiting Another', 'post' ),
+				'public'                    => true,
+				'exclude_from_search'       => false,
+				'show_in_admin_all_list'    => true,
+				'show_in_admin_status_list' => true,
+				/* translators: placeholder is the post count */
+				'label_count'               => _n_noop( 'Awaiting Another <span class="count">(%s)</span>', 'Awaiting Another <span class="count">(%s)</span>' ),
+			)
+		);
 
 	}
 
+	/**
+	 * Add program as a URL parameter.
+	 *
+	 * @param array $vars Current variables.
+	 *
+	 * @return array
+	 */
 	public function add_program_url_var( $vars ) {
 		$vars[] = 'program';
 		return $vars;
@@ -666,7 +727,7 @@ class WSOrder_PostType {
 	 */
 	public function admin_script() {
 		global $post_type;
-		if( 'wsorder' == $post_type ) {
+		if ( 'wsorder' === $post_type ) {
 			wp_enqueue_script( 'cla-workstation-order-admin-script' );
 		}
 	}
@@ -679,35 +740,35 @@ class WSOrder_PostType {
 	public function post_status_add_to_dropdown() {
 
 		global $post;
-		if( $post->post_type != 'wsorder' ) {
-			return false;
+		if ( 'wsorder' !== $post->post_type ) {
+			return;
 		}
 
 		$status = '';
 		switch ( $post->post_status ) {
 			case 'action_required':
-				$status = "jQuery( '#post-status-display' ).text( 'Action Required' ); jQuery(
-						'select[name=\"post_status\"]' ).val('action_required')";
+				$status = "jQuery( '#post-status-display' ).text( 'Action Required' );
+jQuery( 'select[name=\"post_status\"]' ).val('action_required')";
 				break;
 
 			case 'returned':
-				$status = "jQuery( '#post-status-display' ).text( 'Returned' ); jQuery(
-						'select[name=\"post_status\"]' ).val('returned')";
+				$status = "jQuery( '#post-status-display' ).text( 'Returned' );
+jQuery( 'select[name=\"post_status\"]' ).val('returned')";
 				break;
 
 			case 'completed':
-				$status = "jQuery( '#post-status-display' ).text( 'Completed' ); jQuery(
-						'select[name=\"post_status\"]' ).val('completed')";
+				$status = "jQuery( '#post-status-display' ).text( 'Completed' );
+jQuery( 'select[name=\"post_status\"]' ).val('completed')";
 				break;
 
 			case 'awaiting_another':
-				$status = "jQuery( '#post-status-display' ).text( 'Awaiting Another' ); jQuery(
-						'select[name=\"post_status\"]' ).val('awaiting_another')";
+				$status = "jQuery( '#post-status-display' ).text( 'Awaiting Another' );
+jQuery( 'select[name=\"post_status\"]' ).val('awaiting_another')";
 				break;
 
 			case 'publish':
-				$status = "jQuery( '#post-status-display' ).text( 'Published' ); jQuery(
-						'select[name=\"post_status\"]' ).val('publish')";
+				$status = "jQuery( '#post-status-display' ).text( 'Published' );
+jQuery( 'select[name=\"post_status\"]' ).val('publish')";
 				break;
 
 			default:
@@ -742,57 +803,80 @@ class WSOrder_PostType {
 		) {
 			$non_logistics_disabled = ' disabled="disabled"';
 		}
-		echo "<script>
+		echo wp_kses(
+			"<script>
 			jQuery(document).ready( function() {
 				jQuery( 'select[name=\"post_status\"]' ).html( '<option value=\"action_required\">Action Required</option><option value=\"returned\"$subscriber_disabled>Returned</option><option value=\"completed\"{$it_rep_disabled}{$subscriber_disabled}>Completed</option><option value=\"awaiting_another\"$subscriber_disabled>Awaiting Another</option><option value=\"publish\"$non_logistics_disabled>Publish</option>' );
-				".$status."
+				" . $status . '
 			});
-		</script>";
+		</script>',
+			array(
+				'script' => array(),
+				'option' => array(
+					'value' => array(),
+				),
+			)
+		);
 
 	}
 
+	/**
+	 * Display the custom post status taglines on the edit page.
+	 *
+	 * @param array $states The post status.
+	 *
+	 * @return array
+	 */
 	public function display_status_state( $states ) {
 
 		global $post;
 		global $pagenow;
-		if ( $pagenow === 'edit.php' && 'wsorder' === $post->post_type ) {
+		if ( 'edit.php' === $pagenow && 'wsorder' === $post->post_type ) {
 			$arg = get_query_var( 'post_status' );
 			switch ( $post->post_status ) {
 				case 'action_required':
-					if ( $arg != $post->post_status ) {
-						return array( 'Action Required' );
+					if ( $arg !== $post->post_status ) {
+						$states = array( 'Action Required' );
 					}
 					break;
 
 				case 'returned':
-					if ( $arg != $post->post_status ) {
-						return array( 'Returned' );
+					if ( $arg !== $post->post_status ) {
+						$states = array( 'Returned' );
 					}
 					break;
 
 				case 'completed':
-					if ( $arg != $post->post_status ) {
-						return array( 'Completed' );
+					if ( $arg !== $post->post_status ) {
+						$states = array( 'Completed' );
 					}
 					break;
 
 				case 'awaiting_another':
-					if ( $arg != $post->post_status ) {
-						return array( 'Awaiting Another' );
+					if ( $arg !== $post->post_status ) {
+						$states = array( 'Awaiting Another' );
 					}
 					break;
 
 				default:
-					return $states;
 					break;
 			}
 		}
 
+		return $states;
+
 	}
 
+	/**
+	 * Get the last order ID for a given program.
+	 *
+	 * @param int $program_post_id The program post ID.
+	 *
+	 * @return int
+	 */
 	private function get_last_order_id( $program_post_id ) {
 
-		$args              = array(
+		$args      = array(
 			'post_type'      => 'wsorder',
 			'post_status'    => 'any',
 			'posts_per_page' => 1,
@@ -800,17 +884,17 @@ class WSOrder_PostType {
 			'meta_query'     => array(
 				array(
 					'key'     => 'order_id',
-					'compare' => 'EXISTS'
+					'compare' => 'EXISTS',
 				),
 				array(
 					'key'     => 'program',
 					'compare' => '=',
 					'value'   => $program_post_id,
-				)
+				),
 			),
 		);
 		$the_query = new \WP_Query( $args );
-		$posts = $the_query->posts;
+		$posts     = $the_query->posts;
 		if ( ! empty( $posts ) ) {
 			$last_wsorder_id = (int) get_post_meta( $posts[0], 'order_id', true );
 		} else {
@@ -823,13 +907,18 @@ class WSOrder_PostType {
 
 	/**
 	 * Make post title using current program ID and incremented order ID from last order.
+	 *
+	 * @param string  $post_title The post title.
+	 * @param WP_Post $post       The post object.
+	 *
+	 * @return string
 	 */
 	public function default_post_title( $post_title, $post ) {
 
-		if ('wsorder' === $post->post_type) {
+		if ( 'wsorder' === $post->post_type ) {
 
 			// Get current program meta.
-			$current_program_post      = get_field( 'current_program', 'option' );
+			$current_program_post = get_field( 'current_program', 'option' );
 			if ( ! empty( $current_program_post ) ) {
 				$current_program_id        = $current_program_post->ID;
 				$current_program_post_meta = get_post_meta( $current_program_id );
@@ -837,7 +926,7 @@ class WSOrder_PostType {
 
 				// Get last order ID.
 				$last_wsorder_id = $this->get_last_order_id( $current_program_id );
-				$wsorder_id = $last_wsorder_id + 1;
+				$wsorder_id      = $last_wsorder_id + 1;
 
 				// Push order ID value to post details.
 				$post_title = "{$current_program_prefix}-{$wsorder_id}";
@@ -848,78 +937,87 @@ class WSOrder_PostType {
 
 	}
 
-	public function add_list_view_columns( $columns ){
+	/**
+	 * Add columns to the list view for Order posts.
+	 *
+	 * @param array $columns THe current set of columns.
+	 * @return array
+	 */
+	public function add_list_view_columns( $columns ) {
 
-	  $status = array('status' => '');
-	  $columns = array_merge( $status, $columns );
-	  unset($columns['date']);
+		$status  = array( 'status' => '' );
+		$columns = array_merge( $status, $columns );
+		unset( $columns['date'] );
 
-	  $columns['author']           = 'Ordered By';
-	  $columns['ordered_at']       = 'Ordered At';
-	  $columns['amount']           = 'Amount';
-	  $columns['it_status']        = 'IT';
-	  $columns['business_status']  = 'Business';
-	  $columns['logistics_status'] = 'Logistics';
-    return $columns;
+		$columns['author']           = 'Ordered By';
+		$columns['ordered_at']       = 'Ordered At';
+		$columns['amount']           = 'Amount';
+		$columns['it_status']        = 'IT';
+		$columns['business_status']  = 'Business';
+		$columns['logistics_status'] = 'Logistics';
+		return $columns;
 
 	}
 
 	/**
 	 * Add columns to order post list view.
+	 *
+	 * @param string $column_name The currently handled column name.
+	 * @param int    $post_id     The current post ID.
 	 */
 	public function output_list_view_columns( $column_name, $post_id ) {
 
 		if ( 'status' === $column_name ) {
 			$status = get_post_status( $post_id );
-			echo "<div class=\"status-color-key {$status}\"></div>";
-		} elseif( 'amount' === $column_name ) {
-      $number = (float) get_post_meta( $post_id, 'products_subtotal', true );
-      if ( class_exists('NumberFormatter') ) {
-				$formatter = new \NumberFormatter('en_US', \NumberFormatter::CURRENCY);
-				echo $formatter->formatCurrency($number, 'USD');
+			echo wp_kses_post( "<div class=\"status-color-key {$status}\"></div>" );
+		} elseif ( 'amount' === $column_name ) {
+			$number = (float) get_post_meta( $post_id, 'products_subtotal', true );
+			if ( class_exists( 'NumberFormatter' ) ) {
+				$formatter = new \NumberFormatter( 'en_US', \NumberFormatter::CURRENCY );
+				echo wp_kses_post( $formatter->formatCurrency( $number, 'USD' ) );
 			} else {
-				echo '$' . number_format($number, 2,'.', ',');
+				echo wp_kses_post( '$' . number_format( $number, 2, '.', ',' ) );
 			}
-    } elseif ( 'it_status' === $column_name ) {
-    	$status = get_field( 'it_rep_status', $post_id );
-    	if ( empty( $status['confirmed'] ) ) {
-    		echo '<span class="approval not-confirmed">Not yet confirmed</span>';
-    	} else {
-    		echo '<span class="approval confirmed">Confirmed</span><br>';
-    		echo $status['it_rep']['display_name'];
-    	}
-    } elseif ( 'business_status' === $column_name ) {
-    	// Determine status message.
-    	$business_staff_id = get_post_meta( $post_id, 'business_staff_status_business_staff', true );
-    	if ( ! empty( $business_staff_id ) ) {
-	    	$status = get_field( 'business_staff_status', $post_id );
-	    	if ( empty( $status['confirmed'] ) ) {
-	    		echo '<span class="approval not-confirmed">Not yet confirmed</span>';
-	    	} else {
-	    		echo '<span class="approval confirmed">Confirmed</span><br>';
-	    		echo $status['business_staff']['display_name'];
-	    	}
-    	} else {
-    		echo '<span class="approval">Not required</span>';
-    	}
-    } elseif ( 'logistics_status' === $column_name ) {
-    	$status = get_field( 'it_logistics_status', $post_id );
-    	if ( empty( $status['confirmed'] ) ) {
-    		echo '<span class="approval not-confirmed">Not yet confirmed</span>';
-    	} else {
-    		echo '<span class="approval confirmed">Confirmed</span> ';
-	    	if ( empty( $status['ordered'] ) ) {
-	    		echo '<span class="approval not-fully-ordered">Not fully ordered</span>';
-	    	} else {
-	    		echo '<span class="approval ordered">Ordered</span>';
-	    	}
-    	}
-    } elseif ( 'ordered_at' === $column_name ) {
-    	$ordered = get_post_meta( $post_id, 'it_logistics_status_ordered_at', true );
-    	if ( ! empty( $ordered ) ) {
-    		echo date( 'F j, Y \a\t g:i a', strtotime($ordered));
-    	}
-    }
+		} elseif ( 'it_status' === $column_name ) {
+			$status = get_field( 'it_rep_status', $post_id );
+			if ( empty( $status['confirmed'] ) ) {
+				echo wp_kses_post( '<span class="approval not-confirmed">Not yet confirmed</span>' );
+			} else {
+				echo wp_kses_post( '<span class="approval confirmed">Confirmed</span><br>' );
+				echo wp_kses_post( $status['it_rep']['display_name'] );
+			}
+		} elseif ( 'business_status' === $column_name ) {
+			// Determine status message.
+			$business_staff_id = get_post_meta( $post_id, 'business_staff_status_business_staff', true );
+			if ( ! empty( $business_staff_id ) ) {
+				$status = get_field( 'business_staff_status', $post_id );
+				if ( empty( $status['confirmed'] ) ) {
+					echo wp_kses_post( '<span class="approval not-confirmed">Not yet confirmed</span>' );
+				} else {
+					echo wp_kses_post( '<span class="approval confirmed">Confirmed</span><br>' );
+					echo wp_kses_post( $status['business_staff']['display_name'] );
+				}
+			} else {
+				echo wp_kses_post( '<span class="approval">Not required</span>' );
+			}
+		} elseif ( 'logistics_status' === $column_name ) {
+			$status = get_field( 'it_logistics_status', $post_id );
+			if ( empty( $status['confirmed'] ) ) {
+				echo wp_kses_post( '<span class="approval not-confirmed">Not yet confirmed</span>' );
+			} else {
+				echo wp_kses_post( '<span class="approval confirmed">Confirmed</span> ' );
+				if ( empty( $status['ordered'] ) ) {
+					echo wp_kses_post( '<span class="approval not-fully-ordered">Not fully ordered</span>' );
+				} else {
+					echo wp_kses_post( '<span class="approval ordered">Ordered</span>' );
+				}
+			}
+		} elseif ( 'ordered_at' === $column_name ) {
+			$ordered = get_post_meta( $post_id, 'it_logistics_status_ordered_at', true );
+			if ( ! empty( $ordered ) ) {
+				echo esc_html( date( 'F j, Y \a\t g:i a', strtotime( $ordered ) ) );
+			}
+		}
 	}
 
 	/**
@@ -931,7 +1029,7 @@ class WSOrder_PostType {
 	 * @return void
 	 */
 	public function pre_get_posts( $query ) {
-		if ( 'wsorder' === $query->get('post_type') ) {
+		if ( 'wsorder' === $query->get( 'post_type' ) ) {
 			if ( ! is_admin() ) {
 				return;
 			}
@@ -941,19 +1039,19 @@ class WSOrder_PostType {
 				$query->query_vars['post_status'] = 'any';
 			}
 			// Overwrite existing meta query.
-			$meta_query = $query->get('meta_query');
+			$meta_query = $query->get( 'meta_query' );
 			if ( ! is_array( $meta_query ) ) {
 				$meta_query = array();
 			}
 			// Apply "program" URL parameter.
-			$program = get_query_var('program');
+			$program = get_query_var( 'program' );
 			if ( ! empty( $program ) ) {
 				$meta_query[] = array(
 					'key'   => 'program',
 					'value' => $program,
 				);
 			}
-			$query->set('meta_query', $meta_query);
+			$query->set( 'meta_query', $meta_query );
 			// Allow admins and logistics to see all orders.
 			if (
 				current_user_can( 'administrator' )
@@ -963,26 +1061,26 @@ class WSOrder_PostType {
 				return;
 			}
 			// Everyone else must be restricted.
-			$user              = wp_get_current_user();
-			$current_user_id   = $user->ID;
-			$meta_query[]      = array(
+			$user            = wp_get_current_user();
+			$current_user_id = $user->ID;
+			$meta_query[]    = array(
 				'relation' => 'OR',
 				array(
-					'key'   => 'affiliated_it_reps',
-					'value' => '"' . $current_user_id . '"',
+					'key'     => 'affiliated_it_reps',
+					'value'   => '"' . $current_user_id . '"',
 					'compare' => 'LIKE',
 				),
 				array(
-					'key'   => 'affiliated_business_staff',
-					'value' => '"' . $current_user_id . '"',
+					'key'     => 'affiliated_business_staff',
+					'value'   => '"' . $current_user_id . '"',
 					'compare' => 'LIKE',
 				),
 				array(
 					'key'   => 'order_author',
 					'value' => $current_user_id,
-				)
+				),
 			);
-			$query->set('meta_query', $meta_query);
+			$query->set( 'meta_query', $meta_query );
 		}
 	}
 
@@ -993,20 +1091,21 @@ class WSOrder_PostType {
 	 */
 	public function redirect_to_order_form() {
 
-	  global $pagenow;
+		global $pagenow;
 
-	  if (
-	  	! current_user_can( 'administrator' )
-	  	&& 'post-new.php' === $pagenow
-	  	&& isset($_GET['post_type'])
-	  	&& $_GET['post_type'] === 'wsorder'
-	  ) {
+		if (
+		! current_user_can( 'administrator' )
+		&& 'post-new.php' === $pagenow
+		&& isset( $_GET['post_type'] )
+		&& 'wsorder' === $_GET['post_type']
+		) {
 
-	  	$blog_id = get_current_blog_id();
-	  	$url = get_site_url( $blog_id, 'order-form/' );
-	    wp_redirect( $url ); exit;
+			$blog_id = get_current_blog_id();
+			$url     = get_site_url( $blog_id, 'order-form/' );
+			wp_safe_redirect( $url );
+			exit();
 
-	  }
+		}
 
 	}
 
@@ -1015,15 +1114,15 @@ class WSOrder_PostType {
 	 *
 	 * @param string $url     Current URL.
 	 * @param string $path    Current path.
-	 * @param int    $blog_id The current site ID
+	 * @param int    $blog_id The current site ID.
 	 */
-	public function replace_new_order_url ( $url, $path, $blog_id ) {
+	public function replace_new_order_url( $url, $path, $blog_id ) {
 
 		if ( 'post-new.php?post_type=wsorder' === $path ) {
 			$url = get_site_url( $blog_id, 'order-form/' );
 		}
 
-  	return $url;
+		return $url;
 
 	}
 
@@ -1032,16 +1131,16 @@ class WSOrder_PostType {
 	 *
 	 * @param string $url     Current URL.
 	 * @param string $path    Current path.
-	 * @param int    $blog_id The current site ID
+	 * @param int    $blog_id The current site ID.
 	 */
-	public function replace_all_orders_url ( $url, $path, $blog_id ) {
+	public function replace_all_orders_url( $url, $path, $blog_id ) {
 
 		if ( 'edit.php?post_type=wsorder' === $path ) {
 			$current_program_id = get_site_option( 'options_current_program' );
-			$url = get_site_url( $blog_id, $path . '&program=' . $current_program_id );
+			$url                = get_site_url( $blog_id, $path . '&program=' . $current_program_id );
 		}
 
-  	return $url;
+		return $url;
 
 	}
 
@@ -1055,28 +1154,28 @@ class WSOrder_PostType {
 		global $pagenow;
 		if (
 			isset( $_GET['post'] )
-			&& isset( $_GET['post_type'] )
-			&& 'wsorder' === $_GET['post_type']
 			&& 'post.php' === $pagenow
 		) {
+			wp_verify_nonce( 'edit' );
 			$user               = wp_get_current_user();
 			$current_user_id    = $user->ID;
-			$post_id            = absint( $_GET['post'] ); // Always sanitize
+			$post_id            = absint( $_GET['post'] );
 			$author_id          = (int) get_post_field( 'post_author', $post_id );
-			$it_rep_ids         = (int) get_field( 'affiliated_it_reps', $post_id );
+			$it_rep_ids         = get_field( 'affiliated_it_reps', $post_id );
 			$business_admin_ids = get_field( 'affiliated_business_staff', $post_id );
+			$post_type          = get_post_type( $post_id );
 			if (
-				! current_user_can( 'administrator' )
-				&& ! current_user_can( 'wso_admin' )
-				&& ! current_user_can( 'wso_logistics' ) // Not a logistics user
-				&& $current_user_id !== $author_id // Not the author
-				&& ! in_array( $current_user_id, $it_rep_ids ) // Not the IT rep
-				&& ! in_array( $current_user_id, $business_admin_ids ) // Not the business admin
+				'wsorder' === $post_type
+				&& ! current_user_can( 'administrator' )
+				&& ! current_user_can( 'wso_admin' ) // Not an admin.
+				&& ! current_user_can( 'wso_logistics' ) // Not a logistics user.
+				&& $current_user_id !== $author_id // Not the author.
+				&& ! in_array( $current_user_id, $it_rep_ids, true ) // Not the IT rep.
+				&& ! in_array( $current_user_id, $business_admin_ids, true ) // Not the business admin.
 			) {
-				error_log('redirected uninvolved user');
 				// User isn't involved with this order and should be redirected away.
-				$post_program_id    = (int) get_field( 'program', $post_id );
-				$location           = admin_url() . 'edit.php?post_type=wsorder&program=' . $post_program_id;
+				$post_program_id = (int) get_field( 'program', $post_id );
+				$location        = admin_url() . 'edit.php?post_type=wsorder&program=' . $post_program_id;
 				wp_safe_redirect( $location );
 				exit();
 			}
@@ -1090,21 +1189,21 @@ class WSOrder_PostType {
 	 *
 	 * @return void
 	 */
-	public function pdf_print_receipt ( $post ) {
-    if ( ! $post
+	public function pdf_print_receipt( $post ) {
+		if ( ! $post
 			|| 'publish' !== $post->post_status
 			|| 'wsorder' !== $post->post_type
 		) {
-        return;
-    }
-    $bare_url     = CLA_WORKSTATION_ORDER_DIR_URL . 'order-receipt.php?postid='.$post->ID;
-    $complete_url = wp_nonce_url( $bare_url, 'auth-post_'.$post->ID, 'token' );
-    $html         = '<div id="major-publishing-actions" style="overflow:hidden">';
-    $html         .= '<div id="publishing-action">';
-    $html         .= '<a class="button-primary" href="'.$complete_url.'" id="printpdf" target="_blank">Save as PDF</a>';
-    $html         .= '</div>';
-    $html         .= '</div>';
-    echo $html;
+			return;
+		}
+		$bare_url     = CLA_WORKSTATION_ORDER_DIR_URL . 'order-receipt.php?postid=' . $post->ID;
+		$complete_url = wp_nonce_url( $bare_url, 'auth-post_' . $post->ID, 'token' );
+		$html         = '<div id="major-publishing-actions" style="overflow:hidden">';
+		$html        .= '<div id="publishing-action">';
+		$html        .= '<a class="button-primary" href="' . $complete_url . '" id="printpdf" target="_blank">Save as PDF</a>';
+		$html        .= '</div>';
+		$html        .= '</div>';
+		echo wp_kses_post( $html );
 	}
 
 	/**
@@ -1115,6 +1214,8 @@ class WSOrder_PostType {
 	 * @return void
 	 */
 	public function update_affiliated_it_bus_user_confirmed( $post_id ) {
+
+		check_admin_referer();
 
 		// IT Rep confirmed by someone other than the designated IT rep.
 		if (
@@ -1130,8 +1231,8 @@ class WSOrder_PostType {
 			) {
 				$current_user    = wp_get_current_user();
 				$current_user_id = (int) $current_user->ID;
-				$it_rep_user_id = (int) $_POST['acf']['field_5fff6b46a22af']['field_5fff703a5289f'];
-				if ( $current_user_id != $it_rep_user_id ) {
+				$it_rep_user_id  = (int) $_POST['acf']['field_5fff6b46a22af']['field_5fff703a5289f'];
+				if ( $current_user_id !== $it_rep_user_id ) {
 					update_post_meta( $post_id, 'it_rep_status_it_rep', $current_user_id );
 				}
 			}
@@ -1149,10 +1250,10 @@ class WSOrder_PostType {
 				0 === $old_post_bus_confirm
 				&& 1 === $new_post_bus_confirm
 			) {
-				$current_user    = wp_get_current_user();
-				$current_user_id = (int) $current_user->ID;
+				$current_user     = wp_get_current_user();
+				$current_user_id  = (int) $current_user->ID;
 				$business_user_id = (int) $_POST['acf']['field_5fff6ec0e2f7e']['field_5fff70b84ffe4'];
-				if ( $current_user_id != $business_user_id ) {
+				if ( $current_user_id !== $business_user_id ) {
 					update_post_meta( $post_id, 'business_staff_status_business_staff', $current_user_id );
 				}
 			}
@@ -1160,13 +1261,21 @@ class WSOrder_PostType {
 	}
 
 	/**
+	 * Add status tags to the order list view.
 	 *
+	 * @param array $views Views for the current post type.
+	 *
+	 * @return array
 	 */
 	public function change_order_list_status_link_counts_and_urls( $views ) {
 
-		if ( isset( $_GET['post_type'] ) && $_GET['post_type'] === 'wsorder' ) {
+		if (
+			isset( $_GET['post_type'] )
+			&& 'wsorder' === $_GET['post_type']
+			&& isset( $_GET['program'] )
+		) {
 
-			$program_id      = $_GET['program'];
+			$program_id      = sanitize_text_field( wp_unslash( $_GET['program'] ) );
 			$user            = wp_get_current_user();
 			$current_user_id = $user->ID;
 			$args            = array(
@@ -1176,9 +1285,9 @@ class WSOrder_PostType {
 					array(
 						'key'   => 'program',
 						'value' => $program_id,
-					)
+					),
 				),
-				'fields' => 'ids'
+				'fields'     => 'ids',
 			);
 			if ( ! current_user_can( 'wso_admin' ) && ! current_user_can( 'wso_logistics' ) ) {
 				$args['meta_query'][] = array(
@@ -1196,22 +1305,22 @@ class WSOrder_PostType {
 					array(
 						'key'   => 'order_author',
 						'value' => $current_user_id,
-					)
+					),
 				);
 			}
 			// All link.
-			$query = new \WP_Query( $args );
-			$count = $query->post_count;
-			$views['all'] = preg_replace( '/<span class="count">\(\d+\)<\/span>/', '<span class="count">('.$count.')</span></a>', $views['all'] );
+			$query        = new \WP_Query( $args );
+			$count        = $query->post_count;
+			$views['all'] = preg_replace( '/<span class="count">\(\d+\)<\/span>/', '<span class="count">(' . $count . ')</span></a>', $views['all'] );
 			$views['all'] = str_replace( 'edit.php?post_type=wsorder', "edit.php?post_type=wsorder&program={$program_id}", $views['all'] );
 			// Mine link.
 			if ( isset( $views['mine'] ) ) {
-				$mine_args           = $args;
+				$mine_args = $args;
 				unset( $mine_args['meta_query'] );
 				$mine_args['author'] = $current_user_id;
 				$mine_query          = new \WP_Query( $mine_args );
 				$count               = $mine_query->post_count;
-				$views['mine']       = preg_replace( '/<span class="count">\(\d+\)<\/span>/', '<span class="count">('.$count.')</span></a>', $views['mine'] );
+				$views['mine']       = preg_replace( '/<span class="count">\(\d+\)<\/span>/', '<span class="count">(' . $count . ')</span></a>', $views['mine'] );
 				$views['mine']       = str_replace( 'post_type=wsorder', "post_type=wsorder&program={$program_id}", $views['mine'] );
 			}
 			// Publish link.
@@ -1220,7 +1329,7 @@ class WSOrder_PostType {
 				$pub_args['post_status'] = 'publish';
 				$pub_query               = new \WP_Query( $pub_args );
 				$count                   = $pub_query->post_count;
-				$views['publish']        = preg_replace( '/<span class="count">\(\d+\)<\/span>/', '<span class="count">('.$count.')</span></a>', $views['publish'] );
+				$views['publish']        = preg_replace( '/<span class="count">\(\d+\)<\/span>/', '<span class="count">(' . $count . ')</span></a>', $views['publish'] );
 				$views['publish']        = str_replace( 'post_type=wsorder', "post_type=wsorder&program={$program_id}", $views['publish'] );
 			}
 			// Action Required link.
@@ -1228,7 +1337,7 @@ class WSOrder_PostType {
 				$args['post_status']      = 'action_required';
 				$ar_query                 = new \WP_Query( $args );
 				$count                    = $ar_query->post_count;
-				$views['action_required'] = preg_replace( '/<span class="count">\(\d+\)<\/span>/', '<span class="count">('.$count.')</span></a>', $views['action_required'] );
+				$views['action_required'] = preg_replace( '/<span class="count">\(\d+\)<\/span>/', '<span class="count">(' . $count . ')</span></a>', $views['action_required'] );
 				$views['action_required'] = str_replace( 'post_type=wsorder', "post_type=wsorder&program={$program_id}", $views['action_required'] );
 			}
 			// Returned link.
@@ -1236,7 +1345,7 @@ class WSOrder_PostType {
 				$args['post_status'] = 'returned';
 				$ar_query            = new \WP_Query( $args );
 				$count               = $ar_query->post_count;
-				$views['returned']   = preg_replace( '/<span class="count">\(\d+\)<\/span>/', '<span class="count">('.$count.')</span></a>', $views['returned'] );
+				$views['returned']   = preg_replace( '/<span class="count">\(\d+\)<\/span>/', '<span class="count">(' . $count . ')</span></a>', $views['returned'] );
 				$views['returned']   = str_replace( 'post_type=wsorder', "post_type=wsorder&program={$program_id}", $views['returned'] );
 			}
 			// Completed link.
@@ -1244,7 +1353,7 @@ class WSOrder_PostType {
 				$args['post_status'] = 'completed';
 				$ar_query            = new \WP_Query( $args );
 				$count               = $ar_query->post_count;
-				$views['completed']  = preg_replace( '/<span class="count">\(\d+\)<\/span>/', '<span class="count">('.$count.')</span></a>', $views['completed'] );
+				$views['completed']  = preg_replace( '/<span class="count">\(\d+\)<\/span>/', '<span class="count">(' . $count . ')</span></a>', $views['completed'] );
 				$views['completed']  = str_replace( 'post_type=wsorder', "post_type=wsorder&program={$program_id}", $views['completed'] );
 			}
 			// Awaiting Another link.
@@ -1252,7 +1361,7 @@ class WSOrder_PostType {
 				$args['post_status']       = 'awaiting_another';
 				$ar_query                  = new \WP_Query( $args );
 				$count                     = $ar_query->post_count;
-				$views['awaiting_another'] = preg_replace( '/<span class="count">\(\d+\)<\/span>/', '<span class="count">('.$count.')</span></a>', $views['awaiting_another'] );
+				$views['awaiting_another'] = preg_replace( '/<span class="count">\(\d+\)<\/span>/', '<span class="count">(' . $count . ')</span></a>', $views['awaiting_another'] );
 				$views['awaiting_another'] = str_replace( 'post_type=wsorder', "post_type=wsorder&program={$program_id}", $views['awaiting_another'] );
 			}
 			// Trash link.
@@ -1260,8 +1369,8 @@ class WSOrder_PostType {
 				$args['post_status'] = 'trash';
 				$trash_query         = new \WP_Query( $args );
 				$count               = $trash_query->post_count;
-				$views['trash'] = preg_replace( '/<span class="count">\(\d+\)<\/span>/', '<span class="count">('.$count.')</span></a>', $views['trash'] );
-				$views['trash'] = str_replace( 'post_type=wsorder', "post_type=wsorder&program={$program_id}", $views['trash'] );
+				$views['trash']      = preg_replace( '/<span class="count">\(\d+\)<\/span>/', '<span class="count">(' . $count . ')</span></a>', $views['trash'] );
+				$views['trash']      = str_replace( 'post_type=wsorder', "post_type=wsorder&program={$program_id}", $views['trash'] );
 			}
 		}
 		return $views;
@@ -1270,14 +1379,30 @@ class WSOrder_PostType {
 	/**
 	 * Show the current admin Order post query's program name before the list.
 	 */
-	public function program_name_before_order_list_view () {
+	public function program_name_before_order_list_view() {
 
 		global $pagenow;
 
-		if ( $pagenow === 'edit.php' && isset( $_GET['post_type'] ) && $_GET['post_type'] === 'wsorder' ) {
-			$program_id   = $_GET['program'];
+		if (
+			'edit.php' === $pagenow
+			&& isset( $_GET['post_type'] )
+			&& 'wsorder' === $_GET['post_type']
+			&& isset( $_GET['program'] )
+		) {
+			$program_id   = sanitize_text_field( wp_unslash( $_GET['program'] ) );
 			$program_post = get_post( $program_id );
-			echo '<div class="h1" style="font-size:23px;font-weight:400;line-height:29.9px;padding-top:16px;">Orders - '.$program_post->post_title.'</div><style type="text/css">.wrap h1.wp-heading-inline{display:none;}</style>';
+			echo wp_kses(
+				'<div class="h1" style="font-size:23px;font-weight:400;line-height:29.9px;padding-top:16px;">Orders - ' . $program_post->post_title . '</div><style type="text/css">.wrap h1.wp-heading-inline{display:none;}</style>',
+				array(
+					'div'   => array(
+						'class' => array(),
+						'style' => array(),
+					),
+					'style' => array(
+						'type' => array(),
+					),
+				)
+			);
 		}
 
 	}
