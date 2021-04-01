@@ -1053,28 +1053,31 @@ class WSOrder_PostType {
 	public function redirect_uninvolved_users_from_editing() {
 		// Prevent users who aren't on a work order from viewing/editing it.
 		global $pagenow;
-		if( isset($_GET['post']) ) {
-			$user = wp_get_current_user();
-			$current_user_id = $user->ID;
-			$post_id = absint($_GET['post']); // Always sanitize
-			$author_id = (int) get_post_field( 'post_author', $post_id );
-			$it_rep_ids = (int) get_field( 'affiliated_it_reps', $post_id );
+		if (
+			isset( $_GET['post'] )
+			&& isset( $_GET['post_type'] )
+			&& 'wsorder' === $_GET['post_type']
+			&& 'post.php' === $pagenow
+		) {
+			$user               = wp_get_current_user();
+			$current_user_id    = $user->ID;
+			$post_id            = absint( $_GET['post'] ); // Always sanitize
+			$author_id          = (int) get_post_field( 'post_author', $post_id );
+			$it_rep_ids         = (int) get_field( 'affiliated_it_reps', $post_id );
 			$business_admin_ids = get_field( 'affiliated_business_staff', $post_id );
 			if (
-				'post.php' === $pagenow
-				&& isset($_GET['post'])
-				&& 'wsorder' === get_post_type( $_GET['post'] )
-				&& ! current_user_can( 'administrator' )
+				! current_user_can( 'administrator' )
 				&& ! current_user_can( 'wso_admin' )
 				&& ! current_user_can( 'wso_logistics' ) // Not a logistics user
 				&& $current_user_id !== $author_id // Not the author
 				&& ! in_array( $current_user_id, $it_rep_ids ) // Not the IT rep
 				&& ! in_array( $current_user_id, $business_admin_ids ) // Not the business admin
 			) {
+				error_log('redirected uninvolved user');
 				// User isn't involved with this order and should be redirected away.
-				$current_program_id = get_site_option( 'options_current_program' );
-				$location = admin_url() . 'edit.php?post_type=wsorder&program=' . $current_program_id;
-				wp_safe_redirect($location);
+				$post_program_id    = (int) get_field( 'program', $post_id );
+				$location           = admin_url() . 'edit.php?post_type=wsorder&program=' . $post_program_id;
+				wp_safe_redirect( $location );
 				exit();
 			}
 		}
