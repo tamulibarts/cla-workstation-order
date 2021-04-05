@@ -363,35 +363,17 @@ class WSOrder_PostType {
 	private function get_program_business_admin_user_id( $program_id, $user_department_post_id ) {
 
 		// Get users assigned to active user's department for current program, as array.
-		$program_meta_keys_departments = array(
-			'assign_political_science_department_post_id',
-			'assign_sociology_department_post_id',
-			'assign_philosophy_humanities_department_post_id',
-			'assign_performance_studies_department_post_id',
-			'assign_international_studies_department_post_id',
-			'assign_history_department_post_id',
-			'assign_hispanic_studies_department_post_id',
-			'assign_english_department_post_id',
-			'assign_economics_department_post_id',
-			'assign_communication_department_post_id',
-			'assign_anthropology_department_post_id',
-			'assign_psychology_department_post_id',
-			'assign_dean_department_post_id',
-		);
-		$current_program_post_meta     = get_post_meta( $program_id );
-		$value                         = 0;
+		$program_assignments = get_field( 'assign', $program_id );
+		$value               = 0;
 
-		foreach ( $program_meta_keys_departments as $meta_key ) {
-			$assigned_dept = (int) $current_program_post_meta[ $meta_key ][0];
+		foreach ( $program_assignments as $department ) {
+			$assigned_dept = (int) $department['department_post_id'];
 			if ( $user_department_post_id === $assigned_dept ) {
-				$base_key   = preg_replace( '/_department_post_id$/', '', $meta_key );
-				$meta_value = $current_program_post_meta[ "{$base_key}_business_admins" ];
-				if ( gettype( $meta_value ) === 'boolean' ) {
+				$business_admins = $department['business_admins'];
+				if ( empty( $business_admins ) ) {
 					$value = 0;
 				} else {
-					$meta_value                   = unserialize( $meta_value[0] );
-					$dept_assigned_business_admin = $meta_value[0];
-					$value                        = $dept_assigned_business_admin[0];
+					$value = $business_admins[0];
 				}
 				break;
 			}
@@ -412,31 +394,14 @@ class WSOrder_PostType {
 	private function get_program_department_fields( $department_id, $program_id ) {
 
 		// Get users assigned to active user's department for current program, as array.
-		$program_meta_keys_departments = array(
-			'assign_political_science_department_post_id',
-			'assign_sociology_department_post_id',
-			'assign_philosophy_humanities_department_post_id',
-			'assign_performance_studies_department_post_id',
-			'assign_international_studies_department_post_id',
-			'assign_history_department_post_id',
-			'assign_hispanic_studies_department_post_id',
-			'assign_english_department_post_id',
-			'assign_economics_department_post_id',
-			'assign_communication_department_post_id',
-			'assign_anthropology_department_post_id',
-			'assign_psychology_department_post_id',
-			'assign_dean_department_post_id',
-		);
-		$current_program_post_meta     = get_post_meta( $program_id );
-		$value                         = array();
+		$program_assignments = get_field( 'assign', $program_id );
+		$value               = array();
 
-		foreach ( $program_meta_keys_departments as $meta_key ) {
-			$assigned_dept = (int) $current_program_post_meta[ $meta_key ][0];
+		foreach ( $program_assignments as $department ) {
+			$assigned_dept = (int) $department['department_post_id'];
 			if ( $department_id === $assigned_dept ) {
-				$base_key                 = preg_replace( '/_department_post_id$/', '', $meta_key );
-				$it_reps                  = $current_program_post_meta[ "{$base_key}_it_reps" ];
-				$value['business_admins'] = unserialize( $current_program_post_meta[ "{$base_key}_business_admins" ][0] );
-				$value['it_reps']         = unserialize( $current_program_post_meta[ "{$base_key}_it_reps" ][0] );
+				$value['business_admins'] = $department['business_admins'];
+				$value['it_reps']         = $department['it_reps'];
 				break;
 			}
 		}
