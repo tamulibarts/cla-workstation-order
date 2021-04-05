@@ -47,3 +47,10 @@ node_modules
 .sass-cache
 vendor
 *.zip
+*.sql
+*.xml
+*.gz
+generate-programs-db.php
+convert-user-departments.php
+convert-products-db.php
+convert-posts-except-products-and-orders-db.php
