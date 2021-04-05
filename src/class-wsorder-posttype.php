@@ -142,7 +142,6 @@ class WSOrder_PostType {
 		if ( is_wp_error( $post_id ) ) {
 
 			// Failed to generate a new post.
-			error_log( $post_id );
 			return 0;
 
 		} else {
@@ -270,7 +269,6 @@ class WSOrder_PostType {
 						$attachment_id = media_handle_upload( "cla_quote_{$i}_file", 0 );
 						if ( is_wp_error( $attachment_id ) ) {
 							// There was an error uploading the image.
-							error_log( $attachment_id->get_error_message() );
 						} else {
 							// Attach file.
 							$quote_fields[ $i ]['file'] = $attachment_id;
@@ -1184,27 +1182,21 @@ jQuery( 'select[name=\"post_status\"]' ).val('publish')";
 
 		if (
 		  'wsorder' !== $post->post_type
-			|| $new_status === 'auto-draft'
+			|| 'auto-draft' === $new_status
 			|| ! array_key_exists( 'acf', $_POST )
 		) {
 			return;
 		}
 
-		// error_log(serialize($_POST));
 		// IT Rep confirmed by someone other than the designated IT rep.
-		error_log( 'init' );
 		$post_id = $post->ID;
 		if (
 			isset( $_POST['acf']['field_5fff6b46a22af'] )
-			// && check_admin_referer( 'update-post_' . $post_id )
 		) {
-			error_log( 'passed 1' );
 			$it_rep_status = $_POST['acf']['field_5fff6b46a22af'];
 			if ( isset( $it_rep_status['field_5fff6b71a22b0'] ) ) {
-				error_log( 'passed 2' );
 				$old_post_it_confirm = (int) get_post_meta( $post_id, 'it_rep_status_confirmed', true );
 				$new_post_it_confirm = (int) $it_rep_status['field_5fff6b71a22b0'];
-				error_log( $old_post_it_confirm . ' : ' . $new_post_it_confirm );
 
 				if (
 					0 === $old_post_it_confirm
@@ -1213,7 +1205,6 @@ jQuery( 'select[name=\"post_status\"]' ).val('publish')";
 					$current_user    = wp_get_current_user();
 					$current_user_id = (int) $current_user->ID;
 					$it_rep_user_id  = (int) $_POST['acf']['field_5fff6b46a22af']['field_5fff703a5289f'];
-					error_log( 'zw passed, ' . $current_user_id . ' : ' . $it_rep_user_id );
 					if ( $current_user_id !== $it_rep_user_id ) {
 						update_post_meta( $post_id, 'latest_it_rep_confirmed', $current_user_id );
 					}
