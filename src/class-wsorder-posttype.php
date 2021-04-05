@@ -231,7 +231,7 @@ class WSOrder_PostType {
 			// Save department Business Admin.
 			// Get business admin assigned to active user's department for current program.
 			$dept_assigned_business_admin = $this->get_program_business_admin_user_id( $current_program_id, $user_department_post_id );
-			$value = 0 === $dept_assigned_business_admin ? '' : $dept_assigned_business_admin;
+			$value                        = 0 === $dept_assigned_business_admin ? '' : $dept_assigned_business_admin;
 			update_field( 'business_staff_status', array( 'business_staff' => $value ), $post_id );
 
 			// Let WordPress handle the upload.
