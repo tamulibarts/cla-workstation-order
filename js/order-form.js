@@ -509,7 +509,7 @@
       	_ajax_nonce: WSOAjax.nonce
       }
       $form.find('input,select,textarea').each(function(){
-      	form_data[this.id] = this.value;
+      	form_data[this.name] = this.value;
       });
 	    jQuery.ajax({
 	      type: "POST",
