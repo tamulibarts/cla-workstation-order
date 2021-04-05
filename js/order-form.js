@@ -524,7 +524,7 @@
 	      	}
 	      },
 	      error: function( jqXHR, textStatus, errorThrown ) {
-	      	$form.find('#order-message').html('The application encountered a "' + textStatus + '" error while submitting your request (' + errorThrown + ').');
+	      	$form.find('#order-message').html('The application encountered an error while submitting your request (' + errorThrown + ').<br>' + jqXHR.responseText );
 	      }
 	    });
  		} else {
