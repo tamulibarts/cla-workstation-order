@@ -150,9 +150,6 @@ class WSOrder_PostType {
 			$user_department_post    = get_field( 'department', "user_{$user_id}" );
 			$user_department_post_id = $user_department_post->ID;
 
-			// Get users assigned to active user's department for current program, as array.
-			$dept_assigned_business_admin = $this->get_program_business_admin_user_id( $current_program_id, $user_department_post_id );
-
 			/**
 			 * Save ACF field values.
 			 * https://www.advancedcustomfields.com/resources/update_field/
@@ -231,6 +228,8 @@ class WSOrder_PostType {
 			}
 
 			// Save department Business Admin.
+			// Get business admin assigned to active user's department for current program.
+			$dept_assigned_business_admin = $this->get_program_business_admin_user_id( $current_program_id, $user_department_post_id );
 			$value = 0 === $dept_assigned_business_admin ? '' : $dept_assigned_business_admin;
 			update_field( 'business_staff_status', array( 'business_staff' => $value ), $post_id );
 
