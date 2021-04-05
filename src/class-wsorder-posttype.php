@@ -52,7 +52,8 @@ class WSOrder_PostType {
 		// Generate a print button for the order.
 		add_action( 'post_submitbox_misc_actions', array( $this, 'pdf_print_receipt' ) );
 		// When a user other than the assigned user confirms an order, update the assigned user to that user.
-		add_action( 'save_post', array( $this, 'update_affiliated_it_bus_user_confirmed' ) );
+		add_action( 'transition_post_status', array( $this, 'check_if_switching_it_rep_or_business_admin' ), 11, 3 );
+		add_action( 'save_post', array( $this, 'save_switched_it_rep_or_business_admin' ) );
 
 		/**
 		 * Change features of edit.php list view for order posts.
@@ -1208,31 +1209,49 @@ jQuery( 'select[name=\"post_status\"]' ).val('publish')";
 	/**
 	 * When a user other than the assigned user confirms an order, update the assigned user to that user.
 	 *
-	 * @param int $post_id The post ID.
+	 * @param string $new_status The new status of the post.
+	 * @param string $old_status The old status of the post.
+	 * @param object $post       The WP_Post object.
 	 *
 	 * @return void
 	 */
-	public function update_affiliated_it_bus_user_confirmed( $post_id ) {
+	public function check_if_switching_it_rep_or_business_admin( $new_status, $old_status, $post ) {
 
-		check_admin_referer();
+		if (
+		  'wsorder' !== $post->post_type
+			|| $new_status === 'auto-draft'
+			|| ! array_key_exists( 'acf', $_POST )
+		) {
+			return;
+		}
 
+		// error_log(serialize($_POST));
 		// IT Rep confirmed by someone other than the designated IT rep.
+		error_log( 'init' );
+		$post_id = $post->ID;
 		if (
 			isset( $_POST['acf']['field_5fff6b46a22af'] )
-			&& isset( $_POST['acf']['field_5fff6b46a22af']['field_5fff6b71a22b0'] )
+			// && check_admin_referer( 'update-post_' . $post_id )
 		) {
-			$old_post_it_confirm = (int) get_post_meta( $post_id, 'it_rep_status_confirmed', true );
-			$new_post_it_confirm = (int) $_POST['acf']['field_5fff6b46a22af']['field_5fff6b71a22b0'];
+			error_log( 'passed 1' );
+			$it_rep_status = $_POST['acf']['field_5fff6b46a22af'];
+			if ( isset( $it_rep_status['field_5fff6b71a22b0'] ) ) {
+				error_log( 'passed 2' );
+				$old_post_it_confirm = (int) get_post_meta( $post_id, 'it_rep_status_confirmed', true );
+				$new_post_it_confirm = (int) $it_rep_status['field_5fff6b71a22b0'];
+				error_log( $old_post_it_confirm . ' : ' . $new_post_it_confirm );
 
-			if (
-				0 === $old_post_it_confirm
-				&& 1 === $new_post_it_confirm
-			) {
-				$current_user    = wp_get_current_user();
-				$current_user_id = (int) $current_user->ID;
-				$it_rep_user_id  = (int) $_POST['acf']['field_5fff6b46a22af']['field_5fff703a5289f'];
-				if ( $current_user_id !== $it_rep_user_id ) {
-					update_post_meta( $post_id, 'it_rep_status_it_rep', $current_user_id );
+				if (
+					0 === $old_post_it_confirm
+					&& 1 === $new_post_it_confirm
+				) {
+					$current_user    = wp_get_current_user();
+					$current_user_id = (int) $current_user->ID;
+					$it_rep_user_id  = (int) $_POST['acf']['field_5fff6b46a22af']['field_5fff703a5289f'];
+					error_log( 'zw passed, ' . $current_user_id . ' : ' . $it_rep_user_id );
+					if ( $current_user_id !== $it_rep_user_id ) {
+						update_post_meta( $post_id, 'latest_it_rep_confirmed', $current_user_id );
+					}
 				}
 			}
 		}
@@ -1253,12 +1272,34 @@ jQuery( 'select[name=\"post_status\"]' ).val('publish')";
 				$current_user_id  = (int) $current_user->ID;
 				$business_user_id = (int) $_POST['acf']['field_5fff6ec0e2f7e']['field_5fff70b84ffe4'];
 				if ( $current_user_id !== $business_user_id ) {
-					update_post_meta( $post_id, 'business_staff_status_business_staff', $current_user_id );
+					update_post_meta( $post_id, 'latest_business_admin_confirmed', $current_user_id );
 				}
 			}
 		}
 	}
 
+	/**
+	 * Save new IT Rep or Business Admin.
+	 *
+	 * @param int $post_id The post ID.
+	 *
+	 * @return void
+	 */
+	public function save_switched_it_rep_or_business_admin( $post_id ) {
+
+		$latest_it_rep_confirmed = get_post_meta( $post_id, 'latest_it_rep_confirmed' );
+		$it_rep_confirmed        = get_post_meta( $post_id, 'it_rep_status_it_rep' );
+		if ( $latest_it_rep_confirmed !== $it_rep_confirmed ) {
+			update_post_meta( $post_id, 'it_rep_status_it_rep', $latest_it_rep_confirmed );
+		}
+
+		$latest_business_admin_confirmed = get_post_meta( $post_id, 'latest_business_admin_confirmed' );
+		$business_admin_confirmed        = get_post_meta( $post_id, 'business_staff_status_business_staff' );
+		if ( $latest_business_admin_confirmed !== $business_admin_confirmed ) {
+			update_post_meta( $post_id, 'business_staff_status_business_staff', $latest_business_admin_confirmed );
+		}
+
+	}
 	/**
 	 * Add status tags to the order list view.
 	 *
