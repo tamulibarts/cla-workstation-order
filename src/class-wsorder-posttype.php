@@ -267,9 +267,7 @@ class WSOrder_PostType {
 
 						// Handle uploading quote file.
 						$attachment_id = media_handle_upload( "cla_quote_{$i}_file", 0 );
-						if ( is_wp_error( $attachment_id ) ) {
-							// There was an error uploading the image.
-						} else {
+						if ( ! is_wp_error( $attachment_id ) ) {
 							// Attach file.
 							$quote_fields[ $i ]['file'] = $attachment_id;
 						}
@@ -525,11 +523,12 @@ class WSOrder_PostType {
 	public function redirect_to_current_program_orders() {
 
 		global $pagenow;
+
 		if (
 			'edit.php' === $pagenow
-			&& isset( $_GET['post_type'] )
-			&& 'wsorder' === $_GET['post_type']
-			&& ! isset( $_GET['program'] )
+			&& isset( $_GET['post_type'] ) //phpcs:ignore
+			&& 'wsorder' === $_GET['post_type'] //phpcs:ignore
+			&& ! isset( $_GET['program'] ) //phpcs:ignore
 			&& isset( $_SERVER['QUERY_STRING'] )
 		) {
 			$current_program_id = get_site_option( 'options_current_program' );
@@ -844,7 +843,7 @@ jQuery( 'select[name=\"post_status\"]' ).val('publish')";
 			'post_status'    => 'any',
 			'posts_per_page' => 1,
 			'fields'         => 'ids',
-			'meta_query'     => array(
+			'meta_query'     => array( //phpcs:ignore
 				array(
 					'key'     => 'order_id',
 					'compare' => 'EXISTS',
@@ -1059,8 +1058,8 @@ jQuery( 'select[name=\"post_status\"]' ).val('publish')";
 		if (
 		! current_user_can( 'administrator' )
 		&& 'post-new.php' === $pagenow
-		&& isset( $_GET['post_type'] )
-		&& 'wsorder' === $_GET['post_type']
+		&& isset( $_GET['post_type'] ) //phpcs:ignore
+		&& 'wsorder' === $_GET['post_type'] //phpcs:ignore
 		) {
 
 			$blog_id = get_current_blog_id();
@@ -1181,9 +1180,8 @@ jQuery( 'select[name=\"post_status\"]' ).val('publish')";
 	public function check_if_switching_it_rep_or_business_admin( $new_status, $old_status, $post ) {
 
 		if (
-		  'wsorder' !== $post->post_type
+			'wsorder' !== $post->post_type
 			|| 'auto-draft' === $new_status
-			|| ! array_key_exists( 'acf', $_POST )
 		) {
 			return;
 		}
@@ -1191,24 +1189,25 @@ jQuery( 'select[name=\"post_status\"]' ).val('publish')";
 		// IT Rep confirmed by someone other than the designated IT rep.
 		$post_id = $post->ID;
 		if (
-			isset( $_POST['acf']['field_5fff6b46a22af'] )
+			isset( $_POST['acf'], $_POST['acf']['field_5fff6b46a22af'], $_POST['_wpnonce'] )
+			&& wp_verify_nonce( sanitize_key( $_POST['_wpnonce'] ), 'update-post_' . $post_id )
 		) {
-			$it_rep_status = $_POST['acf']['field_5fff6b46a22af'];
-			if ( isset( $it_rep_status['field_5fff6b71a22b0'] ) ) {
-				$old_post_it_confirm = (int) get_post_meta( $post_id, 'it_rep_status_confirmed', true );
-				$new_post_it_confirm = (int) $it_rep_status['field_5fff6b71a22b0'];
-
+			if ( isset( $_POST['acf']['field_5fff6b46a22af']['field_5fff6b71a22b0'] ) ) {
+				$old_post_it_confirm     = (int) get_post_meta( $post_id, 'it_rep_status_confirmed', true );
+				$new_post_it_confirm     = (int) $_POST['acf']['field_5fff6b46a22af']['field_5fff6b71a22b0'];
+				$it_rep_user_id          = (int) $_POST['acf']['field_5fff6b46a22af']['field_5fff703a5289f'];
+				$latest_it_rep_confirmed = $it_rep_user_id;
 				if (
 					0 === $old_post_it_confirm
 					&& 1 === $new_post_it_confirm
 				) {
 					$current_user    = wp_get_current_user();
 					$current_user_id = (int) $current_user->ID;
-					$it_rep_user_id  = (int) $_POST['acf']['field_5fff6b46a22af']['field_5fff703a5289f'];
 					if ( $current_user_id !== $it_rep_user_id ) {
-						update_post_meta( $post_id, 'latest_it_rep_confirmed', $current_user_id );
+						$latest_it_rep_confirmed = $current_user_id;
 					}
 				}
+				update_post_meta( $post_id, 'latest_it_rep_confirmed', $latest_it_rep_confirmed );
 			}
 		}
 
@@ -1245,7 +1244,7 @@ jQuery( 'select[name=\"post_status\"]' ).val('publish')";
 
 		$latest_it_rep_confirmed = get_post_meta( $post_id, 'latest_it_rep_confirmed' );
 		$it_rep_confirmed        = get_post_meta( $post_id, 'it_rep_status_it_rep' );
-		if ( $latest_it_rep_confirmed !== $it_rep_confirmed ) {
+		if ( '0' !== $latest_it_rep_confirmed && $latest_it_rep_confirmed !== $it_rep_confirmed ) {
 			update_post_meta( $post_id, 'it_rep_status_it_rep', $latest_it_rep_confirmed );
 		}
 
@@ -1266,17 +1265,16 @@ jQuery( 'select[name=\"post_status\"]' ).val('publish')";
 	public function change_order_list_status_link_counts_and_urls( $views ) {
 
 		if (
-			isset( $_GET['post_type'] )
-			&& 'wsorder' === $_GET['post_type']
-			&& isset( $_GET['program'] )
+			'wsorder' === get_query_var( 'post_type' )
+			&& get_query_var( 'program', false )
 		) {
 
-			$program_id      = sanitize_text_field( wp_unslash( $_GET['program'] ) );
+			$program_id      = get_query_var( 'program' );
 			$user            = wp_get_current_user();
 			$current_user_id = $user->ID;
 			$args            = array(
 				'post_type'  => 'wsorder',
-				'meta_query' => array(
+				'meta_query' => array( //phpcs:ignore
 					'relation' => 'AND',
 					array(
 						'key'   => 'program',
@@ -1381,11 +1379,10 @@ jQuery( 'select[name=\"post_status\"]' ).val('publish')";
 
 		if (
 			'edit.php' === $pagenow
-			&& isset( $_GET['post_type'] )
-			&& 'wsorder' === $_GET['post_type']
-			&& isset( $_GET['program'] )
+			&& 'wsorder' === get_query_var( 'post_type' )
+			&& ! empty( get_query_var( 'program' ) )
 		) {
-			$program_id   = sanitize_text_field( wp_unslash( $_GET['program'] ) );
+			$program_id   = get_query_var( 'program' );
 			$program_post = get_post( $program_id );
 			echo wp_kses(
 				'<div class="h1" style="font-size:23px;font-weight:400;line-height:29.9px;padding-top:16px;">Orders - ' . $program_post->post_title . '</div><style type="text/css">.wrap h1.wp-heading-inline{display:none;}</style>',
