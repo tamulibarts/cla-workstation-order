@@ -36,43 +36,6 @@ class WSOrder_PostType_Emails {
 	}
 
 	/**
-	 * Get users assigned to active user's department for current program, as array.
-	 */
-	private function get_program_business_admin_user_id( $program_id, $user_department_post_id ) {
-
-		$program_meta_keys_departments = array(
-			'assign_political_science_department_post_id',
-			'assign_sociology_department_post_id',
-			'assign_philosophy_humanities_department_post_id',
-			'assign_performance_studies_department_post_id',
-			'assign_international_studies_department_post_id',
-			'assign_history_department_post_id',
-			'assign_hispanic_studies_department_post_id',
-			'assign_english_department_post_id',
-			'assign_economics_department_post_id',
-			'assign_communication_department_post_id',
-			'assign_anthropology_department_post_id',
-			'assign_psychology_department_post_id',
-			'assign_dean_department_post_id',
-		);
-		$current_program_post_meta     = get_post_meta( $program_id );
-		$value                         = 0;
-
-		foreach ( $program_meta_keys_departments as $meta_key ) {
-			$assigned_dept = (int) $current_program_post_meta[ $meta_key ][0];
-			if ( $user_department_post_id === $assigned_dept ) {
-				$base_key                     = preg_replace( '/_department_post_id$/', '', $meta_key );
-				$dept_assigned_business_admin = unserialize( $current_program_post_meta[ "{$base_key}_business_admins" ][0] );
-				$value                        = $dept_assigned_business_admin[0];
-				break;
-			}
-		}
-
-		return $value;
-
-	}
-
-	/**
 	 * Once IT Rep has confirmed, if business approval is needed then
 	 * send an email to the business admin.
 	 *
