@@ -48,8 +48,8 @@ class WSOrder_PostType_Emails {
 	public function order_rep_confirmed_bus_approval_needed( $new_status, $old_status, $post ) {
 
 		if (
-		  'wsorder' !== $post->post_type
-			|| $new_status === 'auto-draft'
+			'wsorder' !== $post->post_type
+			|| 'auto-draft' === $new_status
 			|| ! array_key_exists( 'acf', $_POST )
 		) {
 			return;
@@ -114,8 +114,8 @@ class WSOrder_PostType_Emails {
 	public function order_rep_confirmed_bus_approval_not_needed( $new_status, $old_status, $post ) {
 
 		if (
-		  'wsorder' !== $post->post_type
-			|| $new_status === 'auto-draft'
+			'wsorder' !== $post->post_type
+			|| 'auto-draft' === $new_status
 			|| ! array_key_exists( 'acf', $_POST )
 		) {
 			return;
@@ -175,8 +175,8 @@ class WSOrder_PostType_Emails {
 	public function order_bus_confirmed_notify_logistics( $new_status, $old_status, $post ) {
 
 		if (
-		  'wsorder' !== $post->post_type
-			|| $new_status === 'auto-draft'
+			'wsorder' !== $post->post_type
+			|| 'auto-draft' === $new_status
 			|| ! array_key_exists( 'acf', $_POST )
 		) {
 			return;
@@ -236,8 +236,8 @@ class WSOrder_PostType_Emails {
 	public function order_logistics_confirmed_notify_end_user( $new_status, $old_status, $post ) {
 
 		if (
-		  'wsorder' !== $post->post_type
-			|| $new_status === 'auto-draft'
+			'wsorder' !== $post->post_type
+			|| 'auto-draft' === $new_status
 			|| ! array_key_exists( 'acf', $_POST )
 		) {
 			return;
@@ -291,7 +291,7 @@ class WSOrder_PostType_Emails {
 		if (
 			$old_status === $new_status
 			|| 'wsorder' !== $post->post_type
-			|| $new_status === 'auto-draft'
+			|| 'auto-draft' === $new_status
 			|| ! array_key_exists( 'acf', $_POST )
 		) {
 			return;
@@ -355,8 +355,8 @@ class WSOrder_PostType_Emails {
 		 * Handle returned order emails.
 		 */
 		if (
-			$new_status === 'returned'
-			&& $old_status !== 'returned'
+			'returned' === $new_status
+			&& 'returned' !== $old_status
 		) {
 
 			// Store user ID who returned the order.
@@ -434,7 +434,6 @@ class WSOrder_PostType_Emails {
 	}
 
 	private function email_body_it_rep_to_business( $order_post_id, $acf_data, $end_user_name ) {
-		error_log( 'end user: (' . gettype( $end_user_name ) . ') ' . $end_user_name );
 		$program_name    = get_the_title( $acf_data['field_5ffcc2590682b'] );
 		$addfund_amount  = $acf_data['field_5ffcc10806825'];
 		$addfund_account = $acf_data['field_5ffcc16306826'];
