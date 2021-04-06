@@ -118,20 +118,20 @@ class WSOrder_PostType_Emails {
 				$user_department_post    = get_field( 'department', "user_{$user_id}" );
 				$department_abbreviation = get_field( 'abbreviation', $user_department_post->ID );
 				// Declare business admin variables.
-				$business_admin_obj   = get_userdata( $business_admin_id );
-				$business_admin_email = $business_admin_obj->user_email;
-				$business_admins = get_field( 'affiliated_business_staff', $post_id );
+				$business_admin_obj    = get_userdata( $business_admin_id );
+				$business_admin_email  = $business_admin_obj->user_email;
+				$business_admins       = get_field( 'affiliated_business_staff', $post_id );
 				$business_admin_emails = array();
 				foreach ( $business_admins as $bus_user_id ) {
 					$user_data               = get_userdata( $bus_user_id );
 					$business_admin_emails[] = $user_data->user_email;
 				}
-				$business_admin_emails = implode(',', $business_admin_emails);
+				$business_admin_emails = implode( ',', $business_admin_emails );
 				// Send email.
 				$to      = $business_admin_emails;
 				$title   = "[{$order_name}] Workstation Order Approval - {$department_abbreviation} - {$end_user_name}";
 				$message = $this->email_body_it_rep_to_business( $post->ID, $_POST['acf'], $end_user_name );
-				$headers = array('Content-Type: text/html; charset=UTF-8');
+				$headers = array( 'Content-Type: text/html; charset=UTF-8' );
 				wp_mail( $to, $title, $message, $headers );
 
 			}
@@ -148,7 +148,7 @@ class WSOrder_PostType_Emails {
 	 *
 	 * @return void
 	 */
-	public function order_rep_confirmed_bus_approval_not_needed( $new_status, $old_status, $post ){
+	public function order_rep_confirmed_bus_approval_not_needed( $new_status, $old_status, $post ) {
 
 		if (
 		  'wsorder' !== $post->post_type
@@ -192,7 +192,7 @@ class WSOrder_PostType_Emails {
 				$to      = $logistics_email;
 				$title   = "[{$order_name}] Workstation Order Approval - {$department_abbreviation} - {$end_user_name}";
 				$message = $this->email_body_to_logistics( $post->ID, $_POST['acf'] );
-				$headers = array('Content-Type: text/html; charset=UTF-8');
+				$headers = array( 'Content-Type: text/html; charset=UTF-8' );
 				wp_mail( $to, $title, $message, $headers );
 
 			}
@@ -253,7 +253,7 @@ class WSOrder_PostType_Emails {
 				$to      = $logistics_email;
 				$title   = "[{$order_name}] Workstation Order Approval - {$department_abbreviation} - {$end_user_name}";
 				$message = $this->email_body_to_logistics( $post_id, $_POST['acf'] );
-				$headers = array('Content-Type: text/html; charset=UTF-8');
+				$headers = array( 'Content-Type: text/html; charset=UTF-8' );
 				wp_mail( $to, $title, $message, $headers );
 
 			}
@@ -307,7 +307,7 @@ class WSOrder_PostType_Emails {
 				$to      = $end_user_email;
 				$title   = "[{$order_name}] Workstation Order Approval - {$department_abbreviation} - {$end_user_name}";
 				$message = $this->email_body_order_approved( $post->ID, $_POST['acf'] );
-				$headers = array('Content-Type: text/html; charset=UTF-8');
+				$headers = array( 'Content-Type: text/html; charset=UTF-8' );
 				wp_mail( $to, $title, $message, $headers );
 
 			}
@@ -335,7 +335,7 @@ class WSOrder_PostType_Emails {
 		}
 
 		// Get email headers.
-		$headers    = array('Content-Type: text/html; charset=UTF-8');
+		$headers    = array( 'Content-Type: text/html; charset=UTF-8' );
 		$post_id    = $post->ID;
 		$order_name = get_the_title( $post_id );
 		// Declare current user variables.
@@ -354,18 +354,18 @@ class WSOrder_PostType_Emails {
 		$it_rep_user_id = (int) $_POST['acf']['field_5fff6b46a22af']['field_5fff703a5289f'];
 		$it_reps        = get_field( 'affiliated_it_reps', $post_id );
 		$it_rep_emails  = array();
-		foreach ($it_reps as $rep_user_id ) {
+		foreach ( $it_reps as $rep_user_id ) {
 			$user_data       = get_userdata( $rep_user_id );
 			$it_rep_emails[] = $user_data->user_email;
 		}
-		$it_rep_emails = implode(',', $it_rep_emails);
+		$it_rep_emails = implode( ',', $it_rep_emails );
 		// Declare business approval variables.
-		$contribution_amount  = $_POST['acf']['field_5ffcc10806825'];
-		$order_program_id     = get_field( 'program', $post_id );
+		$contribution_amount   = $_POST['acf']['field_5ffcc10806825'];
+		$order_program_id      = get_field( 'program', $post_id );
 		$business_admin_id     = $_POST['acf']['field_5fff70b84ffe4'];
 		$business_admin_emails = '';
 		if ( ! empty( $business_admin_id ) ) {
-			$business_admins = get_field( 'affiliated_business_staff', $post_id );
+			$business_admins       = get_field( 'affiliated_business_staff', $post_id );
 			$business_admin_emails = array();
 			foreach ( $business_admins as $bus_user_id ) {
 				$user_data               = get_userdata( $bus_user_id );
@@ -417,8 +417,8 @@ class WSOrder_PostType_Emails {
 			 * If status changed to "Returned" ->
 			 * subject: [{$order_name}] Returned Workstation Order - {$department_abbreviation} - {$order.user_name}
 			 * to: if it_rep is assigned and approved, email them; if business_admin is assigned, email them
-	  	 * body: email_body_return_to_user_forward( $post->ID, $_POST['acf'] );
-	  	 */
+		 * body: email_body_return_to_user_forward( $post->ID, $_POST['acf'] );
+		 */
 			$to = array();
 			if ( ! empty( $it_rep_emails ) ) {
 				$to[] = $it_rep_emails;
@@ -432,7 +432,6 @@ class WSOrder_PostType_Emails {
 				$message = $this->email_body_return_to_user_forward( $post_id, $_POST['acf'], $end_user_name );
 				wp_mail( $to, $title, $message, $headers );
 			}
-
 		}
 
 		/**
@@ -459,10 +458,10 @@ class WSOrder_PostType_Emails {
 				// Business admin returned it.
 				$returner_role_emails = $business_admin_emails;
 			}
-			$to             = $returner_role_emails;
-			$title          = "[{$order_name}] Returned Workstation Order - {$department_abbreviation} - {$end_user_name}";
+			$to              = $returner_role_emails;
+			$title           = "[{$order_name}] Returned Workstation Order - {$department_abbreviation} - {$end_user_name}";
 			$admin_order_url = admin_url() . "post.php?post={$post_id}&action=edit";
-			$message        = 'Please check on this work order as the end user has passed it on: $admin_order_url';
+			$message         = 'Please check on this work order as the end user has passed it on: $admin_order_url';
 			wp_mail( $to, $title, $message, $headers );
 			// Empty the "returned by" post meta.
 			update_post_meta( $post_id, 'returned_by', '' );
@@ -472,7 +471,7 @@ class WSOrder_PostType_Emails {
 	}
 
 	private function email_body_it_rep_to_business( $order_post_id, $acf_data, $end_user_name ) {
-		error_log( 'end user: (' . gettype($end_user_name) . ') ' . $end_user_name );
+		error_log( 'end user: (' . gettype( $end_user_name ) . ') ' . $end_user_name );
 		$program_name    = get_the_title( $acf_data['field_5ffcc2590682b'] );
 		$addfund_amount  = $acf_data['field_5ffcc10806825'];
 		$addfund_account = $acf_data['field_5ffcc16306826'];
@@ -492,7 +491,7 @@ class WSOrder_PostType_Emails {
 </p>
 <p><em>This email was sent from an unmonitored email address. Please do not reply to this email.</em></p>";
 
-  	return $message;
+		return $message;
 
 	}
 
