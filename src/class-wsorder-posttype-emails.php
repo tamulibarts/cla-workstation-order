@@ -50,28 +50,35 @@ class WSOrder_PostType_Emails {
 		if (
 			'wsorder' !== $post->post_type
 			|| 'auto-draft' === $new_status
-			|| ! array_key_exists( 'acf', $_POST )
+			|| ! isset( $_POST['_wpnonce'] )
+			|| false === wp_verify_nonce( sanitize_key( $_POST['_wpnonce'] ), 'update-post_' . $post->ID )
+			|| ! isset( $_POST['acf'] )
 		) {
 			return;
 		}
 
 		if (
-			current_user_can( 'wso_it_rep' )
-			|| current_user_can( 'wso_admin' )
+			(
+				current_user_can( 'wso_it_rep' )
+				|| current_user_can( 'wso_admin' )
+			)
+			&& isset( $_POST['acf']['field_5fff6b46a22af'], $_POST['acf']['field_5fff6b46a22af']['field_5fff6b71a22b0'] )
+			&& ! empty( $_POST['acf']['field_5fff6b46a22af']['field_5fff6b71a22b0'] ) // IT rep.
 		) {
 
 			// Get confirmation statuses.
 			$old_post_it_confirm = (int) get_post_meta( $post->ID, 'it_rep_status_confirmed', true );
 			$new_post_it_confirm = (int) $_POST['acf']['field_5fff6b46a22af']['field_5fff6b71a22b0'];
-			// If business admin is assigned, continue.
-			$business_admin_id = isset( $_POST['acf']['field_5fff70b84ffe4'] ) ? $_POST['acf']['field_5fff70b84ffe4'] : '';
 
 			if (
 				0 === $old_post_it_confirm
 				&& 1 === $new_post_it_confirm
-				&& ! empty( $business_admin_id )
+				&& isset( $_POST['acf']['field_5fff6ec0e2f7e'], $_POST['acf']['field_5fff6ec0e2f7e']['field_5fff70b84ffe4'] )
+				&& ! empty( $_POST['acf']['field_5fff6ec0e2f7e']['field_5fff70b84ffe4'] ) // Business admin.
 			) {
 
+				// Business admin ID.
+				$business_admin_id = wp_unslash( $_POST['acf']['field_5fff6ec0e2f7e']['field_5fff70b84ffe4'] );
 				// Get the order name.
 				$order_name = get_the_title( $post->ID );
 				// Declare end user variables.
@@ -93,7 +100,7 @@ class WSOrder_PostType_Emails {
 				// Send email.
 				$to      = $business_admin_emails;
 				$title   = "[{$order_name}] Workstation Order Approval - {$department_abbreviation} - {$end_user_name}";
-				$message = $this->email_body_it_rep_to_business( $post->ID, $_POST['acf'], $end_user_name );
+				$message = $this->email_body_it_rep_to_business( $post->ID, wp_unslash( $_POST['acf'] ), $end_user_name );
 				$headers = array( 'Content-Type: text/html; charset=UTF-8' );
 				wp_mail( $to, $title, $message, $headers );
 
@@ -116,7 +123,9 @@ class WSOrder_PostType_Emails {
 		if (
 			'wsorder' !== $post->post_type
 			|| 'auto-draft' === $new_status
-			|| ! array_key_exists( 'acf', $_POST )
+			|| ! isset( $_POST['_wpnonce'] )
+			|| false === wp_verify_nonce( sanitize_key( $_POST['_wpnonce'] ), 'update-post_' . $post->ID )
+			|| ! isset( $_POST['acf'] )
 		) {
 			return;
 		}
@@ -177,7 +186,9 @@ class WSOrder_PostType_Emails {
 		if (
 			'wsorder' !== $post->post_type
 			|| 'auto-draft' === $new_status
-			|| ! array_key_exists( 'acf', $_POST )
+			|| ! isset( $_POST['_wpnonce'] )
+			|| false === wp_verify_nonce( sanitize_key( $_POST['_wpnonce'] ), 'update-post_' . $post->ID )
+			|| ! isset( $_POST['acf'] )
 		) {
 			return;
 		}
@@ -238,7 +249,9 @@ class WSOrder_PostType_Emails {
 		if (
 			'wsorder' !== $post->post_type
 			|| 'auto-draft' === $new_status
-			|| ! array_key_exists( 'acf', $_POST )
+			|| ! isset( $_POST['_wpnonce'] )
+			|| false === wp_verify_nonce( sanitize_key( $_POST['_wpnonce'] ), 'update-post_' . $post->ID )
+			|| ! isset( $_POST['acf'] )
 		) {
 			return;
 		}
@@ -292,7 +305,9 @@ class WSOrder_PostType_Emails {
 			$old_status === $new_status
 			|| 'wsorder' !== $post->post_type
 			|| 'auto-draft' === $new_status
-			|| ! array_key_exists( 'acf', $_POST )
+			|| ! isset( $_POST['_wpnonce'] )
+			|| false === wp_verify_nonce( sanitize_key( $_POST['_wpnonce'] ), 'update-post_' . $post->ID )
+			|| ! isset( $_POST['acf'] )
 		) {
 			return;
 		}
@@ -412,12 +427,12 @@ class WSOrder_PostType_Emails {
 			$returner_email       = $returner_data->user_email;
 			$returner_role_emails = array();
 			// Figure out who returned it.
-			if ( in_array( 'wso_admin', $returner_roles ) ) {
+			if ( in_array( 'wso_admin', $returner_roles, true ) ) {
 				$returner_role_emails = $returner_email;
-			} elseif ( in_array( 'wso_it_rep', $returner_roles ) ) {
+			} elseif ( in_array( 'wso_it_rep', $returner_roles, true ) ) {
 				// IT Rep returned it.
 				$returner_role_emails = $it_rep_emails;
-			} elseif ( in_array( 'wso_business_admin', $returner_roles ) ) {
+			} elseif ( in_array( 'wso_business_admin', $returner_roles, true ) ) {
 				// Business admin returned it.
 				$returner_role_emails = $business_admin_emails;
 			}
@@ -433,6 +448,15 @@ class WSOrder_PostType_Emails {
 
 	}
 
+	/**
+	 * The email body which is sent to the business admin when the IT rep confirms the order.
+	 *
+	 * @param int    $order_post_id The order post ID.
+	 * @param array  $acf_data      The array of Advanced Custom Field data.
+	 * @param string $end_user_name The name of the end user who created the order.
+	 *
+	 * @return string
+	 */
 	private function email_body_it_rep_to_business( $order_post_id, $acf_data, $end_user_name ) {
 		$program_name    = get_the_title( $acf_data['field_5ffcc2590682b'] );
 		$addfund_amount  = $acf_data['field_5ffcc10806825'];
@@ -457,6 +481,14 @@ class WSOrder_PostType_Emails {
 
 	}
 
+	/**
+	 * The email body which is sent to logistics.
+	 *
+	 * @param int   $order_post_id The order post ID.
+	 * @param array $acf_data      The array of Advanced Custom Field data.
+	 *
+	 * @return string
+	 */
 	private function email_body_to_logistics( $order_post_id, $acf_data ) {
 
 		$program_name    = get_the_title( $acf_data['field_5ffcc2590682b'] );
@@ -478,6 +510,14 @@ class WSOrder_PostType_Emails {
 
 	}
 
+	/**
+	 * The email body which is sent to the end user when the order is returned.
+	 *
+	 * @param int   $order_post_id The order post ID.
+	 * @param array $acf_data      The array of Advanced Custom Field data.
+	 *
+	 * @return string
+	 */
 	private function email_body_return_to_user( $order_post_id, $acf_data ) {
 
 		$program_name     = get_the_title( $acf_data['field_5ffcc2590682b'] );
@@ -508,6 +548,15 @@ class WSOrder_PostType_Emails {
 
 	}
 
+	/**
+	 * The email body which is sent to the IT rep and business admin when the order is returned to the end user.
+	 *
+	 * @param int    $order_post_id The order post ID.
+	 * @param array  $acf_data      The array of Advanced Custom Field data.
+	 * @param string $end_user_name The name of the end user who created the order.
+	 *
+	 * @return string
+	 */
 	private function email_body_return_to_user_forward( $order_post_id, $acf_data, $end_user_name ) {
 
 		$program_name     = get_the_title( $acf_data['field_5ffcc2590682b'] );
