@@ -53,7 +53,7 @@ class Product_PostType {
 			),
 			'product',
 			array(),
-			'dashicons-portfolio',
+			'dashicons-desktop',
 			array( 'title', 'thumbnail' ),
 			array(
 				'capability_type' => array( 'product', 'products' ),

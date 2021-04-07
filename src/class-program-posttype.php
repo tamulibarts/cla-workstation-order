@@ -51,7 +51,7 @@ class Program_PostType {
 			),
 			'program',
 			array(),
-			'dashicons-portfolio',
+			'dashicons-id',
 			array( 'title' ),
 			array(
 				'capability_type' => array( 'program', 'programs' ),

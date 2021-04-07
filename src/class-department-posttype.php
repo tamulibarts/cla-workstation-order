@@ -48,7 +48,7 @@ class Department_PostType {
 			),
 			'department',
 			array(),
-			'dashicons-portfolio',
+			'dashicons-welcome-learn-more',
 			array( 'title' ),
 			array(
 				'capability_type' => array( 'department', 'departments' ),

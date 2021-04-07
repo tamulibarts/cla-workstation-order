@@ -48,7 +48,7 @@ class Bundle_PostType {
 			),
 			'bundle',
 			array(),
-			'dashicons-portfolio',
+			'dashicons-database',
 			array( 'title', 'thumbnail' ),
 			array(
 				'capability_type' => array( 'bundle', 'bundles' ),

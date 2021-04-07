@@ -592,7 +592,7 @@ class WSOrder_PostType {
 			),
 			'wsorder',
 			array(),
-			'dashicons-portfolio',
+			'dashicons-media-spreadsheet',
 			array( 'title' ),
 			array(
 				'capabilities'       => array(
