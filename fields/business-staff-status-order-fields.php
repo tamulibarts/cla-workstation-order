@@ -81,7 +81,7 @@ acf_add_local_field_group(array(
 					'name' => 'account_number',
 					'type' => 'text',
 					'instructions' => 'You must enter the correct business account number before you can confirm the order.',
-					'required' => 1,
+					'required' => 0,
 					'conditional_logic' => array(
 						array(
 							array(
@@ -134,13 +134,13 @@ acf_add_local_field_group(array(
 					'name' => 'date',
 					'type' => 'date_time_picker',
 					'instructions' => '',
-					'required' => 1,
+					'required' => 0,
 					'conditional_logic' => array(
 						array(
 							array(
-								'field' => 'field_5fff6ec0e4385',
-								'operator' => '==',
-								'value' => '1',
+								'field' => 'field_601d731345341',
+								'operator' => '==pattern',
+								'value' => '^\\d\\d\\d\\d\\d\\d-\\D\\D\\D\\D-\\d\\d\\d\\d\\d$',
 							),
 						),
 					),
