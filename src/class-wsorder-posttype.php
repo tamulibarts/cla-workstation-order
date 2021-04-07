@@ -1182,42 +1182,42 @@ jQuery( 'select[name=\"post_status\"]' ).val('publish')";
 		if (
 			'wsorder' !== $post->post_type
 			|| 'auto-draft' === $new_status
+			|| ! isset( $_POST['_wpnonce'], $_POST['acf'] )
+			|| false === wp_verify_nonce( sanitize_key( $_POST['_wpnonce'] ), 'update-post_' . $post->ID )
 		) {
 			return;
 		}
 
 		// IT Rep confirmed by someone other than the designated IT rep.
 		$post_id = $post->ID;
-		if (
-			isset( $_POST['acf'], $_POST['acf']['field_5fff6b46a22af'], $_POST['_wpnonce'] )
-			&& wp_verify_nonce( sanitize_key( $_POST['_wpnonce'] ), 'update-post_' . $post_id )
-		) {
-			if ( isset( $_POST['acf']['field_5fff6b46a22af']['field_5fff6b71a22b0'] ) ) {
-				$old_post_it_confirm     = (int) get_post_meta( $post_id, 'it_rep_status_confirmed', true );
-				$new_post_it_confirm     = (int) $_POST['acf']['field_5fff6b46a22af']['field_5fff6b71a22b0'];
-				$it_rep_user_id          = (int) $_POST['acf']['field_5fff6b46a22af']['field_5fff703a5289f'];
-				$latest_it_rep_confirmed = $it_rep_user_id;
-				if (
-					0 === $old_post_it_confirm
-					&& 1 === $new_post_it_confirm
-				) {
-					$current_user    = wp_get_current_user();
-					$current_user_id = (int) $current_user->ID;
-					if ( $current_user_id !== $it_rep_user_id ) {
-						$latest_it_rep_confirmed = $current_user_id;
-					}
+		if ( isset( $_POST['acf']['field_5fff6b46a22af'], $_POST['acf']['field_5fff6b46a22af']['field_5fff6b71a22b0'] ) ) {
+			$old_post_it_confirm     = (int) get_post_meta( $post_id, 'it_rep_status_confirmed', true );
+			$new_post_it_confirm     = (int) $_POST['acf']['field_5fff6b46a22af']['field_5fff6b71a22b0'];
+			$it_rep_user_id          = (int) $_POST['acf']['field_5fff6b46a22af']['field_5fff703a5289f'];
+			$latest_it_rep_confirmed = $it_rep_user_id;
+			if (
+				0 === $old_post_it_confirm
+				&& 1 === $new_post_it_confirm
+			) {
+				$current_user    = wp_get_current_user();
+				$current_user_id = (int) $current_user->ID;
+				if ( $current_user_id !== $it_rep_user_id ) {
+					$latest_it_rep_confirmed = $current_user_id;
 				}
-				update_post_meta( $post_id, 'latest_it_rep_confirmed', $latest_it_rep_confirmed );
 			}
+			update_post_meta( $post_id, 'latest_it_rep_confirmed', $latest_it_rep_confirmed );
+		} else {
+			update_post_meta( $post_id, 'latest_it_rep_confirmed', '' );
 		}
 
 		// Business Staff confirmed by someone other than the designated business staff.
 		if (
-			isset( $_POST['acf']['field_5fff6ec0e2f7e'] )
-			&& isset( $_POST['acf']['field_5fff6ec0e2f7e']['field_5fff6ec0e4385'] )
+			isset( $_POST['acf']['field_5fff6ec0e2f7e'], $_POST['acf']['field_5fff6ec0e2f7e']['field_5fff6ec0e4385'] )
 		) {
-			$old_post_bus_confirm = (int) get_post_meta( $post_id, 'business_staff_status_confirmed', true );
-			$new_post_bus_confirm = (int) $_POST['acf']['field_5fff6ec0e2f7e']['field_5fff6ec0e4385'];
+			$old_post_bus_confirm      = (int) get_post_meta( $post_id, 'business_staff_status_confirmed', true );
+			$new_post_bus_confirm      = (int) $_POST['acf']['field_5fff6ec0e2f7e']['field_5fff6ec0e4385'];
+			$business_user_id          = (int) $_POST['acf']['field_5fff6ec0e2f7e']['field_5fff70b84ffe4'];
+			$latest_business_confirmed = $business_user_id;
 
 			if (
 				0 === $old_post_bus_confirm
@@ -1225,11 +1225,14 @@ jQuery( 'select[name=\"post_status\"]' ).val('publish')";
 			) {
 				$current_user     = wp_get_current_user();
 				$current_user_id  = (int) $current_user->ID;
-				$business_user_id = (int) $_POST['acf']['field_5fff6ec0e2f7e']['field_5fff70b84ffe4'];
+
 				if ( $current_user_id !== $business_user_id ) {
-					update_post_meta( $post_id, 'latest_business_admin_confirmed', $current_user_id );
+					$latest_business_confirmed = $current_user_id;
 				}
 			}
+			update_post_meta( $post_id, 'latest_business_admin_confirmed', $latest_business_confirmed );
+		} else {
+			update_post_meta( $post_id, 'latest_business_admin_confirmed', '' );
 		}
 	}
 
@@ -1244,7 +1247,7 @@ jQuery( 'select[name=\"post_status\"]' ).val('publish')";
 
 		$latest_it_rep_confirmed = get_post_meta( $post_id, 'latest_it_rep_confirmed' );
 		$it_rep_confirmed        = get_post_meta( $post_id, 'it_rep_status_it_rep' );
-		if ( '0' !== $latest_it_rep_confirmed && $latest_it_rep_confirmed !== $it_rep_confirmed ) {
+		if ( $latest_it_rep_confirmed !== $it_rep_confirmed ) {
 			update_post_meta( $post_id, 'it_rep_status_it_rep', $latest_it_rep_confirmed );
 		}
 
