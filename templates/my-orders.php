@@ -54,19 +54,33 @@ function cla_my_orders() {
 		'fields'         => 'ids',
 		'posts_per_page' => -1,
 		'post_status'    => array( 'action_required' ),
+		'orderby'        => 'meta_value_num',
+		'meta_key'       => 'order_id',
 	);
 	$pending_orders = get_posts( $pending_order_args );
-	echo '<div class="">';
-	echo "<h3>Pending orders</h3>";
-	echo '<table class="table-bordered">';
-	echo "<thead><tr><th style=\"width:60%\">Program Year</th><th style=\"width:40%\">Order</th></tr></thead>";
-	echo "<tbody>";
+	// Sort pending orders by fiscal year in descending order.
+	$pending_orders_sorted = array();
 	foreach ( $pending_orders as $opost_id ) {
-		$program_id   = get_field( 'program', $opost_id );
-		$program_year = get_field( 'fiscal_year', $program_id );
-		$order_title  = get_the_title( $opost_id );
-		$order_link   = get_edit_post_link( $opost_id );
-		echo "<tr><td>$program_year</td><td><a href=\"$order_link\">$order_title</a></td></tr>";
+		$program_id  = get_field( 'program', $opost_id );
+		$fiscal_year = get_field( 'fiscal_year', $program_id );
+		if ( ! array_key_exists( $fiscal_year, $pending_orders_sorted ) ) {
+			$pending_orders_sorted[$fiscal_year] = array();
+		}
+		$pending_orders_sorted[$fiscal_year][] = $opost_id;
+	}
+	krsort( $pending_orders_sorted );
+	// Display orders.
+	echo '<div class="">';
+	echo '<h3>Pending orders</h3>';
+	echo '<table class="table-bordered">';
+	echo '<thead><tr><th style="width:60%">Program Year</th><th style="width:40%">Order</th></tr></thead>';
+	echo '<tbody>';
+	foreach ( $pending_orders_sorted as $fiscal_year => $year_orders ) {
+		foreach ( $year_orders as $opost_id ) {
+			$order_title  = get_the_title( $opost_id );
+			$order_link   = get_edit_post_link( $opost_id );
+			echo "<tr><td>$fiscal_year</td><td><a href=\"$order_link\">$order_title</a></td></tr>";
+		}
 	}
 	echo '</tbody></table>';
 
