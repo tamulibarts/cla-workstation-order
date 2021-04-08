@@ -80,6 +80,10 @@ class WSOrder_PostType {
 		// Create order posts from form.
 		add_action( 'wp_ajax_make_order', array( $this, 'make_order' ) );
 
+		// Add program dropdown filter to post list screen.
+		add_action( 'restrict_manage_posts', array( $this, 'add_admin_post_program_filter' ), 10 );
+		add_filter( 'parse_query', array( $this, 'parse_query_program_filter' ), 10);
+
 	}
 
 	/**
@@ -678,7 +682,9 @@ class WSOrder_PostType {
 	 * @return array
 	 */
 	public function add_program_url_var( $vars ) {
-		$vars[] = 'program';
+		if ( ! in_array( 'program', $vars ) ) {
+			$vars[] = 'program';
+		}
 		return $vars;
 	}
 
@@ -995,25 +1001,6 @@ jQuery( 'select[name=\"post_status\"]' ).val('publish')";
 			if ( ! is_admin() ) {
 				return;
 			}
-			// Fix bugs which should be addressed if I can ever find a solution.
-			$query->query_vars['name'] = '';
-			if ( empty( $query->query_vars['post_status'] ) ) {
-				$query->query_vars['post_status'] = 'any';
-			}
-			// Overwrite existing meta query.
-			$meta_query = $query->get( 'meta_query' );
-			if ( ! is_array( $meta_query ) ) {
-				$meta_query = array();
-			}
-			// Apply "program" URL parameter.
-			$program = get_query_var( 'program' );
-			if ( ! empty( $program ) ) {
-				$meta_query[] = array(
-					'key'   => 'program',
-					'value' => $program,
-				);
-			}
-			$query->set( 'meta_query', $meta_query );
 			// Allow admins and logistics to see all orders.
 			if (
 				current_user_can( 'administrator' )
@@ -1400,6 +1387,82 @@ jQuery( 'select[name=\"post_status\"]' ).val('publish')";
 				)
 			);
 		}
+
+	}
+
+	/**
+	 * Render filters for Product post meta on the bulk posts page.
+	 *
+	 * @param string $post_type The post type.
+	 *
+	 * @return void
+	 */
+	public function add_admin_post_program_filter( $post_type ) {
+
+		if ( 'wsorder' !== $post_type ){
+		  return; // Do not filter this post.
+		}
+		$selected     = '';
+		$request_attr = 'program';
+		if ( isset( $_REQUEST[$request_attr] ) ) {
+		  $selected = $_REQUEST[$request_attr];
+		}
+		// Get values to filter by.
+		$args    = array(
+			'post_type' => 'program',
+			'fields'    => 'ids',
+		);
+		$results = get_posts( $args );
+		// Build a custom dropdown list of values to filter by.
+		echo '<select id="program" name="program">';
+		echo '<option value="0">' . __( 'Show all Programs', 'cla-workstation-order' ) . ' </option>';
+		foreach( $results as $program ) {
+			if ( ! empty( $program ) ) {
+				$select = ($program == $selected) ? ' selected="selected"':'';
+				echo '<option value="' . $program . '"' . $select . '>' . get_the_title( $program ) . ' </option>';
+			}
+		}
+		echo '</select>';
+
+  }
+
+	/**
+	 * Modify the post query based on custom product filter dropdown selections.
+	 *
+	 * @param WP_Query $query The query object.
+	 *
+	 * @return WP_Query
+	 */
+	public function parse_query_program_filter( $query ){
+
+		//modify the query only if it admin and main query.
+		if( !(is_admin() AND $query->is_main_query()) ){
+			return $query;
+		}
+		//we want to modify the query for the targeted custom post and filter option
+		if( !('wsorder' === $query->query['post_type'] AND isset($_REQUEST['program']) ) ){
+			return $query;
+		}
+		//for the default value of our filter no modification is required
+		if(0 == $_REQUEST['program']){
+			return $query;
+		}
+		//modify the query_vars.
+		if ( $_REQUEST['program'] === $query->query_vars['name'] ) {
+			$query->query_vars['name'] = '';
+		}
+		$meta_query = $query->get( 'meta_query' );
+		if ( ! is_array( $meta_query ) ) {
+			$meta_query = array();
+		}
+		if ( ! empty( $_REQUEST['program'] ) ) {
+			$meta_query[] = array(
+				'key'	  => 'program',
+				'value' => $_REQUEST['program'],
+			);
+		}
+		$query->set( 'meta_query', $meta_query );
+		return $query;
 
 	}
 }
