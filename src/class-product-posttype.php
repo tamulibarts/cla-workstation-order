@@ -32,6 +32,7 @@ class Product_PostType {
 		add_filter( 'manage_product_posts_columns', array( $this, 'product_filter_posts_columns' ) );
 		add_action( 'manage_product_posts_custom_column', array( $this, 'product_column' ), 10, 2 );
 		add_action( 'pre_get_posts', array( $this, 'product_posts_orderby' ) );
+		add_filter( 'query_vars', array( $this, 'add_program_url_var' ) );
 		add_action( 'restrict_manage_posts', array( $this, 'add_admin_post_program_filter' ), 10 );
 		add_filter( 'parse_query', array( $this, 'parse_query_program_filter' ), 10);
 		add_action( 'restrict_manage_posts', array( $this, 'add_admin_post_category_filter' ), 10 );
@@ -138,6 +139,20 @@ class Product_PostType {
 			$query->set( 'meta_key', 'program' );
 			$query->set( 'meta_type', 'numeric' );
 		}
+	}
+
+	/**
+	 * Add program as a URL parameter.
+	 *
+	 * @param array $vars Current variables.
+	 *
+	 * @return array
+	 */
+	public function add_program_url_var( $vars ) {
+		if ( ! in_array( 'program', $vars ) ) {
+			$vars[] = 'program';
+		}
+		return $vars;
 	}
 
 	/**
