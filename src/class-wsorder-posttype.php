@@ -1080,7 +1080,7 @@ jQuery( 'select[name=\"post_status\"]' ).val('publish')";
 		) {
 
 			$blog_id = get_current_blog_id();
-			$url     = get_site_url( $blog_id, 'order-form/' );
+			$url     = get_site_url( $blog_id, 'new-order/' );
 			wp_safe_redirect( $url );
 			exit();
 
@@ -1098,7 +1098,7 @@ jQuery( 'select[name=\"post_status\"]' ).val('publish')";
 	public function replace_new_order_url( $url, $path, $blog_id ) {
 
 		if ( 'post-new.php?post_type=wsorder' === $path ) {
-			$url = get_site_url( $blog_id, 'order-form/' );
+			$url = get_site_url( $blog_id, 'new-order/' );
 		}
 
 		return $url;
