@@ -14,6 +14,11 @@
 	width: auto;
 }
 
+%button-hover {
+	background-color: #0069D9;
+	border-color: #0062CC;
+}
+
 %button-disabled {
 	background-color: #F8F9FA;
 	color: #212529;
@@ -189,6 +194,10 @@
 
 #products {
 
+	button {
+		cursor: pointer;
+	}
+
 	> div {
 		margin-bottom: 2rem;
 	}
@@ -198,6 +207,11 @@
 
 		&[disabled] {
 			@extend %button-disabled;
+		}
+
+		&:active,
+		&:hover {
+			@extend %button-hover;
 		}
 	}
 
@@ -249,7 +263,9 @@
 	}
 
 	.card-footer {
+		border-top: 1px solid rgba(0, 0, 0, 0.125);
 		border-radius: 0 0 calc(0.25rem - 1px) calc(0.25rem - 1px);
+		padding: .75rem 0;
 	}
 
 	.card-body {
@@ -272,7 +288,7 @@
 
 	.card img {
 		max-width: 100%;
-		margin: auto;
+		margin: 0 auto 2rem;
 	}
 
 	.display-price {
@@ -333,6 +349,7 @@
 
 		.info {
 			text-transform: none;
+			color: $body-font-color;
 
 			.close {
 				position: absolute;
@@ -348,15 +365,16 @@
 					display: inline-block;
 					margin-right: 200%;
 					font-family: Verdana, Tahoma, sans-serif;
-					font-size: 2.25rem;
+					font-size: 1.25rem;
 					font-weight: 700;
 				}
 			}
-		}
 
-		ul {
-			margin-left: 0;
-			margin-bottom: 0;
+			ul {
+				margin-left: 1rem;
+				margin-bottom: 0;
+				list-style-position: inside;
+			}
 		}
 	}
 
