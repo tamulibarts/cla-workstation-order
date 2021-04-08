@@ -37,6 +37,11 @@ class Product_PostType {
 		add_filter( 'parse_query', array( $this, 'parse_query_program_filter' ), 10);
 		add_action( 'restrict_manage_posts', array( $this, 'add_admin_post_category_filter' ), 10 );
 
+		// Load the catalog page template.
+		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-pagetemplate.php';
+		$catalog = new \CLA_Workstation_Order\PageTemplate( CLA_WORKSTATION_ORDER_TEMPLATE_PATH, 'catalog.php', 'Catalog' );
+		$catalog->register();
+
 
 	}
 

@@ -288,7 +288,7 @@ class Order_Form_Helper {
 	 *
 	 * @return string
 	 */
-	public function cla_get_products( $category = false ) {
+	public function cla_get_products( $category = false, $preview = false ) {
 
 		/**
 		 * Display products.
@@ -317,7 +317,9 @@ class Order_Form_Helper {
 				$output .= "<div class=\"more-details-wrap align-left cell shrink\"><button class=\"more-details link\" type=\"button\">More Details<div class=\"info\">$more_info<a href=\"#\" class=\"close\">Close</a></div></button></div>";
 			}
 			$output .= "<div class=\"cell auto align-right display-price price-{$post_id}\">\${$price}</div>";
-			$output .= "<div class=\"cart-cell cell small-12 align-left\"><button id=\"cart-btn-{$post_id}\" data-product-id=\"{$post_id}\" data-product-price=\"\${$price}\" type=\"button\" class=\"add-product\">Add</button></div>";
+			if ( false === $preview ) {
+				$output .= "<div class=\"cart-cell cell small-12 align-left\"><button id=\"cart-btn-{$post_id}\" data-product-id=\"{$post_id}\" data-product-price=\"\${$price}\" type=\"button\" class=\"add-product\">Add</button></div>";
+			}
 			$output .= "</div></div>";
 			$output .= "</div>";
 
