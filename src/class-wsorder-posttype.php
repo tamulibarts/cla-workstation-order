@@ -1035,6 +1035,11 @@ jQuery( 'select[name=\"post_status\"]' ).val('publish')";
 				return;
 			}
 			// Everyone else must be restricted.
+			// Overwrite existing meta query.
+			$meta_query = $query->get( 'meta_query' );
+			if ( ! is_array( $meta_query ) ) {
+				$meta_query = array();
+			}
 			$user            = wp_get_current_user();
 			$current_user_id = $user->ID;
 			$meta_query[]    = array(
