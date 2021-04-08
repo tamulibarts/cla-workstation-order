@@ -916,8 +916,9 @@ jQuery( 'select[name=\"post_status\"]' ).val('publish')";
 		$status  = array( 'status' => '' );
 		$columns = array_merge( $status, $columns );
 		unset( $columns['date'] );
+		unset( $columns['author'] );
 
-		$columns['author']           = 'Ordered By';
+		$columns['ordered_by']       = 'Ordered By';
 		$columns['ordered_at']       = 'Ordered At';
 		$columns['amount']           = 'Amount';
 		$columns['it_status']        = 'IT';
@@ -934,57 +935,81 @@ jQuery( 'select[name=\"post_status\"]' ).val('publish')";
 	 * @param int    $post_id     The current post ID.
 	 */
 	public function output_list_view_columns( $column_name, $post_id ) {
+		switch ( $column_name ) {
+			case 'status':
+				$status = get_post_status( $post_id );
+				echo wp_kses_post( "<div class=\"status-color-key {$status}\"></div>" );
+				break;
 
-		if ( 'status' === $column_name ) {
-			$status = get_post_status( $post_id );
-			echo wp_kses_post( "<div class=\"status-color-key {$status}\"></div>" );
-		} elseif ( 'amount' === $column_name ) {
-			$number = (float) get_post_meta( $post_id, 'products_subtotal', true );
-			if ( class_exists( 'NumberFormatter' ) ) {
-				$formatter = new \NumberFormatter( 'en_US', \NumberFormatter::CURRENCY );
-				echo wp_kses_post( $formatter->formatCurrency( $number, 'USD' ) );
-			} else {
-				echo wp_kses_post( '$' . number_format( $number, 2, '.', ',' ) );
-			}
-		} elseif ( 'it_status' === $column_name ) {
-			$status = get_field( 'it_rep_status', $post_id );
-			if ( empty( $status['confirmed'] ) ) {
-				echo wp_kses_post( '<span class="approval not-confirmed">Not yet confirmed</span>' );
-			} else {
-				echo wp_kses_post( '<span class="approval confirmed">Confirmed</span><br>' );
-				echo wp_kses_post( $status['it_rep']['display_name'] );
-			}
-		} elseif ( 'business_status' === $column_name ) {
-			// Determine status message.
-			$business_staff_id = get_post_meta( $post_id, 'business_staff_status_business_staff', true );
-			if ( ! empty( $business_staff_id ) ) {
-				$status = get_field( 'business_staff_status', $post_id );
+			case 'amount':
+				$number = (float) get_post_meta( $post_id, 'products_subtotal', true );
+				if ( class_exists( 'NumberFormatter' ) ) {
+					$formatter = new \NumberFormatter( 'en_US', \NumberFormatter::CURRENCY );
+					echo wp_kses_post( $formatter->formatCurrency( $number, 'USD' ) );
+				} else {
+					echo wp_kses_post( '$' . number_format( $number, 2, '.', ',' ) );
+				}
+				break;
+
+			case 'it_status':
+				$status = get_field( 'it_rep_status', $post_id );
 				if ( empty( $status['confirmed'] ) ) {
 					echo wp_kses_post( '<span class="approval not-confirmed">Not yet confirmed</span>' );
 				} else {
 					echo wp_kses_post( '<span class="approval confirmed">Confirmed</span><br>' );
-					echo wp_kses_post( $status['business_staff']['display_name'] );
+					echo wp_kses_post( $status['it_rep']['display_name'] );
 				}
-			} else {
-				echo wp_kses_post( '<span class="approval">Not required</span>' );
-			}
-		} elseif ( 'logistics_status' === $column_name ) {
-			$status = get_field( 'it_logistics_status', $post_id );
-			if ( empty( $status['confirmed'] ) ) {
-				echo wp_kses_post( '<span class="approval not-confirmed">Not yet confirmed</span>' );
-			} else {
-				echo wp_kses_post( '<span class="approval confirmed">Confirmed</span> ' );
-				if ( empty( $status['ordered'] ) ) {
-					echo wp_kses_post( '<span class="approval not-fully-ordered">Not fully ordered</span>' );
+				break;
+
+			case 'business_status':
+				// Determine status message.
+				$business_staff_id = get_post_meta( $post_id, 'business_staff_status_business_staff', true );
+				if ( ! empty( $business_staff_id ) ) {
+					$status = get_field( 'business_staff_status', $post_id );
+					if ( empty( $status['confirmed'] ) ) {
+						echo wp_kses_post( '<span class="approval not-confirmed">Not yet confirmed</span>' );
+					} else {
+						echo wp_kses_post( '<span class="approval confirmed">Confirmed</span><br>' );
+						echo wp_kses_post( $status['business_staff']['display_name'] );
+					}
 				} else {
-					echo wp_kses_post( '<span class="approval ordered">Ordered</span>' );
+					echo wp_kses_post( '<span class="approval">Not required</span>' );
 				}
-			}
-		} elseif ( 'ordered_at' === $column_name ) {
-			$ordered = get_post_meta( $post_id, 'it_logistics_status_ordered_at', true );
-			if ( ! empty( $ordered ) ) {
-				echo esc_html( date( 'F j, Y \a\t g:i a', strtotime( $ordered ) ) );
-			}
+				break;
+
+			case 'logistics_status':
+				$status = get_field( 'it_logistics_status', $post_id );
+				if ( empty( $status['confirmed'] ) ) {
+					echo wp_kses_post( '<span class="approval not-confirmed">Not yet confirmed</span>' );
+				} else {
+					echo wp_kses_post( '<span class="approval confirmed">Confirmed</span> ' );
+					if ( empty( $status['ordered'] ) ) {
+						echo wp_kses_post( '<span class="approval not-fully-ordered">Not fully ordered</span>' );
+					} else {
+						echo wp_kses_post( '<span class="approval ordered">Ordered</span>' );
+					}
+				}
+				break;
+
+			case 'ordered_at':
+				$ordered = get_post_meta( $post_id, 'it_logistics_status_ordered_at', true );
+				if ( ! empty( $ordered ) ) {
+					echo esc_html( date( 'F j, Y \a\t g:i a', strtotime( $ordered ) ) );
+				}
+				break;
+
+			case 'ordered_by':
+				$author_id   = (int) get_post_field( 'post_author', $post_id );
+				$author      = get_user_by( 'ID', $author_id );
+				$author_name = $author->display_name;
+				$author_link = add_query_arg( 'user_id', $author_id, self_admin_url( 'user-edit.php' ) );
+				$author_dept = get_the_author_meta( 'department', $author_id );
+				$dept_name   = get_the_title( $author_dept );
+				echo "<a href=\"$author_link\">$author_name</a><br>$dept_name";
+				break;
+
+			default:
+				break;
 		}
 	}
 
