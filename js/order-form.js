@@ -508,8 +508,11 @@
       	action: 'make_order',
       	_ajax_nonce: WSOAjax.nonce
       }
-      $form.find('input,select,textarea').each(function(){
+      $form.find('input:not([type="checkbox"]),select,textarea').each(function(){
       	form_data[this.name] = this.value;
+      });
+      $form.find('input[type="checkbox"]').each(function(){
+      	form_data[this.name] = this.checked ? 'on' : 'off';
       });
 	    jQuery.ajax({
 	      type: "POST",
