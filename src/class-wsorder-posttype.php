@@ -84,6 +84,27 @@ class WSOrder_PostType {
 		add_action( 'restrict_manage_posts', array( $this, 'add_admin_post_program_filter' ), 10 );
 		add_filter( 'parse_query', array( $this, 'parse_query_program_filter' ), 10);
 
+		// Disable order form fields
+		add_filter('acf/load_field/name=price', array( $this, 'disable_field' ) );
+		add_filter('acf/load_field/name=sku', array( $this, 'disable_field' ) );
+		add_filter('acf/load_field/name=item', array( $this, 'disable_field' ) );
+		add_filter('acf/load_field/name=requisition_number', array( $this, 'disable_field_for_non_logistics_user' ) );
+		add_filter('acf/load_field/name=requisition_date', array( $this, 'disable_field_for_non_logistics_user' ) );
+		add_filter('acf/load_field/name=asset_number', array( $this, 'disable_field_for_non_logistics_user' ) );
+		add_filter('acf/load_field/name=products_subtotal', array( $this, 'disable_field' ) );
+
+	}
+
+	public function disable_field( $field ) {
+		$field['disabled'] = '1';
+		return $field;
+	}
+
+	public function disable_field_for_non_logistics_user( $field ) {
+		if ( ! current_user_can( 'wso_logistics' ) && ! current_user_can( 'wso_admin' ) ) {
+			$field['disabled'] = '1';
+		}
+		return $field;
 	}
 
 	/**
