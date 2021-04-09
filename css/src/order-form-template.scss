@@ -237,6 +237,10 @@
 		background-clip: border-box;
 		border: 1px solid rgba(0, 0, 0, 0.125);
 		border-radius: 0.25rem;
+		margin: {
+			top: 0.9375rem;
+			bottom: 0.9375rem;
+		}
 	}
 
 	.card-header,
@@ -263,6 +267,7 @@
 	}
 
 	.card-footer {
+		position: relative;
 		border-top: 1px solid rgba(0, 0, 0, 0.125);
 		border-radius: 0 0 calc(0.25rem - 1px) calc(0.25rem - 1px);
 		padding: .75rem 0;
@@ -331,7 +336,6 @@
 	}
 
 	.more-details {
-		position: relative;
 		color: #007BFF;
 		border: none;
 		background-color: transparent;
@@ -350,6 +354,18 @@
 		.info {
 			text-transform: none;
 			color: $body-font-color;
+			display: none;
+			position: absolute;
+			left: 0;
+			right: 0;
+			bottom: 100%;
+			border: 1px solid rgba(0, 0, 0, 0.2);
+			background-color: #FFF;
+			padding: 20px;
+			line-height: 1.1;
+			max-height: 350px;
+			overflow-x: auto;
+			z-index: 1;
 
 			.close {
 				position: absolute;
@@ -373,24 +389,9 @@
 			ul {
 				margin-left: 1rem;
 				margin-bottom: 0;
-				list-style-position: inside;
+				list-style-position: outside;
 			}
 		}
-	}
-
-	.info {
-		display: none;
-		position: absolute;
-		top: -2px;
-		left: calc(100% + 4px);
-		border: 1px solid rgba(0, 0, 0, 0.2);
-		background-color: #FFF;
-		padding: 20px;
-		line-height: 1.1;
-		width: 350px;
-		max-height: 350px;
-		overflow-x: auto;
-		z-index: 1;
 	}
 
 	.more-details-wrap.active .info {
