@@ -8,7 +8,9 @@ body.wp-admin.post-type-wsorder {
 	.inline-edit-wsorder .inline-edit-status,
 	.inline-edit-wsorder .inline-edit-group,
 	.misc-pub-section.misc-pub-visibility,
-	.misc-pub-section.misc-pub-curtime {
+	.misc-pub-section.misc-pub-curtime,
+	.row-actions .inline,
+	.row-actions .trash {
 		display: none;
 	}
 
