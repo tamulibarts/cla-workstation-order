@@ -1028,7 +1028,7 @@ jQuery( 'select[name=\"post_status\"]' ).val('publish')";
 	 */
 	public function pre_get_posts( $query ) {
 		if ( 'wsorder' === $query->get( 'post_type' ) ) {
-			if ( ! is_admin() ) {
+			if ( ! ( is_admin() && $query->is_main_query() ) ) {
 				return;
 			}
 			// Allow admins and logistics to see all orders.
@@ -1485,6 +1485,9 @@ jQuery( 'select[name=\"post_status\"]' ).val('publish')";
 		//modify the query_vars.
 		if ( $_REQUEST['program'] === $query->query_vars['name'] ) {
 			$query->query_vars['name'] = '';
+		}
+		if ( empty( $query->query_vars['post_status'] ) ) {
+			$query->query_vars['post_status'] = 'any';
 		}
 		$meta_query = $query->get( 'meta_query' );
 		if ( ! is_array( $meta_query ) ) {
