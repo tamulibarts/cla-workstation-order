@@ -96,7 +96,7 @@ class Order_Form_Helper {
 				array(
 					'key'     => 'program',
 					'compare' => '=',
-					'value'   => $current_program_id,
+					'value'   => $program_post_id,
 				),
 			),
 		);
