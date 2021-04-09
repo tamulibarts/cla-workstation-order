@@ -155,7 +155,7 @@ class WSOrder_PostType_Emails {
 				// Declare end user variables.
 				$user_id                 = $post->post_author;
 				$end_user                = get_user_by( 'id', $user_id );
-				$end_user_name           = $end_user->user_name;
+				$end_user_name           = $end_user->display_name;
 				$user_department_post    = get_field( 'department', "user_{$user_id}" );
 				$department_abbreviation = get_field( 'abbreviation', $user_department_post->ID );
 				// Get logistics email.
@@ -218,7 +218,7 @@ class WSOrder_PostType_Emails {
 				// Declare end user variables.
 				$user_id                 = $post->post_author;
 				$end_user                = get_user_by( 'id', $user_id );
-				$end_user_name           = $end_user->user_name;
+				$end_user_name           = $end_user->display_name;
 				$user_department_post    = get_field( 'department', "user_{$user_id}" );
 				$department_abbreviation = get_field( 'abbreviation', $user_department_post->ID );
 				// Get logistics email.
@@ -276,7 +276,7 @@ class WSOrder_PostType_Emails {
 				$user_id                 = $post->post_author;
 				$end_user                = get_user_by( 'id', $user_id );
 				$end_user_email          = $end_user->user_email;
-				$end_user_name           = $end_user->user_name;
+				$end_user_name           = $end_user->display_name;
 				$user_department_post    = get_field( 'department', "user_{$user_id}" );
 				$department_abbreviation = get_field( 'abbreviation', $user_department_post->ID );
 				// Send email.
@@ -324,7 +324,7 @@ class WSOrder_PostType_Emails {
 		$user_id                 = $post->post_author;
 		$end_user                = get_user_by( 'id', $user_id );
 		$end_user_email          = $end_user->user_email;
-		$end_user_name           = $end_user->user_name;
+		$end_user_name           = $end_user->display_name;
 		$user_department_post    = get_field( 'department', "user_{$user_id}" );
 		$user_department_post_id = $user_department_post->ID;
 		$department_abbreviation = get_field( 'abbreviation', $user_department_post_id );
