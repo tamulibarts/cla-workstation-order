@@ -847,13 +847,16 @@ jQuery( 'select[name=\"post_status\"]' ).val('publish')";
 	 *
 	 * @return int
 	 */
-	private function get_last_order_id( $program_post_id ) {
+	public function get_last_order_id( $program_post_id ) {
 
-		$args      = array(
+		$args  = array(
 			'post_type'      => 'wsorder',
 			'post_status'    => 'any',
 			'posts_per_page' => 1,
 			'fields'         => 'ids',
+			'orderby'        => 'meta_value_num',
+			'meta_key'       => 'order_id',
+			'order'          => 'DESC',
 			'meta_query'     => array( //phpcs:ignore
 				array(
 					'key'     => 'order_id',
@@ -866,8 +869,7 @@ jQuery( 'select[name=\"post_status\"]' ).val('publish')";
 				),
 			),
 		);
-		$the_query = new \WP_Query( $args );
-		$posts     = $the_query->posts;
+		$posts = get_posts( $args );
 		if ( ! empty( $posts ) ) {
 			$last_wsorder_id = (int) get_post_meta( $posts[0], 'order_id', true );
 		} else {
