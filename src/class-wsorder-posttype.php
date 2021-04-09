@@ -222,6 +222,11 @@ class WSOrder_PostType {
 			// Save no computer yet field.
 			if ( isset( $_POST['cla_no_computer_yet'] ) ) {
 				$value = sanitize_key( wp_unslash( $_POST['cla_no_computer_yet'] ) );
+				if ( 'on' === $value ) {
+					$value = 1;
+				} else {
+					$value = 0;
+				}
 				update_field( 'i_dont_have_a_computer_yet', $value, $post_id );
 			}
 
