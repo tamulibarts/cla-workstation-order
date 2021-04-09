@@ -63,15 +63,7 @@
                         "type": "date_time_picker",
                         "instructions": "",
                         "required": 1,
-                        "conditional_logic": [
-                            [
-                                {
-                                    "field": "field_5fff6f3cef757",
-                                    "operator": "==",
-                                    "value": "1"
-                                }
-                            ]
-                        ],
+                        "conditional_logic": 0,
                         "wrapper": {
                             "width": "",
                             "class": "",
@@ -88,15 +80,7 @@
                         "type": "true_false",
                         "instructions": "",
                         "required": 0,
-                        "conditional_logic": [
-                            [
-                                {
-                                    "field": "field_5fff6f3cef757",
-                                    "operator": "==",
-                                    "value": "1"
-                                }
-                            ]
-                        ],
+                        "conditional_logic": 0,
                         "wrapper": {
                             "width": "",
                             "class": "",
@@ -115,15 +99,7 @@
                         "type": "date_time_picker",
                         "instructions": "",
                         "required": 1,
-                        "conditional_logic": [
-                            [
-                                {
-                                    "field": "field_60074e2222cee",
-                                    "operator": "==",
-                                    "value": "1"
-                                }
-                            ]
-                        ],
+                        "conditional_logic": 0,
                         "wrapper": {
                             "width": "",
                             "class": "",
