@@ -532,7 +532,6 @@
 	    });
  		} else {
 			// Show error message.
-			console.log(validation.message);
 			$form.find('#order-message').html('There was a problem with your order. Please look for any errors below.<br>' + validation.message);
  		}
     return false;
