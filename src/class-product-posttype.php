@@ -66,7 +66,8 @@ class Product_PostType {
 			'dashicons-desktop',
 			array( 'title', 'thumbnail' ),
 			array(
-				'capability_type' => array( 'product', 'products' ),
+				'capability_type'    => array( 'product', 'products' ),
+				'publicly_queryable' => false,
 			)
 		);
 

@@ -51,7 +51,8 @@ class Department_PostType {
 			'dashicons-welcome-learn-more',
 			array( 'title' ),
 			array(
-				'capability_type' => array( 'department', 'departments' ),
+				'capability_type'    => array( 'department', 'departments' ),
+				'publicly_queryable' => false,
 			)
 		);
 

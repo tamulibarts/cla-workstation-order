@@ -54,7 +54,8 @@ class Program_PostType {
 			'dashicons-id',
 			array( 'title' ),
 			array(
-				'capability_type' => array( 'program', 'programs' ),
+				'capability_type'    => array( 'program', 'programs' ),
+				'publicly_queryable' => false,
 			)
 		);
 

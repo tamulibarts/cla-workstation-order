@@ -80,25 +80,27 @@ class Order_Form_Helper {
 	 */
 	private function get_last_order_id( $program_post_id ) {
 
-		$args              = array(
+		$args  = array(
 			'post_type'      => 'wsorder',
 			'post_status'    => 'any',
 			'posts_per_page' => 1,
 			'fields'         => 'ids',
-			'meta_query'     => array(
+			'orderby'        => 'meta_value_num',
+			'meta_key'       => 'order_id',
+			'order'          => 'DESC',
+			'meta_query'     => array( //phpcs:ignore
 				array(
 					'key'     => 'order_id',
-					'compare' => 'EXISTS'
+					'compare' => 'EXISTS',
 				),
 				array(
 					'key'     => 'program',
 					'compare' => '=',
-					'value'   => $program_post_id,
-				)
+					'value'   => $current_program_id,
+				),
 			),
 		);
-		$the_query = new \WP_Query( $args );
-		$posts = $the_query->posts;
+		$posts = get_posts( $args );
 		if ( ! empty( $posts ) ) {
 			$last_wsorder_id = (int) get_post_meta( $posts[0], 'order_id', true );
 		} else {

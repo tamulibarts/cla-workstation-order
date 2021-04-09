@@ -51,7 +51,8 @@ class Bundle_PostType {
 			'dashicons-database',
 			array( 'title', 'thumbnail' ),
 			array(
-				'capability_type' => array( 'bundle', 'bundles' ),
+				'capability_type'    => array( 'bundle', 'bundles' ),
+				'publicly_queryable' => false,
 			)
 		);
 
