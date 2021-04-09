@@ -87,26 +87,97 @@ class WSOrder_PostType {
 	}
 
 	/**
-	 * Get disallowed product and bundle IDs.
+	 * Register the post type and post statuses.
 	 *
-	 * @return array
+	 * @return void
 	 */
-	public function get_disallowed_product_and_bundle_ids() {
+	public function register_post_type() {
 
-		$user                        = wp_get_current_user();
-		$user_id                     = $user->get( 'ID' );
-		$user_department_post        = get_field( 'department', "user_{$user_id}" );
-		$user_department_post_id     = $user_department_post->ID;
-		$hidden_products             = get_field( 'hidden_products', $user_department_post_id );
-		$hidden_bundles              = get_field( 'hidden_products', $user_department_post_id );
-		$hidden_products_and_bundles = array();
-		if ( is_array( $hidden_products ) ) {
-			$hidden_products_and_bundles = array_merge( $hidden_products_and_bundles, $hidden_products );
-		}
-		if ( is_array( $hidden_bundles ) ) {
-			$hidden_products_and_bundles = array_merge( $hidden_products_and_bundles, $hidden_bundles );
-		}
-		return $hidden_products_and_bundles;
+		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-posttype.php';
+		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-taxonomy.php';
+
+		new \CLA_Workstation_Order\PostType(
+			array(
+				'singular' => 'Order',
+				'plural'   => 'Orders',
+			),
+			'wsorder',
+			array(),
+			'dashicons-media-spreadsheet',
+			array( 'title' ),
+			array(
+				'capabilities'       => array(
+					'edit_post'              => 'edit_wsorder',
+					'read_post'              => 'read_wsorder',
+					'delete_post'            => 'delete_wsorder',
+					'create_posts'           => 'create_wsorders',
+					'delete_posts'           => 'delete_wsorders',
+					'delete_others_posts'    => 'delete_others_wsorders',
+					'delete_private_posts'   => 'delete_private_wsorders',
+					'delete_published_posts' => 'delete_published_wsorders',
+					'edit_posts'             => 'edit_wsorders',
+					'edit_others_posts'      => 'edit_others_wsorders',
+					'edit_private_posts'     => 'edit_private_wsorders',
+					'edit_published_posts'   => 'edit_published_wsorders',
+					'publish_posts'          => 'publish_wsorders',
+					'read_private_posts'     => 'read_private_wsorders',
+				),
+				'map_meta_cap'       => true,
+				'publicly_queryable' => false,
+			)
+		);
+
+		register_post_status(
+			'action_required',
+			array(
+				'label'                     => _x( 'Action Required', 'post' ),
+				'public'                    => true,
+				'exclude_from_search'       => false,
+				'show_in_admin_all_list'    => true,
+				'show_in_admin_status_list' => true,
+				/* translators: placeholder is the post count */
+				'label_count'               => _n_noop( 'Action Required <span class="count">(%s)</span>', 'Action Required <span class="count">(%s)</span>' ),
+			)
+		);
+
+		register_post_status(
+			'returned',
+			array(
+				'label'                     => _x( 'Returned', 'post' ),
+				'public'                    => true,
+				'exclude_from_search'       => false,
+				'show_in_admin_all_list'    => true,
+				'show_in_admin_status_list' => true,
+				/* translators: placeholder is the post count */
+				'label_count'               => _n_noop( 'Returned <span class="count">(%s)</span>', 'Returned <span class="count">(%s)</span>' ),
+			)
+		);
+
+		register_post_status(
+			'completed',
+			array(
+				'label'                     => _x( 'Completed', 'post' ),
+				'public'                    => true,
+				'exclude_from_search'       => false,
+				'show_in_admin_all_list'    => true,
+				'show_in_admin_status_list' => true,
+				/* translators: placeholder is the post count */
+				'label_count'               => _n_noop( 'Completed <span class="count">(%s)</span>', 'Completed <span class="count">(%s)</span>' ),
+			)
+		);
+
+		register_post_status(
+			'awaiting_another',
+			array(
+				'label'                     => _x( 'Awaiting Another', 'post' ),
+				'public'                    => true,
+				'exclude_from_search'       => false,
+				'show_in_admin_all_list'    => true,
+				'show_in_admin_status_list' => true,
+				/* translators: placeholder is the post count */
+				'label_count'               => _n_noop( 'Awaiting Another <span class="count">(%s)</span>', 'Awaiting Another <span class="count">(%s)</span>' ),
+			)
+		);
 
 	}
 
@@ -294,7 +365,6 @@ class WSOrder_PostType {
 
 				$product_post_ids = sanitize_text_field( wp_unslash( $_POST['cla_product_ids'] ) );
 				$product_post_ids = explode( ',', $product_post_ids );
-				$product_count    = count( $product_post_ids );
 				// Ensure no product IDs are included that user is not allowed to buy.
 				$disallowed_product_ids = $this->get_disallowed_product_and_bundle_ids();
 				if ( ! empty( $disallowed_product_ids ) ) {
@@ -306,43 +376,55 @@ class WSOrder_PostType {
 					}
 				}
 
-				$product_subtotal = 0;
+				if ( count( $product_post_ids ) > 0 ) {
 
-				if ( $product_count > 0 ) {
+					// Get subtotal for products and bundles.
+					$product_subtotal = 0;
+					foreach ($product_post_ids as $product_post_id) {
+						$price = get_field( 'price', $product_post_id );
+						$product_subtotal += $price;
+					}
 
-					$product_fields = array();
+					// Save product subtotal.
+					$value = $product_subtotal;
+					update_field( 'products_subtotal', $value, $post_id );
 
 					// Break down bundles into individual product post ids.
-					$bundle_product_collection = array();
 					$actual_product_collection = array();
+
 					foreach ( $product_post_ids as $product_post_id ) {
+
 						$product_post_type = get_post_type( $product_post_id );
+
 						if ( 'bundle' === $product_post_type ) {
+
 							// Get products in bundle as post IDs.
-							$bundle_products           = get_field( 'products', $product_post_id );
-							$bundle_product_collection = array_merge( $bundle_product_collection, $bundle_products );
+							$bundle_products = get_field( 'products', $product_post_id );
+
+							foreach ( $bundle_products as $bundle_product_post_id ) {
+
+								$actual_product_collection[] = $bundle_product_post_id;
+
+							}
+
 						} else {
+
 							$actual_product_collection[] = $product_post_id;
+
 						}
 					}
-					$product_post_ids = array_merge( $bundle_product_collection, $actual_product_collection );
+					$product_post_ids = $actual_product_collection;
 
 					// Convert products into ACF fields.
-					for ( $i = 0; $i < $product_count; $i++ ) {
-						$product_post_id = $product_post_ids[ $i ];
-						// Add to subtotal.
-						$product_subtotal     = $product_subtotal + get_field( 'price', $product_post_id );
-						$product_fields[ $i ] = array(
+					$product_fields = array();
+					foreach ( $product_post_ids as $key => $product_post_id ) {
+						$product_fields[ $key ] = array(
 							'sku'   => get_field( 'sku', $product_post_id ),
 							'item'  => get_the_title( $product_post_id ),
 							'price' => get_field( 'price', $product_post_id ),
 						);
 					}
 					update_field( 'order_items', $product_fields, $post_id );
-
-					// Save product subtotal.
-					$value = $product_subtotal;
-					update_field( 'products_subtotal', $value, $post_id );
 
 				}
 			}
@@ -354,6 +436,30 @@ class WSOrder_PostType {
 		}
 
 		die();
+
+	}
+
+	/**
+	 * Get disallowed product and bundle IDs.
+	 *
+	 * @return array
+	 */
+	public function get_disallowed_product_and_bundle_ids() {
+
+		$user                        = wp_get_current_user();
+		$user_id                     = $user->get( 'ID' );
+		$user_department_post        = get_field( 'department', "user_{$user_id}" );
+		$user_department_post_id     = $user_department_post->ID;
+		$hidden_products             = get_field( 'hidden_products', $user_department_post_id );
+		$hidden_bundles              = get_field( 'hidden_products', $user_department_post_id );
+		$hidden_products_and_bundles = array();
+		if ( is_array( $hidden_products ) ) {
+			$hidden_products_and_bundles = array_merge( $hidden_products_and_bundles, $hidden_products );
+		}
+		if ( is_array( $hidden_bundles ) ) {
+			$hidden_products_and_bundles = array_merge( $hidden_products_and_bundles, $hidden_bundles );
+		}
+		return $hidden_products_and_bundles;
 
 	}
 
@@ -581,101 +687,6 @@ class WSOrder_PostType {
 			return true;
 
 		}
-
-	}
-
-	/**
-	 * Register the post type and post statuses.
-	 *
-	 * @return void
-	 */
-	public function register_post_type() {
-
-		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-posttype.php';
-		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-taxonomy.php';
-
-		new \CLA_Workstation_Order\PostType(
-			array(
-				'singular' => 'Order',
-				'plural'   => 'Orders',
-			),
-			'wsorder',
-			array(),
-			'dashicons-media-spreadsheet',
-			array( 'title' ),
-			array(
-				'capabilities'       => array(
-					'edit_post'              => 'edit_wsorder',
-					'read_post'              => 'read_wsorder',
-					'delete_post'            => 'delete_wsorder',
-					'create_posts'           => 'create_wsorders',
-					'delete_posts'           => 'delete_wsorders',
-					'delete_others_posts'    => 'delete_others_wsorders',
-					'delete_private_posts'   => 'delete_private_wsorders',
-					'delete_published_posts' => 'delete_published_wsorders',
-					'edit_posts'             => 'edit_wsorders',
-					'edit_others_posts'      => 'edit_others_wsorders',
-					'edit_private_posts'     => 'edit_private_wsorders',
-					'edit_published_posts'   => 'edit_published_wsorders',
-					'publish_posts'          => 'publish_wsorders',
-					'read_private_posts'     => 'read_private_wsorders',
-				),
-				'map_meta_cap'       => true,
-				'publicly_queryable' => false,
-			)
-		);
-
-		register_post_status(
-			'action_required',
-			array(
-				'label'                     => _x( 'Action Required', 'post' ),
-				'public'                    => true,
-				'exclude_from_search'       => false,
-				'show_in_admin_all_list'    => true,
-				'show_in_admin_status_list' => true,
-				/* translators: placeholder is the post count */
-				'label_count'               => _n_noop( 'Action Required <span class="count">(%s)</span>', 'Action Required <span class="count">(%s)</span>' ),
-			)
-		);
-
-		register_post_status(
-			'returned',
-			array(
-				'label'                     => _x( 'Returned', 'post' ),
-				'public'                    => true,
-				'exclude_from_search'       => false,
-				'show_in_admin_all_list'    => true,
-				'show_in_admin_status_list' => true,
-				/* translators: placeholder is the post count */
-				'label_count'               => _n_noop( 'Returned <span class="count">(%s)</span>', 'Returned <span class="count">(%s)</span>' ),
-			)
-		);
-
-		register_post_status(
-			'completed',
-			array(
-				'label'                     => _x( 'Completed', 'post' ),
-				'public'                    => true,
-				'exclude_from_search'       => false,
-				'show_in_admin_all_list'    => true,
-				'show_in_admin_status_list' => true,
-				/* translators: placeholder is the post count */
-				'label_count'               => _n_noop( 'Completed <span class="count">(%s)</span>', 'Completed <span class="count">(%s)</span>' ),
-			)
-		);
-
-		register_post_status(
-			'awaiting_another',
-			array(
-				'label'                     => _x( 'Awaiting Another', 'post' ),
-				'public'                    => true,
-				'exclude_from_search'       => false,
-				'show_in_admin_all_list'    => true,
-				'show_in_admin_status_list' => true,
-				/* translators: placeholder is the post count */
-				'label_count'               => _n_noop( 'Awaiting Another <span class="count">(%s)</span>', 'Awaiting Another <span class="count">(%s)</span>' ),
-			)
-		);
 
 	}
 
@@ -922,9 +933,9 @@ jQuery( 'select[name=\"post_status\"]' ).val('publish')";
 
 		$status  = array( 'status' => '' );
 		$columns = array_merge( $status, $columns );
-		unset( $columns['date'] );
+		// unset( $columns['title'] );
+		// unset( $columns['date'] );
 		unset( $columns['author'] );
-
 		$columns['ordered_by']       = 'Ordered By';
 		$columns['ordered_at']       = 'Ordered At';
 		$columns['amount']           = 'Amount';
@@ -1006,13 +1017,25 @@ jQuery( 'select[name=\"post_status\"]' ).val('publish')";
 				break;
 
 			case 'ordered_by':
-				$author_id   = (int) get_post_field( 'post_author', $post_id );
-				$author      = get_user_by( 'ID', $author_id );
-				$author_name = $author->display_name;
-				$author_link = add_query_arg( 'user_id', $author_id, self_admin_url( 'user-edit.php' ) );
-				$author_dept = get_the_author_meta( 'department', $author_id );
-				$dept_name   = get_the_title( $author_dept );
-				echo "<a href=\"$author_link\">$author_name</a><br>$dept_name";
+				$current_user      = wp_get_current_user();
+				$current_user_id   = $current_user->ID;
+				$author_id         = (int) get_post_field( 'post_author', $post_id );
+				$author            = get_user_by( 'ID', $author_id );
+				$author_name       = $author->display_name;
+				$author_dept       = get_the_author_meta( 'department', $author_id );
+				$dept_name         = get_the_title( $author_dept );
+				$author_link_open  = '';
+				$author_link_close = '';
+				if ( current_user_can( 'wso_admin' ) ) {
+					$author_link       = add_query_arg( 'user_id', $author_id, self_admin_url( 'user-edit.php' ) );
+					$author_link_open  = "<a href=\"$author_link\">";
+					$author_link_close = '</a>';
+				} elseif ( $current_user_id === $author_id ) {
+					$author_link       = get_edit_profile_url();
+					$author_link_open  = "<a href=\"$author_link\">";
+					$author_link_close = '</a>';
+				}
+				echo "{$author_link_open}$author_name{$author_link_close}<br>$dept_name";
 				break;
 
 			default:
@@ -1411,18 +1434,20 @@ jQuery( 'select[name=\"post_status\"]' ).val('publish')";
 		) {
 			$program_id   = get_query_var( 'program' );
 			$program_post = get_post( $program_id );
-			echo wp_kses(
-				'<div class="h1" style="font-size:23px;font-weight:400;line-height:29.9px;padding-top:16px;">Orders - ' . $program_post->post_title . '</div><style type="text/css">.wrap h1.wp-heading-inline{display:none;}</style>',
-				array(
-					'div'   => array(
-						'class' => array(),
-						'style' => array(),
-					),
-					'style' => array(
-						'type' => array(),
-					),
-				)
-			);
+			if ( $program_post ) {
+				echo wp_kses(
+					'<div class="h1" style="font-size:23px;font-weight:400;line-height:29.9px;padding-top:16px;">Orders - ' . $program_post->post_title . '</div><style type="text/css">.wrap h1.wp-heading-inline{display:none;}</style>',
+					array(
+						'div'   => array(
+							'class' => array(),
+							'style' => array(),
+						),
+						'style' => array(
+							'type' => array(),
+						),
+					)
+				);
+			}
 		}
 
 	}
@@ -1473,7 +1498,7 @@ jQuery( 'select[name=\"post_status\"]' ).val('publish')";
 	public function parse_query_program_filter( $query ){
 
 		//modify the query only if it admin and main query.
-		if( !(is_admin() AND $query->is_main_query()) ){
+		if( !( is_admin() && $query->is_main_query() ) ){
 			return $query;
 		}
 		//we want to modify the query for the targeted custom post and filter option
