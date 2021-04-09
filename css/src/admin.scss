@@ -45,6 +45,10 @@ body.wp-admin.post-type-wsorder {
 	&.wso_admin.completed input#publish {
 		display: inline-block;
 	}
+
+	.acf-field input[disabled] {
+		color: #666;
+	}
 }
 
 // body.hide-save-button.wp-admin.post-type-wsorder {
