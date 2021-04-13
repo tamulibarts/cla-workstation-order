@@ -192,7 +192,7 @@ function cla_render_order_form() {
 		/**
 		 * Add advanced quote button.
 		 */
-		$button_add_quote = '<div class="products"><button type="button" id="cla_add_quote">Add an Advanced Teaching/Research Quote</button></div>';
+		$button_add_quote = '<div class="products"><button class="button" type="button" id="cla_add_quote">Add an Advanced Teaching/Research Quote</button></div>';
 
 		/**
 		 * Store number of quotes.

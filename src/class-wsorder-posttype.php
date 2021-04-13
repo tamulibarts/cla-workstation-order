@@ -351,7 +351,7 @@ class WSOrder_PostType {
 			// Let WordPress handle the upload.
 			// Remember, 'cla_quote_0_file' is the name of our file input in our form above.
 			// Here post_id is 0 because we are not going to attach the media to any post.
-			if ( isset( $_POST['cla_quote_count'] ) ) {
+			if ( isset( $_POST['cla_quote_count'] ) && 0 < intval( $_POST['cla_quote_count'] ) ) {
 
 				$quote_count = sanitize_text_field( wp_unslash( $_POST['cla_quote_count'] ) );
 

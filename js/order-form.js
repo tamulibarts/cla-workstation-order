@@ -500,23 +500,29 @@
 	$form.find('button[type="button"]').on('click', saveForm);
 	// Add submit event handler.
 	jQuery('#cla_order_form').submit(ajaxSubmit);
-	function ajaxSubmit() {
+	function ajaxSubmit(e) {
+    e.preventDefault();
  		var validation = validateForm();
  		if ( validation.status === true ) {
  			$form.find('#order-message').html('');
-	    var form_data = {
-      	action: 'make_order',
-      	_ajax_nonce: WSOAjax.nonce
-      }
-      $form.find('input:not([type="checkbox"]),select,textarea').each(function(){
-      	form_data[this.name] = this.value;
+      var form_data = new FormData();
+      $form.find('input:not([type="checkbox"]):not([type="file"]),select,textarea').each(function(){
+      	form_data.append(this.name, this.value);
       });
       $form.find('input[type="checkbox"]').each(function(){
-      	form_data[this.name] = this.checked ? 'on' : 'off';
+      	var value = this.checked ? 'on' : 'off';
+      	form_data.append(this.name, value);
       });
+      $form.find('input[type="file"]').each(function(){
+      	form_data.append(this.name, this.files[0]);
+      });
+      form_data.append('action', 'make_order');
+      form_data.append('_ajax_nonce', WSOAjax.nonce);
 	    jQuery.ajax({
 	      type: "POST",
 	      url: WSOAjax.ajaxurl,
+				contentType: false,
+				processData: false,
 	      data: form_data,
 	      success: function(data) {
         	$form.find("#order-message").html(data);
