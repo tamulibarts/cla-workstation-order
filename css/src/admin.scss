@@ -11,10 +11,10 @@ body.wp-admin.post-type-wsorder {
 	.misc-pub-section.misc-pub-curtime,
 	.row-actions .inline,
 	.row-actions .trash,
-	&:not(.wso_admin) .acf-field-5ffcc2b90682c .acf-row td.acf-row-handle,
-	&:not(.wso_admin) .acf-field-5ffcc2b90682c .acf-actions,
-	&:not(.wso_admin) .acf-field-600858275c27f .acf-row td.acf-row-handle,
-	&:not(.wso_admin) .acf-field-600858275c27f .acf-actions {
+	.acf-field-5ffcc2b90682c .acf-row td.acf-row-handle,
+	.acf-field-5ffcc2b90682c .acf-actions,
+	.acf-field-600858275c27f .acf-row td.acf-row-handle,
+	.acf-field-600858275c27f .acf-actions {
 		display: none;
 	}
 
