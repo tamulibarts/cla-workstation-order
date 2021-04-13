@@ -107,14 +107,17 @@ class WSOrder_PostType {
 	}
 
 	public function disable_repeater_buttons( $field ) {
-		$field_key = str_replace( '_', '-', $field['key'] );
-    ?>
-    <script type='text/javascript'>
-      acf.addAction('load', function(){
-        jQuery('body.wp-admin.post-type-wsorder:not(.wso_admin) .acf-<?php echo $field_key; ?>').find('.acf-row td.acf-row-handle, .acf-actions').remove();
-  		});
-    </script>
-    <?php
+		if ( is_admin() ) {
+			$field_key = str_replace( '_', '-', $field['key'] );
+	    ?>
+	    <script type='text/javascript'>
+	      acf.addAction('load', function(){
+	        jQuery('body.wp-admin.post-type-wsorder .acf-<?php echo $field_key; ?>').find('.acf-row .acf-row-handle.remove, .acf-actions').remove();
+	  		});
+	    </script>
+	    <?php
+		}
+		return $field;
 	}
 
 	public function disable_repeater_sorting( $field ) {
