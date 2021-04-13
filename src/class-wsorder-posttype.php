@@ -93,6 +93,7 @@ class WSOrder_PostType {
 		add_filter('acf/load_field/name=asset_number', array( $this, 'disable_field_for_non_logistics_user' ) );
 		add_filter('acf/load_field/name=products_subtotal', array( $this, 'disable_field' ) );
 		add_filter('acf/load_field/name=order_items', array( $this, 'disable_repeater_buttons' ) );
+		add_filter('acf/load_field/name=order_items', array( $this, 'disable_repeater_sorting' ) );
 		add_filter('acf/load_field/name=quotes', array( $this, 'disable_repeater_buttons' ) );
 
 	}
@@ -106,6 +107,21 @@ class WSOrder_PostType {
   		});
     </script>
     <?php
+	}
+
+	public function disable_repeater_sorting( $field ) {
+		if ( is_admin() ) {
+			$field_key = str_replace( '_', '-', $field['key'] );
+	    ?>
+	    <script type='text/javascript'>
+	      acf.addAction('load', function(){
+	      	console.log('body.wp-admin.post-type-wsorder .acf-<?php echo $field_key; ?> .acf-row-handle.order');
+	      	console.log(jQuery('body.wp-admin.post-type-wsorder .acf-<?php echo $field_key; ?> .acf-row-handle.order'));
+	        jQuery('body.wp-admin.post-type-wsorder .acf-<?php echo $field_key; ?> .acf-row-handle.order').removeClass('order');
+	  		});
+	    </script>
+	    <?php
+	  }
 		return $field;
 	}
 
