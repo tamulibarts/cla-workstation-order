@@ -396,7 +396,7 @@ class WSOrder_PostType {
 			 * Save product information.
 			 */
 			// Validate data.
-			if ( isset( $_POST['cla_product_ids'] ) ) {
+			if ( isset( $_POST['cla_product_ids'] ) && ! empty( $_POST['cla_product_ids'] ) ) {
 
 				$product_post_ids = sanitize_text_field( wp_unslash( $_POST['cla_product_ids'] ) );
 				$product_post_ids = explode( ',', $product_post_ids );
