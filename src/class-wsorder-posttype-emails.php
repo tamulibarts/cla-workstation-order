@@ -329,7 +329,6 @@ class WSOrder_PostType_Emails {
 		$user_department_post_id = $user_department_post->ID;
 		$department_abbreviation = get_field( 'abbreviation', $user_department_post_id );
 		// Declare IT Rep user variables.
-		$it_rep_user_id = (int) $_POST['acf']['field_5fff6b46a22af']['field_5fff703a5289f'];
 		$it_reps        = get_field( 'affiliated_it_reps', $post_id );
 		$it_rep_emails  = array();
 		foreach ( $it_reps as $rep_user_id ) {
@@ -340,7 +339,7 @@ class WSOrder_PostType_Emails {
 		// Declare business approval variables.
 		$contribution_amount   = $_POST['acf']['field_5ffcc10806825'];
 		$order_program_id      = get_field( 'program', $post_id );
-		$business_admin_id     = $_POST['acf']['field_5fff70b84ffe4'];
+		$business_admin_id     = isset( $_POST['acf']['field_5fff70b84ffe4'] ) ? $_POST['acf']['field_5fff70b84ffe4'] : false;
 		$business_admin_emails = '';
 		if ( ! empty( $business_admin_id ) ) {
 			$business_admins       = get_field( 'affiliated_business_staff', $post_id );
@@ -354,17 +353,6 @@ class WSOrder_PostType_Emails {
 		// Get logistics email settings.
 		$logistics_email        = get_field( 'logistics_email', 'option' );
 		$enable_logistics_email = get_field( 'enable_emails_to_logistics', 'option' );
-		// Get confirmation statuses.
-		$old_post_it_confirm  = (int) get_post_meta( $post_id, 'it_rep_status_confirmed', true );
-		$new_post_it_confirm  = (int) $_POST['acf']['field_5fff6b46a22af']['field_5fff6b71a22b0'];
-		$old_post_log_confirm = (int) get_post_meta( $post_id, 'it_logistics_status_confirmed', true );
-		$new_post_log_confirm = (int) $_POST['acf']['field_5fff6f3cee555']['field_5fff6f3cef757'];
-		$old_post_bus_confirm = (int) get_post_meta( $post_id, 'business_staff_status_confirmed', true );
-		if ( array_key_exists( 'field_5fff6ec0e4385', $_POST['acf']['field_5fff6ec0e2f7e'] ) ) {
-			$new_post_bus_confirm = (int) $_POST['acf']['field_5fff6ec0e2f7e']['field_5fff6ec0e4385'];
-		} else {
-			$new_post_bus_confirm = 0;
-		}
 
 		/**
 		 * Handle returned order emails.
@@ -439,7 +427,7 @@ class WSOrder_PostType_Emails {
 			$to              = $returner_role_emails;
 			$title           = "[{$order_name}] Returned Workstation Order - {$department_abbreviation} - {$end_user_name}";
 			$admin_order_url = admin_url() . "post.php?post={$post_id}&action=edit";
-			$message         = 'Please check on this work order as the end user has passed it on: $admin_order_url';
+			$message         = "Please check on this work order as the end user has passed it on: $admin_order_url";
 			wp_mail( $to, $title, $message, $headers );
 			// Empty the "returned by" post meta.
 			update_post_meta( $post_id, 'returned_by', '' );
@@ -568,13 +556,13 @@ class WSOrder_PostType_Emails {
   Howdy,
 </p>
 <p>
-  The {$program_name} order for {$user_name} has been returned by {$actor_name}. An explanation should appear below in the comments.
+  The {$program_name} order for {$end_user_name} has been returned by {$actor_name}. An explanation should appear below in the comments.
 </p>
 <p>
   Comments from {$actor_name}: {$returned_comment}
 </p>
 <p>
-  {$user_name} will correct the order and resubmit.
+  {$end_user_name} will correct the order and resubmit.
 </p>
 <p>
   You can view the order at this link: {$admin_order_url}.

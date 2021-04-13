@@ -32,8 +32,44 @@
                 },
                 {
                     "param": "current_user_role",
-                    "operator": "!=",
-                    "value": "subscriber"
+                    "operator": "==",
+                    "value": "wso_it_rep"
+                }
+            ],
+            [
+                {
+                    "param": "post_type",
+                    "operator": "==",
+                    "value": "wsorder"
+                },
+                {
+                    "param": "current_user_role",
+                    "operator": "==",
+                    "value": "wso_business_admin"
+                }
+            ],
+            [
+                {
+                    "param": "post_type",
+                    "operator": "==",
+                    "value": "wsorder"
+                },
+                {
+                    "param": "current_user_role",
+                    "operator": "==",
+                    "value": "wso_logistics"
+                }
+            ],
+            [
+                {
+                    "param": "post_type",
+                    "operator": "==",
+                    "value": "wsorder"
+                },
+                {
+                    "param": "current_user_role",
+                    "operator": "==",
+                    "value": "wso_admin"
                 }
             ]
         ],
