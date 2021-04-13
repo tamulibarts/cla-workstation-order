@@ -92,7 +92,21 @@ class WSOrder_PostType {
 		add_filter('acf/load_field/name=requisition_date', array( $this, 'disable_field_for_non_logistics_user' ) );
 		add_filter('acf/load_field/name=asset_number', array( $this, 'disable_field_for_non_logistics_user' ) );
 		add_filter('acf/load_field/name=products_subtotal', array( $this, 'disable_field' ) );
+		add_filter('acf/load_field/name=order_items', array( $this, 'disable_repeater_buttons' ) );
+		add_filter('acf/load_field/name=quotes', array( $this, 'disable_repeater_buttons' ) );
 
+	}
+
+	public function disable_repeater_buttons( $field ) {
+		$field_key = str_replace( '_', '-', $field['key'] );
+    ?>
+    <script type='text/javascript'>
+      acf.addAction('load', function(){
+        jQuery('body.wp-admin.post-type-wsorder:not(.wso_admin) .acf-<?php echo $field_key; ?>').find('.acf-row td.acf-row-handle, .acf-actions').remove();
+  		});
+    </script>
+    <?php
+		return $field;
 	}
 
 	public function disable_field( $field ) {

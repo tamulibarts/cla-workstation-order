@@ -10,7 +10,11 @@ body.wp-admin.post-type-wsorder {
 	.misc-pub-section.misc-pub-visibility,
 	.misc-pub-section.misc-pub-curtime,
 	.row-actions .inline,
-	.row-actions .trash {
+	.row-actions .trash,
+	&:not(.wso_admin) .acf-field-5ffcc2b90682c .acf-row td.acf-row-handle,
+	&:not(.wso_admin) .acf-field-5ffcc2b90682c .acf-actions,
+	&:not(.wso_admin) .acf-field-600858275c27f .acf-row td.acf-row-handle,
+	&:not(.wso_admin) .acf-field-600858275c27f .acf-actions {
 		display: none;
 	}
 
@@ -48,6 +52,27 @@ body.wp-admin.post-type-wsorder {
 
 	.acf-field input[disabled] {
 		color: #666;
+	}
+
+	// Reposition order item fields.
+	.acf-field[data-name="order_items"] {
+		.acf-table,
+		.acf-table>tbody>tr>td {
+			border-color: #8C8F94;
+		}
+
+		.acf-field[data-name="requisition_number"],
+		.acf-field[data-name="requisition_date"],
+		.acf-field[data-name="asset_number"],
+		.acf-field[data-name="price"] {
+			display: inline-block;
+			border-top: 0;
+			width: calc(25% - .17rem);
+		}
+
+		.acf-field[data-name="item"] {
+			border-bottom: 1px solid #EEEEEE;
+		}
 	}
 }
 

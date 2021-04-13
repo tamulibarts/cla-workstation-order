@@ -199,7 +199,7 @@
                 "collapsed": "",
                 "min": 0,
                 "max": 0,
-                "layout": "table",
+                "layout": "row",
                 "button_label": "",
                 "sub_fields": [
                     {
