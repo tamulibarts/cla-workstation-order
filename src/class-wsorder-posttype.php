@@ -832,7 +832,8 @@ jQuery( 'select[name=\"post_status\"]' ).val('publish')";
 			array(
 				'script' => array(),
 				'option' => array(
-					'value' => array(),
+					'value'    => array(),
+					'disabled' => array(),
 				),
 			)
 		);
