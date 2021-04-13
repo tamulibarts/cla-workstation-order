@@ -86,20 +86,60 @@ class Dashboard {
 			|| current_user_can( 'wso_it_rep' )
 			|| current_user_can( 'wso_business_staff' )
 		) {
-			// Returned posts link.
-			$returned_args = $all_query_args;
-			$returned_args['post_status'] = 'returned';
-			$returned_query = new \WP_Query( $returned_args );
+			if ( current_user_can( 'wso_it_rep' ) ) {
+				$user_designation = 'it_rep_status_it_rep';
+			} else if ( current_user_can( 'wso_business_staff' ) ) {
+				$user_designation = 'business_staff_status_business_staff';
+			} else {
+				$user_designation = false;
+			}
 			// Action Required posts link.
-			$action_required_args = $all_query_args;
-			$action_required_args['post_status'] = 'action_required';
+			$action_required_args  = array(
+				'post_type'   => 'wsorder',
+				'post_status' => 'action_required',
+				'fields'      => 'ids',
+			);
+			if ( $user_designation ) {
+				$action_required_args['meta_query'] = array(
+					array(
+						'key'   => $user_designation,
+						'value' => $user_id,
+					),
+				);
+			}
 			$action_required_query = new \WP_Query( $action_required_args );
+			// Returned posts link.
+			$returned_args  = array(
+				'post_type'   => 'wsorder',
+				'post_status' => 'returned',
+				'fields'      => 'ids',
+			);
+			if ( $user_designation ) {
+				$returned_args['meta_query'] = array(
+					array(
+						'key'   => $user_designation,
+						'value' => $user_id,
+					),
+				);
+			}
+			$returned_query = new \WP_Query( $returned_args );
 			// Completed posts link.
-			$completed_args = $all_query_args;
-			$completed_args['post_status'] = 'completed';
+			$completed_args  = array(
+				'post_type'   => 'wsorder',
+				'post_status' => 'completed',
+				'fields'      => 'ids',
+			);
+			if ( $user_designation ) {
+				$completed_args['meta_query'] = array(
+					array(
+						'key'   => $user_designation,
+						'value' => $user_id,
+					),
+				);
+			}
 			$completed_query = new \WP_Query( $completed_args );
 			// Output links.
-			echo "<li><a href=\"{$admin_url}edit.php?post_type=wsorder&author={$user_id}&program={$program_id}&post_status=action_required\">Action Required ({$action_required_query->post_count})</a></li><li><a href=\"{$admin_url}edit.php?post_type=wsorder&author={$user_id}&program={$program_id}&post_status=returned\">Returned ({$returned_query->post_count})</a></li><li><a href=\"{$admin_url}edit.php?post_type=wsorder&author={$user_id}&program={$program_id}&post_status=completed\">Completed ($completed_query->post_count)</a></li>";
+			echo "<li><a href=\"{$admin_url}edit.php?post_type=wsorder&program=0&post_status=action_required\">Action Required ({$action_required_query->post_count})</a></li><li><a href=\"{$admin_url}edit.php?post_type=wsorder&program=0&post_status=returned\">Returned ({$returned_query->post_count})</a></li><li><a href=\"{$admin_url}edit.php?post_type=wsorder&program=0&post_status=completed\">Completed ($completed_query->post_count)</a></li>";
 		}
 
 		echo '</ul>';
