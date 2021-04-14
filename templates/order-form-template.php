@@ -335,4 +335,6 @@ function cla_render_order_form() {
 }
 add_action( 'the_content', 'cla_render_order_form' );
 
-genesis();
+if ( function_exists( 'genesis' ) ) {
+	genesis();
+}
