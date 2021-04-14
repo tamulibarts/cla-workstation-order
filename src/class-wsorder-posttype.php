@@ -600,13 +600,6 @@ class WSOrder_PostType {
 		// Get user information.
 		$current_user_name  = $current_user->display_name;
 		$current_user_email = $current_user->user_email;
-		$it_reps            = get_field( 'affiliated_it_reps', $post_id );
-		$it_rep_emails      = array();
-		foreach ( $it_reps as $rep_user_id ) {
-			$user_data       = get_userdata( $rep_user_id );
-			$it_rep_emails[] = $user_data->user_email;
-		}
-		$it_rep_emails = implode( ',', $it_rep_emails );
 
 		// Email settings.
 		$headers = array( 'Content-Type: text/html; charset=UTF-8' );
@@ -637,8 +630,21 @@ class WSOrder_PostType {
 		wp_mail( $current_user_email, 'Workstation Order Received', $message, $headers );
 
 		// Email IT Rep.
-		$admin_url = admin_url() . "post.php?post={$post_id}&action=edit";
-		$message   = "<p>
+		$it_rep_fields        = get_field( 'it_rep_status', $post_id );
+		$primary_it_rep_id    = $it_rep_fields['it_rep']['ID'];
+		$primary_it_rep_email = $it_rep_fields['it_rep']['user_email'];
+		$it_reps              = get_field( 'affiliated_it_reps', $post_id );
+		$other_it_rep_emails  = array();
+		foreach ( $it_reps as $rep_user_id ) {
+			if ( $primary_it_rep_id !== $rep_user_id ) {
+				$user_data             = get_userdata( $rep_user_id );
+				$other_it_rep_emails[] = $user_data->user_email;
+			}
+		}
+		$other_it_rep_emails = implode( ',', $other_it_rep_emails );
+		$headers[]           = 'Cc: ' . $other_it_rep_emails;
+		$admin_url           = admin_url() . "post.php?post={$post_id}&action=edit";
+		$message             = "<p>
   <strong>There is a new {$program_name} order that requires your attention.</strong>
 </p>
 <p>
@@ -652,7 +658,7 @@ class WSOrder_PostType {
   <em>-Liberal Arts IT</em>
 </p>
 <p><em>This email was sent from an unmonitored email address. Please do not reply to this email.</em></p>";
-		wp_mail( $it_rep_emails, 'Workstation Order Received', $message, $headers );
+		wp_mail( $primary_it_rep_email, 'Workstation Order Received', $message, $headers );
 
 	}
 
