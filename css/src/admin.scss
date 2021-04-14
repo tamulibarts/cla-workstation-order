@@ -52,8 +52,9 @@ body.wp-admin.post-type-wsorder {
 		color: #666;
 	}
 
-	input#acf-field_60074b5ee982b:disabled {
-		border-left-color: #7E8993;
+	.acf-field-60074b5ee982b .acf-input-prepend {
+		color: #666;
+		border-color: rgba(220,220,222,.75);
 	}
 
 	// Reposition order item fields.
