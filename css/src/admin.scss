@@ -11,9 +11,7 @@ body.wp-admin.post-type-wsorder {
 	.misc-pub-section.misc-pub-curtime,
 	.row-actions .inline,
 	.row-actions .trash,
-	.acf-field-5ffcc2b90682c .acf-row td.acf-row-handle,
 	.acf-field-5ffcc2b90682c .acf-actions,
-	.acf-field-600858275c27f .acf-row td.acf-row-handle,
 	.acf-field-600858275c27f .acf-actions {
 		display: none;
 	}
@@ -54,24 +52,55 @@ body.wp-admin.post-type-wsorder {
 		color: #666;
 	}
 
+	input#acf-field_60074b5ee982b:disabled {
+		border-left-color: #7E8993;
+	}
+
 	// Reposition order item fields.
-	.acf-field[data-name="order_items"] {
+	.acf-field[data-name="order_items"],
+	.acf-field[data-name="quotes"] {
 		.acf-table,
 		.acf-table>tbody>tr>td {
 			border-color: #8C8F94;
 		}
 
+		.acf-field[data-name="item"] {
+			border-bottom: 1px solid #EEEEEE;
+		}
+	}
+
+	.acf-field[data-name="order_items"] {
 		.acf-field[data-name="requisition_number"],
 		.acf-field[data-name="requisition_date"],
 		.acf-field[data-name="asset_number"],
 		.acf-field[data-name="price"] {
 			display: inline-block;
+			vertical-align: top;
 			border-top: 0;
 			width: calc(25% - .17rem);
 		}
+	}
 
-		.acf-field[data-name="item"] {
-			border-bottom: 1px solid #EEEEEE;
+	.acf-field[data-name="quotes"] {
+		.acf-field[data-name="price"] {
+			display: inline-block;
+			vertical-align: top;
+			border-top: 0;
+			width: calc(20% - .17rem);
+		}
+
+		.acf-field[data-name="description"] {
+			display: inline-block;
+			vertical-align: top;
+			border-top: 0;
+			width: calc(46% - .17rem);
+		}
+
+		.acf-field[data-name="file"] {
+			display: inline-block;
+			vertical-align: top;
+			border-top: 0;
+			width: calc(33% - .17rem);
 		}
 	}
 }
