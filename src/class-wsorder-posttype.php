@@ -1388,16 +1388,17 @@ jQuery( 'select[name=\"post_status\"]' ).val('publish')";
 			$program_id      = get_query_var( 'program' );
 			$user            = wp_get_current_user();
 			$current_user_id = $user->ID;
+			// All link.
 			$args            = array(
-				'post_type'  => 'wsorder',
-				'meta_query' => array( //phpcs:ignore
-					'relation' => 'AND',
+				'post_type'      => 'wsorder',
+				'posts_per_page' => -1,
+				'meta_query'     => array( //phpcs:ignore
 					array(
 						'key'   => 'program',
 						'value' => $program_id,
 					),
 				),
-				'fields'     => 'ids',
+				'fields'         => 'ids',
 			);
 			if ( ! current_user_can( 'wso_admin' ) && ! current_user_can( 'wso_logistics' ) ) {
 				$args['meta_query'][] = array(
@@ -1418,20 +1419,22 @@ jQuery( 'select[name=\"post_status\"]' ).val('publish')";
 					),
 				);
 			}
-			// All link.
 			$query        = new \WP_Query( $args );
 			$count        = $query->post_count;
 			$views['all'] = preg_replace( '/<span class="count">\(\d+\)<\/span>/', '<span class="count">(' . $count . ')</span></a>', $views['all'] );
 			$views['all'] = str_replace( 'edit.php?post_type=wsorder', "edit.php?post_type=wsorder&program={$program_id}", $views['all'] );
 			// Mine link.
 			if ( isset( $views['mine'] ) ) {
-				$mine_args = $args;
-				unset( $mine_args['meta_query'] );
-				$mine_args['author'] = $current_user_id;
-				$mine_query          = new \WP_Query( $mine_args );
-				$count               = $mine_query->post_count;
-				$views['mine']       = preg_replace( '/<span class="count">\(\d+\)<\/span>/', '<span class="count">(' . $count . ')</span></a>', $views['mine'] );
-				$views['mine']       = str_replace( 'post_type=wsorder', "post_type=wsorder&program={$program_id}", $views['mine'] );
+				$mine_args     = array(
+					'post_type'      => 'wsorder',
+					'post_status'    => 'any',
+					'author'         => $current_user_id,
+					'posts_per_page' => -1,
+				);
+				$mine_query    = new \WP_Query( $mine_args );
+				$count         = $mine_query->post_count;
+				$views['mine'] = preg_replace( '/<span class="count">\(\d+\)<\/span>/', '<span class="count">(' . $count . ')</span></a>', $views['mine'] );
+				$views['mine'] = str_replace( 'post_type=wsorder', "post_type=wsorder&program=0", $views['mine'] );
 			}
 			// Publish link.
 			if ( isset( $views['publish'] ) ) {
