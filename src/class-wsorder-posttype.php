@@ -373,6 +373,9 @@ class WSOrder_PostType {
 			$value                        = 0 === $dept_assigned_business_admin ? '' : $dept_assigned_business_admin;
 			update_field( 'business_staff_status', array( 'business_staff' => $value ), $post_id );
 
+			// Product subtotal.
+			$product_subtotal = 0;
+
 			// Let WordPress handle the upload.
 			// Remember, 'cla_quote_0_file' is the name of our file input in our form above.
 			// Here post_id is 0 because we are not going to attach the media to any post.
@@ -403,6 +406,7 @@ class WSOrder_PostType {
 								'price'       => sanitize_text_field( wp_unslash( $_POST[ "cla_quote_{$i}_price" ] ) ),
 								'description' => sanitize_textarea_field( wp_unslash( $_POST[ "cla_quote_{$i}_description" ] ) ),
 							);
+							$product_subtotal += floatval( $_POST[ "cla_quote_{$i}_price" ] );
 						}
 
 						// Handle uploading quote file.
@@ -439,15 +443,10 @@ class WSOrder_PostType {
 				if ( count( $product_post_ids ) > 0 ) {
 
 					// Get subtotal for products and bundles.
-					$product_subtotal = 0;
 					foreach ($product_post_ids as $product_post_id) {
 						$price = get_field( 'price', $product_post_id );
 						$product_subtotal += $price;
 					}
-
-					// Save product subtotal.
-					$value = $product_subtotal;
-					update_field( 'products_subtotal', $value, $post_id );
 
 					// Break down bundles into individual product post ids.
 					$actual_product_collection = array();
@@ -488,6 +487,10 @@ class WSOrder_PostType {
 
 				}
 			}
+
+			// Save product subtotal.
+			$value = $product_subtotal;
+			update_field( 'products_subtotal', $value, $post_id );
 		}
 
 		if ( isset( $_POST['cla_it_rep_id'] ) ) {
