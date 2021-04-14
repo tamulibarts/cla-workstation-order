@@ -126,8 +126,6 @@ class WSOrder_PostType {
 	    ?>
 	    <script type='text/javascript'>
 	      acf.addAction('load', function(){
-	      	console.log('body.wp-admin.post-type-wsorder .acf-<?php echo $field_key; ?> .acf-row-handle.order');
-	      	console.log(jQuery('body.wp-admin.post-type-wsorder .acf-<?php echo $field_key; ?> .acf-row-handle.order'));
 	        jQuery('body.wp-admin.post-type-wsorder .acf-<?php echo $field_key; ?> .acf-row-handle.order').removeClass('order');
 	  		});
 	    </script>
