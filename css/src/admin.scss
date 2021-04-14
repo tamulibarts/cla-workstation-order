@@ -83,25 +83,26 @@ body.wp-admin.post-type-wsorder {
 	}
 
 	.acf-field[data-name="quotes"] {
-		.acf-field[data-name="price"] {
+		.acf-fields > .acf-field {
 			display: inline-block;
 			vertical-align: top;
 			border-top: 0;
+		}
+
+		.acf-field[data-name="name"] {
+			width: calc(80% - .17rem);
+		}
+
+		.acf-field[data-name="price"] {
 			width: calc(20% - .17rem);
 		}
 
 		.acf-field[data-name="description"] {
-			display: inline-block;
-			vertical-align: top;
-			border-top: 0;
-			width: calc(46% - .17rem);
+			width: calc(50% - .17rem);
 		}
 
 		.acf-field[data-name="file"] {
-			display: inline-block;
-			vertical-align: top;
-			border-top: 0;
-			width: calc(33% - .17rem);
+			width: calc(50% - .17rem);
 		}
 	}
 }
