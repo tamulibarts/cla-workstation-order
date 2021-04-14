@@ -137,13 +137,13 @@ class WSOrder_PostType {
 	}
 
 	public function disable_field( $field ) {
-		$field['disabled'] = '1';
+		$field['readonly'] = '1';
 		return $field;
 	}
 
 	public function disable_field_for_non_logistics_user( $field ) {
 		if ( ! current_user_can( 'wso_logistics' ) && ! current_user_can( 'wso_admin' ) ) {
-			$field['disabled'] = '1';
+			$field['readonly'] = '1';
 		}
 		return $field;
 	}
