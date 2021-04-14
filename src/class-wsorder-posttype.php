@@ -94,6 +94,7 @@ class WSOrder_PostType {
 		add_filter('acf/load_field/name=products_subtotal', array( $this, 'disable_field' ) );
 		add_filter('acf/load_field/name=order_items', array( $this, 'disable_repeater_buttons' ) );
 		add_filter('acf/load_field/name=order_items', array( $this, 'disable_repeater_sorting' ) );
+		add_filter('acf/load_field/name=quotes', array( $this, 'disable_repeater_sorting' ) );
 		add_filter('acf/load_field/name=quotes', array( $this, 'disable_repeater_buttons' ) );
 		add_filter('acf/prepare_field/name=quotes', array( $this, 'disable_quote_field_if_empty' ) );
 
