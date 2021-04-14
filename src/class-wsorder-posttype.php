@@ -101,6 +101,13 @@ class WSOrder_PostType {
 
 	}
 
+	/**
+	 * Remove an Advanced Custom Fields field from the page editor if its value is empty.
+	 *
+	 * @param array $field The field settings.
+	 *
+	 * @return array
+	 */
 	public function remove_field_if_empty( $field ) {
 		if ( empty( $field['value'] ) ) {
 			return false;
@@ -108,6 +115,13 @@ class WSOrder_PostType {
 		return $field;
 	}
 
+	/**
+	 * Disable add/remove buttons in an Advanced Custom Fields repeater field.
+	 *
+	 * @param array $field The field settings.
+	 *
+	 * @return array
+	 */
 	public function disable_repeater_buttons( $field ) {
 		if ( is_admin() ) {
 			$field_key = str_replace( '_', '-', $field['key'] );
@@ -122,6 +136,13 @@ class WSOrder_PostType {
 		return $field;
 	}
 
+	/**
+	 * Disable jquery sorting UI for an Advanced Custom Fields repeater field.
+	 *
+	 * @param array $field The field settings.
+	 *
+	 * @return array
+	 */
 	public function disable_repeater_sorting( $field ) {
 		if ( is_admin() ) {
 			$field_key = str_replace( '_', '-', $field['key'] );
@@ -136,11 +157,25 @@ class WSOrder_PostType {
 		return $field;
 	}
 
+	/**
+	 * Disable an Advanced Custom Fields field in the page editor.
+	 *
+	 * @param array $field The field settings.
+	 *
+	 * @return array
+	 */
 	public function disable_field( $field ) {
 		$field['readonly'] = '1';
 		return $field;
 	}
 
+	/**
+	 * Disable an Advanced Custom Fields field in the page editor if the current user is not logistics or admin.
+	 *
+	 * @param array $field The field settings.
+	 *
+	 * @return array
+	 */
 	public function disable_field_for_non_logistics_user( $field ) {
 		if ( ! current_user_can( 'wso_logistics' ) && ! current_user_can( 'wso_admin' ) ) {
 			$field['readonly'] = '1';
