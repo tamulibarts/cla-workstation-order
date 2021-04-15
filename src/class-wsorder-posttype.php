@@ -534,12 +534,12 @@ class WSOrder_PostType {
 				$value                         = empty( $dept_assigned_business_admins ) ? '' : $dept_assigned_business_admins[0];
 				update_field( 'business_staff_status', array( 'business_staff' => $value ), $post_id );
 			}
-		}
 
-		// Send emails.
-		if ( isset( $_POST['cla_it_rep_id'] ) ) {
-			$it_rep_id = sanitize_text_field( wp_unslash( $_POST['cla_it_rep_id'] ) );
-			$this->send_confirmation_email( "{$current_program_prefix}-{$new_wsorder_id}", $user, $it_rep_id, $post_id, $_POST );
+			// Send emails.
+			if ( isset( $_POST['cla_it_rep_id'] ) ) {
+				$it_rep_id = sanitize_text_field( wp_unslash( $_POST['cla_it_rep_id'] ) );
+				$this->send_confirmation_email( "{$current_program_prefix}-{$new_wsorder_id}", $user, $it_rep_id, $post_id, $_POST );
+			}
 		}
 
 		die();
