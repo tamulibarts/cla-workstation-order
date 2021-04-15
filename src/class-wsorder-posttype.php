@@ -124,7 +124,8 @@ class WSOrder_PostType {
 	 * @return array
 	 */
 	public function disable_repeater_buttons( $field ) {
-		if ( is_admin() && ! wp_doing_ajax() && ! defined( 'DOING_CRON' ) ) {
+		global $pagenow;
+		if ( is_admin() && 'post.php' === $pagenow ) {
 			$field_key = str_replace( '_', '-', $field['key'] );
 	    ?>
 	    <script type='text/javascript'>
@@ -145,7 +146,8 @@ class WSOrder_PostType {
 	 * @return array
 	 */
 	public function disable_repeater_sorting( $field ) {
-		if ( is_admin() && ! wp_doing_ajax() && ! defined( 'DOING_CRON' ) ) {
+		global $pagenow;
+		if ( is_admin() && 'post.php' === $pagenow ) {
 			$field_key = str_replace( '_', '-', $field['key'] );
 	    ?>
 	    <script type='text/javascript'>
