@@ -536,6 +536,7 @@ class WSOrder_PostType {
 			}
 		}
 
+		// Send emails.
 		if ( isset( $_POST['cla_it_rep_id'] ) ) {
 			$it_rep_id = sanitize_text_field( wp_unslash( $_POST['cla_it_rep_id'] ) );
 			$this->send_confirmation_email( "{$current_program_prefix}-{$new_wsorder_id}", $user, $it_rep_id, $post_id, $_POST );
