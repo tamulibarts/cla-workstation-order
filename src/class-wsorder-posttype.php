@@ -404,12 +404,6 @@ class WSOrder_PostType {
 				update_field( 'it_rep_status', array( 'it_rep' => $value ), $post_id );
 			}
 
-			// Save department Business Admin.
-			// Get business admin assigned to active user's department for current program.
-			$dept_assigned_business_admin = $this->get_program_business_admin_user_id( $current_program_id, $user_department_post_id );
-			$value                        = 0 === $dept_assigned_business_admin ? '' : $dept_assigned_business_admin;
-			update_field( 'business_staff_status', array( 'business_staff' => $value ), $post_id );
-
 			// Product subtotal.
 			$product_subtotal = 0;
 
@@ -528,6 +522,15 @@ class WSOrder_PostType {
 			// Save product subtotal.
 			$value = $product_subtotal;
 			update_field( 'products_subtotal', $value, $post_id );
+
+			// Save department Business Admin.
+			// Get business admin assigned to active user's department for current program.
+			$threshold = (float) get_field( 'threshold', $current_program_id );
+			if ( $product_subtotal > $threshold ) {
+				$dept_assigned_business_admins = $this->get_program_business_admin_user_id( $current_program_id, $user_department_post_id );
+				$value                         = empty( $dept_assigned_business_admins ) ? '' : $dept_assigned_business_admins[0];
+				update_field( 'business_staff_status', array( 'business_staff' => $value ), $post_id );
+			}
 		}
 
 		if ( isset( $_POST['cla_it_rep_id'] ) ) {
@@ -569,22 +572,20 @@ class WSOrder_PostType {
 	 * @param int $program_id              The program ID.
 	 * @param int $user_department_post_id The department ID.
 	 *
-	 * @return int
+	 * @return array
 	 */
 	private function get_program_business_admin_user_id( $program_id, $user_department_post_id ) {
 
 		// Get users assigned to active user's department for current program, as array.
 		$program_assignments = get_field( 'assign', $program_id );
-		$value               = 0;
+		$value               = array();
 
 		foreach ( $program_assignments as $department ) {
 			$assigned_dept = (int) $department['department_post_id'];
 			if ( $user_department_post_id === $assigned_dept ) {
 				$business_admins = $department['business_admins'];
-				if ( empty( $business_admins ) ) {
-					$value = 0;
-				} else {
-					$value = $business_admins[0];
+				if ( ! empty( $business_admins ) ) {
+					$value = $business_admins;
 				}
 				break;
 			}
