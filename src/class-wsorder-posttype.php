@@ -557,7 +557,7 @@ class WSOrder_PostType {
 		$user_department_post        = get_field( 'department', "user_{$user_id}" );
 		$user_department_post_id     = $user_department_post->ID;
 		$hidden_products             = get_field( 'hidden_products', $user_department_post_id );
-		$hidden_bundles              = get_field( 'hidden_products', $user_department_post_id );
+		$hidden_bundles              = get_field( 'hidden_bundles', $user_department_post_id );
 		$hidden_products_and_bundles = array();
 		if ( is_array( $hidden_products ) ) {
 			$hidden_products_and_bundles = array_merge( $hidden_products_and_bundles, $hidden_products );
