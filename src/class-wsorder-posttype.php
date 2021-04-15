@@ -655,7 +655,7 @@ class WSOrder_PostType {
 <p>
   Following review, your workstation request will be combined with others from your department to create a consolidated {$program_name} purchase. Consolidated orders are placed to maximize efficiency. Your order will be processed and received by IT Logistics in 4-6 weeks, depending on how early in the order cycle you make your selection. Once received, your workstation will be released to departmental IT staff who will then image your workstation, install software and prepare the device for delivery. These final steps generally take one to two days.
 </p>
-<p>You may view your order online at any time using this link: {$order_url}.</p>
+<p>You may view your order online at any time using this link: <a href=\"{$order_url}\">{$order_url}</a>.</p>
 
 <p>
   Have a great day!

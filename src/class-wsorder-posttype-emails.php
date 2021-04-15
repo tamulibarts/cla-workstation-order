@@ -457,7 +457,7 @@ class WSOrder_PostType_Emails {
   {$end_user_name} elected to contribute additional funds toward their order in the amount of {$addfund_amount}. An account reference of \"{$addfund_account}\" needs to be confirmed or replaced with the correct account number that will be used on the official requisition.
 </p>
 <p>
-  You can view the order at this link: {$admin_order_url}.
+  You can view the order at this link: <a href=\"{$admin_order_url}\">{$admin_order_url}</a>.
 </p>
 <p>
   Have a great day!<br />
@@ -486,7 +486,7 @@ class WSOrder_PostType_Emails {
   Please review this order carefully for any errors or omissions, then approve order for purchasing.
 </p>
 <p>
-  You can view the order at this link: {$admin_order_url}.
+  You can view the order at this link: <a href=\"{$admin_order_url}\">{$admin_order_url}</a>.
 </p>
 <p>
   Have a great day!<br />
@@ -523,7 +523,7 @@ class WSOrder_PostType_Emails {
   Comments from {$actor_name}: {$returned_comment}
 </p>
 <p>
-  Next step is to resolve your order's issue with the person who returned it (who has been copied on this email for your convenience), then correct the existing order. You may access your order online at any time using this link: {$admin_order_url}.
+  Next step is to resolve your order's issue with the person who returned it (who has been copied on this email for your convenience), then correct the existing order. You may access your order online at any time using this link: <a href=\"{$admin_order_url}\">{$admin_order_url}</a>.
 </p>
 
 <p>
@@ -565,7 +565,7 @@ class WSOrder_PostType_Emails {
   {$end_user_name} will correct the order and resubmit.
 </p>
 <p>
-  You can view the order at this link: {$admin_order_url}.
+  You can view the order at this link: <a href=\"{$admin_order_url}\">{$admin_order_url}</a>.
 </p>
 <p>
   Have a great day!<br />
