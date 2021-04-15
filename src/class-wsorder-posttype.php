@@ -85,20 +85,20 @@ class WSOrder_PostType {
 		add_filter( 'parse_query', array( $this, 'parse_query_program_filter' ), 10);
 
 		// Disable order form fields
-		add_filter('acf/load_field/key=field_60186adc3a4e7', array( $this, 'disable_field' ) ); // Order Item Price.
-		add_filter('acf/load_field/key=field_5ffdfd1abaaa7', array( $this, 'disable_field' ) ); // Quote Price.
-		add_filter('acf/load_field/key=field_5ffdfc23d5e87', array( $this, 'disable_field' ) ); // SKU.
-		add_filter('acf/load_field/key=field_5ffdfcbcbaaa3', array( $this, 'disable_field' ) ); // Order Item Name.
-		add_filter('acf/load_field/name=requisition_number', array( $this, 'disable_field_for_non_logistics_user' ) );
-		add_filter('acf/load_field/name=requisition_date', array( $this, 'disable_field_for_non_logistics_user' ) );
-		add_filter('acf/load_field/name=asset_number', array( $this, 'disable_field_for_non_logistics_user' ) );
-		add_filter('acf/load_field/name=products_subtotal', array( $this, 'disable_field' ) );
-		add_filter('acf/load_field/name=order_items', array( $this, 'disable_repeater_buttons' ) );
-		add_filter('acf/load_field/name=order_items', array( $this, 'disable_repeater_sorting' ) );
-		add_filter('acf/load_field/name=quotes', array( $this, 'disable_repeater_sorting' ) );
-		add_filter('acf/load_field/name=quotes', array( $this, 'disable_repeater_buttons' ) );
-		add_filter('acf/prepare_field/name=order_items', array( $this, 'remove_field_if_empty' ) );
-		add_filter('acf/prepare_field/name=quotes', array( $this, 'remove_field_if_empty' ) );
+		add_filter( 'acf/load_field/key=field_60186adc3a4e7', array( $this, 'disable_field' ) ); // Order Item Price.
+		add_filter( 'acf/load_field/key=field_5ffdfd1abaaa7', array( $this, 'disable_field' ) ); // Quote Price.
+		add_filter( 'acf/load_field/key=field_5ffdfc23d5e87', array( $this, 'disable_field' ) ); // SKU.
+		add_filter( 'acf/load_field/key=field_5ffdfcbcbaaa3', array( $this, 'disable_field' ) ); // Order Item Name.
+		add_filter( 'acf/load_field/name=requisition_number', array( $this, 'disable_field_for_non_logistics_user' ) );
+		add_filter( 'acf/load_field/name=requisition_date', array( $this, 'disable_field_for_non_logistics_user' ) );
+		add_filter( 'acf/load_field/name=asset_number', array( $this, 'disable_field_for_non_logistics_user' ) );
+		add_filter( 'acf/load_field/name=products_subtotal', array( $this, 'disable_field' ) );
+		add_filter( 'acf/load_field/name=order_items', array( $this, 'disable_repeater_buttons' ) );
+		add_filter( 'acf/load_field/name=order_items', array( $this, 'disable_repeater_sorting' ) );
+		add_filter( 'acf/load_field/name=quotes', array( $this, 'disable_repeater_sorting' ) );
+		add_filter( 'acf/load_field/name=quotes', array( $this, 'disable_repeater_buttons' ) );
+		add_filter( 'acf/prepare_field/name=order_items', array( $this, 'remove_field_if_empty' ) );
+		add_filter( 'acf/prepare_field/name=quotes', array( $this, 'remove_field_if_empty' ) );
 
 	}
 
