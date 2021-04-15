@@ -84,13 +84,13 @@ class WSOrder_PostType_Emails {
 				// Declare end user variables.
 				$user_id                 = $post->post_author;
 				$end_user                = get_user_by( 'id', $user_id );
-				$end_user_name           = $end_user->user_name;
+				$end_user_name           = $end_user->display_name;
 				$user_department_post    = get_field( 'department', "user_{$user_id}" );
 				$department_abbreviation = get_field( 'abbreviation', $user_department_post->ID );
 				// Declare business admin variables.
 				$business_admin_obj    = get_userdata( $business_admin_id );
 				$business_admin_email  = $business_admin_obj->user_email;
-				$business_admins       = get_field( 'affiliated_business_staff', $post_id );
+				$business_admins       = get_field( 'affiliated_business_staff', $post->ID );
 				$business_admin_emails = array();
 				foreach ( $business_admins as $bus_user_id ) {
 					$user_data               = get_userdata( $bus_user_id );
