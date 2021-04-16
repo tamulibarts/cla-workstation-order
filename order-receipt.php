@@ -49,7 +49,8 @@ foreach ( $meta as $key => $value ) {
 }
 $meta['logo'] = CLA_WORKSTATION_ORDER_DIR_URL . 'images/logo-support-center.png';
 // Extra basic order data.
-$publish_date                   = strtotime( $post->post_date );
+$publish_date = strtotime( $post->post_date );
+date_default_timezone_set('America/Chicago');
 $meta['publish_date_formatted'] = date( 'M j, Y \a\t g:i a', $publish_date );
 $meta['post_title']             = $post->post_title;
 $meta['now']                    = date( 'M j, Y \a\t g:i a' );
