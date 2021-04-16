@@ -110,18 +110,4 @@ function cla_my_orders() {
 
 }
 
-// Remove site footer.
-remove_action( 'genesis_footer', 'genesis_footer_markup_open', 5 );
-remove_action( 'genesis_footer', 'genesis_do_footer' );
-remove_action( 'genesis_footer', 'genesis_footer_markup_close', 15 );
-
-// Customize site footer
-add_action( 'genesis_footer', 'cla_custom_footer' );
-function cla_custom_footer() { ?>
-
-	<div class="site-footer"><div class="wrap"><p>Copyright &copy; 2021 &bull; <a href="<?php echo home_url(); ?>">CLA Workstation Ordering Application</a></p></div></div>
-
-<?php
-}
-
 genesis();
