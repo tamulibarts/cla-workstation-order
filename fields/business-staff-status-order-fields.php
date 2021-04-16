@@ -128,31 +128,6 @@ acf_add_local_field_group(array(
 					'ui_on_text' => '',
 					'ui_off_text' => '',
 				),
-				array(
-					'key' => 'field_5fff6ec0e438b',
-					'label' => 'Date',
-					'name' => 'date',
-					'type' => 'date_time_picker',
-					'instructions' => '',
-					'required' => 0,
-					'conditional_logic' => array(
-						array(
-							array(
-								'field' => 'field_601d731345341',
-								'operator' => '==pattern',
-								'value' => '^\\d\\d\\d\\d\\d\\d-\\D\\D\\D\\D-\\d\\d\\d\\d\\d$',
-							),
-						),
-					),
-					'wrapper' => array(
-						'width' => '',
-						'class' => '',
-						'id' => '',
-					),
-					'display_format' => 'F j, Y g:i a',
-					'return_format' => 'Y-m-d H:i:s',
-					'first_day' => 0,
-				),
 			),
 		),
 	),

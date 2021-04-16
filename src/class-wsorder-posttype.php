@@ -54,6 +54,7 @@ class WSOrder_PostType {
 		// When a user other than the assigned user confirms an order, update the assigned user to that user.
 		add_action( 'transition_post_status', array( $this, 'check_if_switching_it_rep_or_business_admin' ), 11, 3 );
 		add_action( 'save_post', array( $this, 'save_switched_it_rep_or_business_admin' ) );
+		add_filter( 'wp_insert_post_data', array( $this, 'save_order_timestamp_fields' ), 11, 2);
 
 		/**
 		 * Change features of edit.php list view for order posts.
@@ -100,6 +101,56 @@ class WSOrder_PostType {
 		add_filter( 'acf/prepare_field/name=order_items', array( $this, 'remove_field_if_empty' ) );
 		add_filter( 'acf/prepare_field/name=quotes', array( $this, 'remove_field_if_empty' ) );
 
+	}
+
+	/**
+	 * Save timestamps when the order is confirmed in various ways.
+	 *
+	 * array() $data
+	 * array() $postarr The post data array.
+	 * @return array
+	 */
+	public function save_order_timestamp_fields( $data, $postarr ) {
+		if ( 'wsorder' === $postarr['post_type'] ) {
+			$acf = $postarr['acf'];
+			// IT Rep Confirmation.
+			if ( isset( $acf, $acf['field_5fff6b46a22af'], $acf['field_5fff6b46a22af']['field_5fff6b71a22b0'] ) ) {
+				$it_rep_field = get_field( 'it_rep_status', $postarr['ID'] );
+				$old_it_rep_confirm = (int) $it_rep_field['confirmed'];
+				$new_it_rep_confirm = (int) $acf['field_5fff6b46a22af']['field_5fff6b71a22b0'];
+				if ( 1 === $new_it_rep_confirm && 0 === $old_it_rep_confirm ) {
+					update_post_meta( $postarr['ID'], 'it_rep_status_date', gmdate('Y-m-d H:i:s') );
+				}
+			}
+			// Business Admin Confirmation.
+			if ( isset( $acf, $acf['field_5fff6ec0e2f7e'], $acf['field_5fff6ec0e2f7e']['field_5fff6ec0e4385'] ) ) {
+				$bus_field = get_field( 'business_staff_status', $postarr['ID'] );
+				$old_bus_confirm = (int) $bus_field['confirmed'];
+				$new_bus_confirm = (int) $acf['field_5fff6ec0e2f7e']['field_5fff6ec0e4385'];
+				if ( 1 === $new_bus_confirm && 0 === $old_bus_confirm ) {
+					update_post_meta( $postarr['ID'], 'business_staff_status_date', gmdate('Y-m-d H:i:s') );
+				}
+			}
+			// Logistics Confirmation.
+			if ( isset( $acf, $acf['field_5fff6f3cee555'], $acf['field_5fff6f3cee555']['field_5fff6f3cef757'] ) ) {
+				$log_field = get_field( 'it_logistics_status', $postarr['ID'] );
+				$old_log_confirm = (int) $log_field['confirmed'];
+				$new_log_confirm = (int) $acf['field_5fff6f3cee555']['field_5fff6f3cef757'];
+				if ( 1 === $new_log_confirm && 0 === $old_log_confirm ) {
+					update_post_meta( $postarr['ID'], 'it_logistics_status_date', gmdate('Y-m-d H:i:s') );
+				}
+			}
+			// Logistics Order Confirmation.
+			if ( isset( $acf, $acf['field_5fff6f3cee555'], $acf['field_5fff6f3cee555']['field_60074e2222cee'] ) ) {
+				$log_field = get_field( 'it_logistics_status', $postarr['ID'] );
+				$old_log_ordered = (int) $log_field['ordered'];
+				$new_log_ordered = (int) $acf['field_5fff6f3cee555']['field_60074e2222cee'];
+				if ( 1 === $new_log_ordered && 0 === $old_log_ordered ) {
+					update_post_meta( $postarr['ID'], 'it_logistics_status_ordered_at', gmdate('Y-m-d H:i:s') );
+				}
+			}
+		}
+		return $data;
 	}
 
 	/**

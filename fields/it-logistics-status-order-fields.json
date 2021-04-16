@@ -57,23 +57,6 @@
                         "ui_off_text": ""
                     },
                     {
-                        "key": "field_5fff6f3cef777",
-                        "label": "Date Confirmed",
-                        "name": "date",
-                        "type": "date_time_picker",
-                        "instructions": "",
-                        "required": 1,
-                        "conditional_logic": 0,
-                        "wrapper": {
-                            "width": "",
-                            "class": "",
-                            "id": ""
-                        },
-                        "display_format": "F j, Y g:i a",
-                        "return_format": "Y-m-d H:i:s",
-                        "first_day": 0
-                    },
-                    {
                         "key": "field_60074e2222cee",
                         "label": "Ordered",
                         "name": "ordered",
@@ -91,23 +74,6 @@
                         "ui": 0,
                         "ui_on_text": "",
                         "ui_off_text": ""
-                    },
-                    {
-                        "key": "field_60074d7222ced",
-                        "label": "Date Ordered",
-                        "name": "ordered_at",
-                        "type": "date_time_picker",
-                        "instructions": "",
-                        "required": 1,
-                        "conditional_logic": 0,
-                        "wrapper": {
-                            "width": "",
-                            "class": "",
-                            "id": ""
-                        },
-                        "display_format": "F j, Y g:i a",
-                        "return_format": "Y-m-d H:i:s",
-                        "first_day": 1
                     }
                 ]
             }

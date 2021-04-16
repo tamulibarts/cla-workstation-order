@@ -75,23 +75,6 @@
                         "ui": 0,
                         "ui_on_text": "",
                         "ui_off_text": ""
-                    },
-                    {
-                        "key": "field_5fff6b86a22b1",
-                        "label": "Date",
-                        "name": "date",
-                        "type": "date_time_picker",
-                        "instructions": "",
-                        "required": 0,
-                        "conditional_logic": 0,
-                        "wrapper": {
-                            "width": "",
-                            "class": "",
-                            "id": ""
-                        },
-                        "display_format": "F j, Y g:i a",
-                        "return_format": "Y-m-d H:i:s",
-                        "first_day": 0
                     }
                 ]
             }
