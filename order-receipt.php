@@ -357,6 +357,7 @@ for ($inc=0; $inc < $item_length; $inc++) {
 	$meta_detail = $meta['order_items_' . $inc . '_price'];
 	$text_width = $pdf->GetStringWidth($meta_detail);
 	$col_width = $column_5_width;
+	$line_count = 1;
 	if ( $text_width > $col_width ) {
 		$line_count = ceil( $text_width / $col_width );
 		if ( $line_count > $lines ) {
