@@ -92,6 +92,10 @@ for ($inc=0; $inc < $meta['order_items']; $inc++) {
 		$meta["order_items_{$inc}_requisition_date"] = $date;
 	}
 }
+for ($inc=0; $inc < $meta['quotes']; $inc++) {
+	$price                       = $meta["quotes_{$inc}_price"];
+	$meta["quotes_{$inc}_price"] = '$' . number_format( $price, 2, '.', ',' );
+}
 
 // Generate the PDF.
 class PDF extends FPDF
@@ -278,7 +282,14 @@ $column_2_width = 0.18 * $full_width;
 $column_3_width = 0.08 * $full_width;
 $column_4_width = 0.14 * $full_width;
 $column_5_width = 0.1 * $full_width;
-$item_length = intval( $meta['order_items'] );
+$item_length = 0;
+if ( isset( $meta['order_items'] ) && ! empty( $meta['order_items'] ) ) {
+	$item_length = intval( $meta['order_items'] );
+}
+$quote_item_length = 0;
+if ( isset( $meta['quotes'] ) && ! empty( $meta['quotes'] ) ) {
+	$quote_item_length = intval( $meta['quotes'] );
+}
 // Heading.
 $pdf->SetFont('Arial','B',11);
 $pdf->setXY($left_margin_x, $offsetY);
@@ -319,6 +330,7 @@ for ($inc=0; $inc < $item_length; $inc++) {
 	$pdf->MultiCell($column_5_width, 5, $meta['order_items_' . $inc . '_price'], 0);
 	// Figure out the maximum line count among all details of this item.
 	$lines = 1;
+	$line_count = 0;
 	$meta_detail = $meta['order_items_' . $inc . '_item'];
 	$text_width = $pdf->GetStringWidth($meta_detail);
 	$col_width = $column_1_width;
@@ -358,7 +370,79 @@ for ($inc=0; $inc < $item_length; $inc++) {
 	$meta_detail = $meta['order_items_' . $inc . '_price'];
 	$text_width = $pdf->GetStringWidth($meta_detail);
 	$col_width = $column_5_width;
+	if ( $text_width > $col_width ) {
+		$line_count = ceil( $text_width / $col_width );
+		if ( $line_count > $lines ) {
+			$lines = $line_count;
+		}
+	}
+	// Take the max line count and point the next item's coordinates
+	$offsetY += ( 5 * $line_count ) + 5;
+}
+// Quote items.
+for ($inc=0; $inc < $quote_item_length; $inc++) {
+	// Item Name.
+	$offsetX = $left_margin_x;
+	$pdf->setXY($offsetX, $offsetY);
+	$pdf->MultiCell($column_1_width, 5, $meta['quotes_' . $inc . '_name'], 0);
+	// // SKU.
+	$offsetX += $column_1_width;
+	// $pdf->setXY($offsetX, $offsetY);
+	// $pdf->MultiCell($column_2_width, 5, $meta['quotes_' . $inc . '_sku'], 0);
+	// // Requisition Number.
+	$offsetX += $column_2_width;
+	// $pdf->setXY($offsetX, $offsetY);
+	// $pdf->MultiCell($column_3_width, 5, $meta['quotes_' . $inc . '_requisition_number'], 0);
+	// // Requisition Date.
+	$offsetX += $column_3_width;
+	// $pdf->setXY($offsetX, $offsetY);
+	// $pdf->MultiCell($column_4_width, 5, $meta['quotes_' . $inc . '_requisition_date'], 0);
+	// Price.
+	$offsetX += $column_4_width;
+	$pdf->setXY($offsetX, $offsetY);
+	$pdf->MultiCell($column_5_width, 5, $meta['quotes_' . $inc . '_price'], 0);
+	// Figure out the maximum line count among all details of this item.
+	$lines = 1;
 	$line_count = 1;
+	$meta_detail = $meta['quotes_' . $inc . '_name'];
+	$text_width = $pdf->GetStringWidth($meta_detail);
+	$col_width = $column_1_width;
+	if ( $text_width > $col_width ) {
+		$line_count = ceil( $text_width / $col_width );
+		if ( $line_count > $lines ) {
+			$lines = $line_count;
+		}
+	}
+	// $meta_detail = $meta['quotes_' . $inc . '_sku'];
+	// $text_width = $pdf->GetStringWidth($meta_detail);
+	// $col_width = $column_2_width;
+	// if ( $text_width > $col_width ) {
+	// 	$line_count = ceil( $text_width / $col_width );
+	// 	if ( $line_count > $lines ) {
+	// 		$lines = $line_count;
+	// 	}
+	// }
+	// $meta_detail = $meta['quotes_' . $inc . '_requisition_number'];
+	// $text_width = $pdf->GetStringWidth($meta_detail);
+	// $col_width = $column_3_width;
+	// if ( $text_width > $col_width ) {
+	// 	$line_count = ceil( $text_width / $col_width );
+	// 	if ( $line_count > $lines ) {
+	// 		$lines = $line_count;
+	// 	}
+	// }
+	// $meta_detail = $meta['quotes_' . $inc . '_requisition_date'];
+	// $text_width = $pdf->GetStringWidth($meta_detail);
+	// $col_width = $column_4_width;
+	// if ( $text_width > $col_width ) {
+	// 	$line_count = ceil( $text_width / $col_width );
+	// 	if ( $line_count > $lines ) {
+	// 		$lines = $line_count;
+	// 	}
+	// }
+	$meta_detail = $meta['quotes_' . $inc . '_price'];
+	$text_width = $pdf->GetStringWidth($meta_detail);
+	$col_width = $column_5_width;
 	if ( $text_width > $col_width ) {
 		$line_count = ceil( $text_width / $col_width );
 		if ( $line_count > $lines ) {
