@@ -32,6 +32,7 @@ function cla_my_orders() {
 		'post_type'      => 'wsorder',
 		'fields'         => 'ids',
 		'posts_per_page' => -1,
+		'author'         => $user_id,
 	);
 	$accepted_orders = get_posts( $accepted_order_args );
 	echo '<div class="">';
@@ -53,6 +54,7 @@ function cla_my_orders() {
 		'post_type'      => 'wsorder',
 		'fields'         => 'ids',
 		'posts_per_page' => -1,
+		'author'         => $user_id,
 		'post_status'    => array( 'action_required' ),
 		'orderby'        => 'meta_value_num',
 		'meta_key'       => 'order_id',
@@ -89,6 +91,7 @@ function cla_my_orders() {
 		'post_type'      => 'wsorder',
 		'fields'         => 'ids',
 		'posts_per_page' => -1,
+		'author'         => $user_id,
 		'post_status'    => 'returned',
 	);
 	$returned_orders = get_posts( $returned_order_args );
