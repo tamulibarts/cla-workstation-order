@@ -107,8 +107,9 @@ class WSOrder_PostType {
 	/**
 	 * Save timestamps when the order is confirmed in various ways.
 	 *
-	 * array() $data
-	 * array() $postarr The post data array.
+	 * @param array $data    The post data.
+	 * @param array $postarr The post meta data.
+	 *
 	 * @return array
 	 */
 	public function save_order_timestamp_fields( $data, $postarr ) {
