@@ -447,7 +447,7 @@ class WSOrder_PostType_Emails {
 	 */
 	private function email_body_it_rep_to_business( $order_post_id, $acf_data, $end_user_name ) {
 		$program_name    = get_the_title( $acf_data['field_5ffcc2590682b'] );
-		$addfund_amount  = $acf_data['field_5ffcc10806825'];
+		$addfund_amount  = '$' . number_format( $acf_data['field_5ffcc10806825'], 2, '.', ',' );
 		$addfund_account = $acf_data['field_5ffcc16306826'];
 		$admin_order_url = admin_url() . "post.php?post={$order_post_id}&action=edit";
 		$message         = "<p>
