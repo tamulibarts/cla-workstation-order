@@ -51,9 +51,10 @@ class WSOrder_PostType {
 		add_action( 'admin_init', array( $this, 'redirect_uninvolved_users_from_editing' ) );
 		// Generate a print button for the order.
 		add_action( 'post_submitbox_misc_actions', array( $this, 'pdf_print_receipt' ) );
-		// When a user other than the assigned user confirms an order, update the assigned user to that user.
-		add_action( 'transition_post_status', array( $this, 'check_if_switching_it_rep_or_business_admin' ), 11, 3 );
-		add_action( 'save_post', array( $this, 'save_switched_it_rep_or_business_admin' ) );
+		// When the IT Rep confirmation checkbox is checked, set the confirming IT rep to the current user.
+		add_filter( 'acf/update_value/key=field_5fff6b71a22b0', array( $this, 'confirming_it_rep_as_current_user' ), 11, 2 );
+		// When the BUsiness Admin confirmation checkbox is checked, set the confirming business admin to the current user.
+		add_filter( 'acf/update_value/key=field_5fff6ec0e4385', array( $this, 'confirming_business_admin_as_current_user' ), 11, 2 );
 		add_filter( 'wp_insert_post_data', array( $this, 'save_order_timestamp_fields' ), 11, 2);
 
 		/**
@@ -151,6 +152,44 @@ class WSOrder_PostType {
 			}
 		}
 		return $data;
+	}
+
+	/**
+	 * Force confirming IT rep to current user.
+	 *
+	 * @param string $value   The new value.
+	 * @param int    $post_id The post ID.
+	 *
+	 * @return string
+	 */
+	public function confirming_it_rep_as_current_user( $value, $post_id  ) {
+		$old_value = (int) get_post_meta( $post_id, 'it_rep_status_confirmed', true );
+		if ( 1 === intval( $value ) && 0 === $old_value ) {
+			// Is checked now.
+			$current_user    = wp_get_current_user();
+			$current_user_id = (int) $current_user->ID;
+			update_post_meta( $post_id, 'it_rep_status_it_rep', $current_user_id );
+		}
+		return $value;
+	}
+
+	/**
+	 * Force confirming business admin to current user.
+	 *
+	 * @param string $value   The new value.
+	 * @param int    $post_id The post ID.
+	 *
+	 * @return string
+	 */
+	public function confirming_business_admin_as_current_user( $value, $post_id  ) {
+		$old_value = (int) get_post_meta( $post_id, 'business_staff_status_confirmed', true );
+		if ( 1 === intval( $value ) && 0 === $old_value ) {
+			// Is checked now.
+			$current_user    = wp_get_current_user();
+			$current_user_id = (int) $current_user->ID;
+			update_post_meta( $post_id, 'business_staff_status_business_staff', $current_user_id );
+		}
+		return $value;
 	}
 
 	/**
@@ -1378,96 +1417,6 @@ jQuery( 'select[name=\"post_status\"]' ).val('publish')";
 		echo wp_kses_post( $html );
 	}
 
-	/**
-	 * When a user other than the assigned user confirms an order, update the assigned user to that user.
-	 *
-	 * @param string $new_status The new status of the post.
-	 * @param string $old_status The old status of the post.
-	 * @param object $post       The WP_Post object.
-	 *
-	 * @return void
-	 */
-	public function check_if_switching_it_rep_or_business_admin( $new_status, $old_status, $post ) {
-
-		if (
-			'wsorder' !== $post->post_type
-			|| 'auto-draft' === $new_status
-			|| ! isset( $_POST['_wpnonce'], $_POST['acf'] )
-			|| false === wp_verify_nonce( sanitize_key( $_POST['_wpnonce'] ), 'update-post_' . $post->ID )
-		) {
-			return;
-		}
-
-		// IT Rep confirmed by someone other than the designated IT rep.
-		$post_id = $post->ID;
-		if ( isset( $_POST['acf']['field_5fff6b46a22af'], $_POST['acf']['field_5fff6b46a22af']['field_5fff6b71a22b0'] ) ) {
-			$old_post_it_confirm     = (int) get_post_meta( $post_id, 'it_rep_status_confirmed', true );
-			$new_post_it_confirm     = (int) $_POST['acf']['field_5fff6b46a22af']['field_5fff6b71a22b0'];
-			$it_rep_user_id          = (int) $_POST['acf']['field_5fff6b46a22af']['field_5fff703a5289f'];
-			$latest_it_rep_confirmed = $it_rep_user_id;
-			if (
-				0 === $old_post_it_confirm
-				&& 1 === $new_post_it_confirm
-			) {
-				$current_user    = wp_get_current_user();
-				$current_user_id = (int) $current_user->ID;
-				if ( $current_user_id !== $it_rep_user_id ) {
-					$latest_it_rep_confirmed = $current_user_id;
-				}
-			}
-			update_post_meta( $post_id, 'latest_it_rep_confirmed', $latest_it_rep_confirmed );
-		} else {
-			update_post_meta( $post_id, 'latest_it_rep_confirmed', '' );
-		}
-
-		// Business Staff confirmed by someone other than the designated business staff.
-		if (
-			isset( $_POST['acf']['field_5fff6ec0e2f7e'], $_POST['acf']['field_5fff6ec0e2f7e']['field_5fff6ec0e4385'] )
-		) {
-			$old_post_bus_confirm      = (int) get_post_meta( $post_id, 'business_staff_status_confirmed', true );
-			$new_post_bus_confirm      = (int) $_POST['acf']['field_5fff6ec0e2f7e']['field_5fff6ec0e4385'];
-			$business_user_id          = (int) $_POST['acf']['field_5fff6ec0e2f7e']['field_5fff70b84ffe4'];
-			$latest_business_confirmed = $business_user_id;
-
-			if (
-				0 === $old_post_bus_confirm
-				&& 1 === $new_post_bus_confirm
-			) {
-				$current_user     = wp_get_current_user();
-				$current_user_id  = (int) $current_user->ID;
-
-				if ( $current_user_id !== $business_user_id ) {
-					$latest_business_confirmed = $current_user_id;
-				}
-			}
-			update_post_meta( $post_id, 'latest_business_admin_confirmed', $latest_business_confirmed );
-		} else {
-			update_post_meta( $post_id, 'latest_business_admin_confirmed', '' );
-		}
-	}
-
-	/**
-	 * Save new IT Rep or Business Admin.
-	 *
-	 * @param int $post_id The post ID.
-	 *
-	 * @return void
-	 */
-	public function save_switched_it_rep_or_business_admin( $post_id ) {
-
-		$latest_it_rep_confirmed = get_post_meta( $post_id, 'latest_it_rep_confirmed' );
-		$it_rep_confirmed        = get_post_meta( $post_id, 'it_rep_status_it_rep' );
-		if ( $latest_it_rep_confirmed !== $it_rep_confirmed ) {
-			update_post_meta( $post_id, 'it_rep_status_it_rep', $latest_it_rep_confirmed );
-		}
-
-		$latest_business_admin_confirmed = get_post_meta( $post_id, 'latest_business_admin_confirmed' );
-		$business_admin_confirmed        = get_post_meta( $post_id, 'business_staff_status_business_staff' );
-		if ( $latest_business_admin_confirmed !== $business_admin_confirmed ) {
-			update_post_meta( $post_id, 'business_staff_status_business_staff', $latest_business_admin_confirmed );
-		}
-
-	}
 	/**
 	 * Add status tags to the order list view.
 	 *
