@@ -69,16 +69,13 @@ class WSOrder_PostType_Emails {
 			// Get confirmation statuses.
 			$old_post_it_confirm = (int) get_post_meta( $post->ID, 'it_rep_status_confirmed', true );
 			$new_post_it_confirm = (int) $_POST['acf']['field_5fff6b46a22af']['field_5fff6b71a22b0'];
+			$business_admin_id   = (int) get_post_meta( $post->ID, 'business_staff_status_business_staff', true );
 
 			if (
 				0 === $old_post_it_confirm
 				&& 1 === $new_post_it_confirm
-				&& isset( $_POST['acf']['field_5fff6ec0e2f7e'], $_POST['acf']['field_5fff6ec0e2f7e']['field_5fff70b84ffe4'] )
-				&& ! empty( $_POST['acf']['field_5fff6ec0e2f7e']['field_5fff70b84ffe4'] ) // Business admin.
+				&& 0 !== $business_admin_id
 			) {
-
-				// Business admin ID.
-				$business_admin_id = wp_unslash( $_POST['acf']['field_5fff6ec0e2f7e']['field_5fff70b84ffe4'] );
 				// Get the order name.
 				$order_name = get_the_title( $post->ID );
 				// Declare end user variables.
