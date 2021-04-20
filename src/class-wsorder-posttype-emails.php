@@ -202,7 +202,7 @@ class WSOrder_PostType_Emails {
 			$old_post_bus_confirm = (int) get_post_meta( $post->ID, 'business_staff_status_confirmed', true );
 			$new_post_bus_confirm = 0;
 			// Logistics email enabled.
-			$enable_logistics_email = get_field( 'enable_emails_to_logistics', 'option' );
+			$enable_logistics_email = (int) get_field( 'enable_emails_to_logistics', 'option' );
 			if ( array_key_exists( 'field_5fff6ec0e4385', $_POST['acf']['field_5fff6ec0e2f7e'] ) ) {
 				$new_post_bus_confirm = (int) $_POST['acf']['field_5fff6ec0e2f7e']['field_5fff6ec0e4385'];
 			}
