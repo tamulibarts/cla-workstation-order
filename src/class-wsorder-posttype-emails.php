@@ -223,7 +223,7 @@ class WSOrder_PostType_Emails {
 				// Send email.
 				$to      = $logistics_email;
 				$title   = "[{$order_name}] Workstation Order Approval - {$department_abbreviation} - {$end_user_name}";
-				$message = $this->email_body_to_logistics( $post_id, $_POST['acf'] );
+				$message = $this->email_body_to_logistics( $post->ID, $_POST['acf'] );
 				$headers = array( 'Content-Type: text/html; charset=UTF-8' );
 				wp_mail( $to, $title, $message, $headers );
 
