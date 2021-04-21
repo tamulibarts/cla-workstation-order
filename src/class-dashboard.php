@@ -56,6 +56,7 @@ class Dashboard {
 		$user      = wp_get_current_user();
 		$user_id   = $user->ID;
 		$output    = '<ul>';
+
 		/**
 		 * Get orders the user is actively responsible for.
 		 */
@@ -100,8 +101,8 @@ class Dashboard {
 						'value' => $user_id,
 					),
 					array(
-						'key'     => 'it_rep_status_confirmed',
-						'value'   => '1',
+						'key'   => 'it_rep_status_confirmed',
+						'value' => '1',
 					),
 					array(
 						'relation' => 'OR',
@@ -166,11 +167,21 @@ class Dashboard {
 			);
 		}
 		$todo_posts = get_posts( $todo_query_args );
+		// Output links.
 		foreach ($todo_posts as $post_id) {
-			$title = get_the_title( $post_id );
-			$link  = get_edit_post_link( $post_id );
+			$title                   = get_the_title( $post_id );
+			$link                    = get_edit_post_link( $post_id );
+			$author_id               = (int) get_post_field( 'post_author', $post_id );
+			$author                  = get_user_by( 'ID', $author_id );
+			$author_name             = $author->display_name;
+			$user_department_post    = get_field( 'department', "user_{$author_id}" );
+			$user_department_post_id = $user_department_post->ID;
+			$department_title        = get_the_title( $user_department_post_id );
+			$date                    = new \DateTime( get_the_time( 'c', $post_id ) );
+			$date->setTimezone( new \DateTimeZone( 'America/Chicago' ) );
+			$submit_date = $date->format( 'M j, Y \a\t g:i a' );
 			// Output links.
-			$output .= "<li><a href=\"{$link}\">{$title}</a></li>";
+			$output .= "<li><a href=\"{$link}\">{$title} for {$author_name} ({$department_title})</a><br>{$submit_date}</li>";
 		}
 		$output .= '</ul>';
 		echo $output;
