@@ -1175,12 +1175,16 @@ jQuery( 'select[name=\"post_status\"]' ).val('publish')";
 				break;
 
 			case 'logistics_status':
-				$status = get_field( 'it_logistics_status', $post_id );
-				if ( empty( $status['confirmed'] ) ) {
+				$it_status        = get_field( 'it_rep_status', $post_id );
+				$business_status  = get_field( 'business_staff_status', $post_id );
+				$logistics_status = get_field( 'it_logistics_status', $post_id );
+				if ( current_user_can( 'wso_logistics' ) && ( empty( $it_status['confirmed'] ) || empty( $business_status['confirmed'] ) ) ) {
+					echo wp_kses_post( '<span class="approval not-confirmed">Awaiting another</span>' );
+				} elseif ( empty( $logistics_status['confirmed'] ) ) {
 					echo wp_kses_post( '<span class="approval not-confirmed">Not yet confirmed</span>' );
 				} else {
 					echo wp_kses_post( '<span class="approval confirmed">Confirmed</span> ' );
-					if ( empty( $status['ordered'] ) ) {
+					if ( empty( $logistics_status['ordered'] ) ) {
 						echo wp_kses_post( '<span class="approval not-fully-ordered">Not fully ordered</span>' );
 					} else {
 						echo wp_kses_post( '<span class="approval ordered">Ordered</span>' );
