@@ -314,17 +314,21 @@ class WSOrder_PostType_Emails {
 		$post_id    = $post->ID;
 		$order_name = get_the_title( $post_id );
 		// Declare current user variables.
-		$current_user      = wp_get_current_user();
-		$current_user_id   = $current_user->ID;
-		$current_user_name = $current_user->display_name;
+		$current_user       = wp_get_current_user();
+		$current_user_id    = $current_user->ID;
+		$current_user_name  = $current_user->display_name;
+		$current_user_email = $current_user->user_email;
 		// Declare end user variables.
-		$user_id                 = $post->post_author;
-		$end_user                = get_user_by( 'id', $user_id );
-		$end_user_email          = $end_user->user_email;
-		$end_user_name           = $end_user->display_name;
-		$user_department_post    = get_field( 'department', "user_{$user_id}" );
-		$user_department_post_id = $user_department_post->ID;
-		$department_abbreviation = get_field( 'abbreviation', $user_department_post_id );
+		$user_id                   = $post->post_author;
+		$end_user                  = get_user_by( 'id', $user_id );
+		$end_user_email            = $end_user->user_email;
+		$end_user_name             = $end_user->display_name;
+		$primary_it_rep_user_id    = get_post_meta( $post_id, 'it_rep_status_it_rep', true );
+		$primary_it_rep_user       = get_user_by( 'id', $primary_it_rep_user_id );
+		$primary_it_rep_user_email = $primary_it_rep_user->user_email;
+		$user_department_post      = get_field( 'department', "user_{$user_id}" );
+		$user_department_post_id   = $user_department_post->ID;
+		$department_abbreviation   = get_field( 'abbreviation', $user_department_post_id );
 		// Declare IT Rep user variables.
 		$it_reps        = get_field( 'affiliated_it_reps', $post_id );
 		$it_rep_emails  = array();
@@ -370,7 +374,7 @@ class WSOrder_PostType_Emails {
 			 * body: email_body_return_to_user( $post->ID, $_POST['acf'] );
 			 */
 			$to      = $end_user_email;
-			$to_cc   = $current_user->user_email;
+			$to_cc   = $current_user_email;
 			$title   = "[{$order_name}] Returned Workstation Order - {$department_abbreviation} - {$end_user_name}";
 			$message = $this->email_body_return_to_user( $post_id, $_POST['acf'] );
 			array_push( $headers, 'CC:' . $to_cc );
@@ -380,8 +384,8 @@ class WSOrder_PostType_Emails {
 			 * If status changed to "Returned" ->
 			 * subject: [{$order_name}] Returned Workstation Order - {$department_abbreviation} - {$order.user_name}
 			 * to: if it_rep is assigned and approved, email them; if business_admin is assigned, email them
-		 * body: email_body_return_to_user_forward( $post->ID, $_POST['acf'] );
-		 */
+		   * body: email_body_return_to_user_forward( $post->ID, $_POST['acf'] );
+		   */
 			$to = array();
 			if ( ! empty( $it_rep_emails ) ) {
 				$to[] = $it_rep_emails;
@@ -390,6 +394,10 @@ class WSOrder_PostType_Emails {
 				$to[] = $business_admin_emails;
 			}
 			$to = implode( ',', $to );
+			// Remove the returning user from this email list.
+			$pattern = "/$current_user_email,?/";
+			$to      = preg_replace( $pattern, '', $to );
+			$to      = preg_replace( '/,$/', '', $to );
 			if ( ! empty( $to ) ) {
 				$title   = "[{$order_name}] Returned Workstation Order - {$department_abbreviation} - {$end_user_name}";
 				$message = $this->email_body_return_to_user_forward( $post_id, $_POST['acf'], $end_user_name );
@@ -410,16 +418,29 @@ class WSOrder_PostType_Emails {
 			$returner_data        = get_userdata( $returner_id );
 			$returner_roles       = $returner_data->roles;
 			$returner_email       = $returner_data->user_email;
-			$returner_role_emails = array();
+			$returner_role_emails = '';
+			$to                   = $returner_email;
 			// Figure out who returned it.
-			if ( in_array( 'wso_admin', $returner_roles, true ) ) {
-				$returner_role_emails = $returner_email;
-			} elseif ( in_array( 'wso_it_rep', $returner_roles, true ) ) {
-				// IT Rep returned it.
-				$returner_role_emails = $it_rep_emails;
+			if ( in_array( 'wso_it_rep', $returner_roles, true ) ) {
+				// IT Rep returned it. Notify all IT reps.
+				$emails = explode( ',', $it_rep_emails );
+				if ( 1 < count( $emails ) ) {
+					// More than one IT rep.
+					$pattern      = "/$returner_email,?/";
+					$other_emails = preg_replace( $pattern, '', $emails );
+					$other_emails = preg_replace( '/,$/', '', $other_emails );
+					$headers[]    = 'CC:' . $other_emails;
+				}
 			} elseif ( in_array( 'wso_business_admin', $returner_roles, true ) ) {
-				// Business admin returned it.
-				$returner_role_emails = $business_admin_emails;
+				// Business admin returned it. Notify all business admins.
+				$emails = explode( ',', $business_admin_emails );
+				if ( 1 < count( $emails ) ) {
+					// More than one IT rep.
+					$pattern      = "/$returner_email,?/";
+					$other_emails = preg_replace( $pattern, '', $emails );
+					$other_emails = preg_replace( '/,$/', '', $other_emails );
+					$headers[]    = 'CC:' . $other_emails;
+				}
 			}
 			$to              = $returner_role_emails;
 			$title           = "[{$order_name}] Returned Workstation Order - {$department_abbreviation} - {$end_user_name}";
