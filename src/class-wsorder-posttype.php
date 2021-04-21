@@ -357,19 +357,6 @@ class WSOrder_PostType {
 			)
 		);
 
-		register_post_status(
-			'awaiting_another',
-			array(
-				'label'                     => _x( 'Awaiting Another', 'post' ),
-				'public'                    => true,
-				'exclude_from_search'       => false,
-				'show_in_admin_all_list'    => true,
-				'show_in_admin_status_list' => true,
-				/* translators: placeholder is the post count */
-				'label_count'               => _n_noop( 'Awaiting Another <span class="count">(%s)</span>', 'Awaiting Another <span class="count">(%s)</span>' ),
-			)
-		);
-
 	}
 
 	/**
@@ -947,11 +934,6 @@ jQuery( 'select[name=\"post_status\"]' ).val('returned')";
 jQuery( 'select[name=\"post_status\"]' ).val('completed')";
 				break;
 
-			case 'awaiting_another':
-				$status = "jQuery( '#post-status-display' ).text( 'Awaiting Another' );
-jQuery( 'select[name=\"post_status\"]' ).val('awaiting_another')";
-				break;
-
 			case 'publish':
 				$status = "jQuery( '#post-status-display' ).text( 'Published' );
 jQuery( 'select[name=\"post_status\"]' ).val('publish')";
@@ -992,7 +974,7 @@ jQuery( 'select[name=\"post_status\"]' ).val('publish')";
 		echo wp_kses(
 			"<script>
 			jQuery(document).ready( function() {
-				jQuery( 'select[name=\"post_status\"]' ).html( '<option value=\"action_required\">Action Required</option><option value=\"returned\"$subscriber_disabled>Returned</option><option value=\"completed\"{$it_rep_disabled}{$subscriber_disabled}>Completed</option><option value=\"awaiting_another\"$subscriber_disabled>Awaiting Another</option><option value=\"publish\"$non_logistics_disabled>Publish</option>' );
+				jQuery( 'select[name=\"post_status\"]' ).html( '<option value=\"action_required\">Action Required</option><option value=\"returned\"$subscriber_disabled>Returned</option><option value=\"completed\"{$it_rep_disabled}{$subscriber_disabled}>Completed</option><option value=\"publish\"$non_logistics_disabled>Publish</option>' );
 				" . $status . '
 			});
 		</script>',
@@ -1036,12 +1018,6 @@ jQuery( 'select[name=\"post_status\"]' ).val('publish')";
 				case 'completed':
 					if ( $arg !== $post->post_status ) {
 						$states = array( 'Completed' );
-					}
-					break;
-
-				case 'awaiting_another':
-					if ( $arg !== $post->post_status ) {
-						$states = array( 'Awaiting Another' );
 					}
 					break;
 
@@ -1515,14 +1491,6 @@ jQuery( 'select[name=\"post_status\"]' ).val('publish')";
 				$count               = $ar_query->post_count;
 				$views['completed']  = preg_replace( '/<span class="count">\(\d+\)<\/span>/', '<span class="count">(' . $count . ')</span></a>', $views['completed'] );
 				$views['completed']  = str_replace( 'post_type=wsorder', "post_type=wsorder&program={$program_id}", $views['completed'] );
-			}
-			// Awaiting Another link.
-			if ( isset( $views['awaiting_another'] ) ) {
-				$args['post_status']       = 'awaiting_another';
-				$ar_query                  = new \WP_Query( $args );
-				$count                     = $ar_query->post_count;
-				$views['awaiting_another'] = preg_replace( '/<span class="count">\(\d+\)<\/span>/', '<span class="count">(' . $count . ')</span></a>', $views['awaiting_another'] );
-				$views['awaiting_another'] = str_replace( 'post_type=wsorder', "post_type=wsorder&program={$program_id}", $views['awaiting_another'] );
 			}
 			// Trash link.
 			if ( isset( $views['trash'] ) ) {

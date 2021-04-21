@@ -37,112 +37,144 @@ class Dashboard {
 	 *
 	 * @return void
 	 */
-	public function dashboard_widget_function() {
-		$url        = get_site_url();
-		$admin_url  = get_admin_url();
-		$program_id = get_site_option( 'options_current_program' );
-		$user       = wp_get_current_user();
-		$user_id    = $user->ID;
-		$all_query_args = array(
-			'post_type' => 'wsorder',
-			'author' => $user_id,
-			'meta_query' => array(
-				'relation' => 'AND',
-				array(
-					'key'   => 'program',
-					'value' => $program_id,
-				)
-			),
-			'fields' => 'ids',
-		);
-
-		if ( ! current_user_can( 'wso_admin' ) && ! current_user_can( 'wso_logistics' ) ) {
-			$all_query_args['meta_query'][] = array(
-				'relation' => 'OR',
-				array(
-					'key'     => 'affiliated_it_reps',
-					'value'   => '"' . $user_id . '"',
-					'compare' => 'LIKE',
-				),
-				array(
-					'key'     => 'affiliated_business_staff',
-					'value'   => '"' . $user_id . '"',
-					'compare' => 'LIKE',
-				),
-				array(
-					'key'   => 'order_author',
-					'value' => $user_id,
-				)
-			);
-		}
-		$mine_query = new \WP_Query( $all_query_args );
+	public function dashboard_widget_subscribers() {
+		$url = get_site_url();
 		// Output all links.
 		echo '<ul>';
-		echo "<li><a href=\"{$url}/new-order/\">+ Place a New Order</a></li><li><a href=\"{$admin_url}edit.php?post_type=wsorder&author={$user_id}&program={$program_id}\">My Orders ({$mine_query->post_count})</a></li>";
-
-		if (
-			current_user_can( 'wso_admin' )
-			|| current_user_can( 'wso_logistics' )
-			|| current_user_can( 'wso_it_rep' )
-			|| current_user_can( 'wso_business_staff' )
-		) {
-			if ( current_user_can( 'wso_it_rep' ) ) {
-				$user_designation = 'it_rep_status_it_rep';
-			} else if ( current_user_can( 'wso_business_staff' ) ) {
-				$user_designation = 'business_staff_status_business_staff';
-			} else {
-				$user_designation = false;
-			}
-			// Action Required posts link.
-			$action_required_args  = array(
-				'post_type'   => 'wsorder',
-				'post_status' => 'action_required',
-				'fields'      => 'ids',
-			);
-			if ( $user_designation ) {
-				$action_required_args['meta_query'] = array(
-					array(
-						'key'   => $user_designation,
-						'value' => $user_id,
-					),
-				);
-			}
-			$action_required_query = new \WP_Query( $action_required_args );
-			// Returned posts link.
-			$returned_args  = array(
-				'post_type'   => 'wsorder',
-				'post_status' => 'returned',
-				'fields'      => 'ids',
-			);
-			if ( $user_designation ) {
-				$returned_args['meta_query'] = array(
-					array(
-						'key'   => $user_designation,
-						'value' => $user_id,
-					),
-				);
-			}
-			$returned_query = new \WP_Query( $returned_args );
-			// Completed posts link.
-			$completed_args  = array(
-				'post_type'   => 'wsorder',
-				'post_status' => 'completed',
-				'fields'      => 'ids',
-			);
-			if ( $user_designation ) {
-				$completed_args['meta_query'] = array(
-					array(
-						'key'   => $user_designation,
-						'value' => $user_id,
-					),
-				);
-			}
-			$completed_query = new \WP_Query( $completed_args );
-			// Output links.
-			echo "<li><a href=\"{$admin_url}edit.php?post_type=wsorder&program=0&post_status=action_required\">Action Required ({$action_required_query->post_count})</a></li><li><a href=\"{$admin_url}edit.php?post_type=wsorder&program=0&post_status=returned\">Returned ({$returned_query->post_count})</a></li><li><a href=\"{$admin_url}edit.php?post_type=wsorder&program=0&post_status=completed\">Completed ($completed_query->post_count)</a></li>";
-		}
-
+		echo "<li><a href=\"{$url}/new-order/\">+ Place a New Order</a></li><li><a href=\"{$url}/my-orders/\">My Orders</a></li>";
 		echo '</ul>';
+	}
+
+	/**
+	 * Add a custom widget to the main dashboard page including order links.
+	 *
+	 * @return void
+	 */
+	public function dashboard_widget_todo() {
+
+		$admin_url = get_admin_url();
+		$user      = wp_get_current_user();
+		$user_id   = $user->ID;
+		$output    = '<ul>';
+		/**
+		 * Get orders the user is actively responsible for.
+		 */
+		if ( current_user_can( 'wso_it_rep' ) ) {
+			$todo_query_args = array(
+				'post_type'      => 'wsorder',
+				'posts_per_page' => -1,
+				'fields'         => 'ids',
+				'post_status'    => array( 'draft', 'action_required', 'returned' ),
+				'order'          => 'ASC',
+				'meta_query'     => array(
+					'relation' => 'AND',
+					array(
+						'key'   => 'it_rep_status_it_rep',
+						'value' => $user_id,
+					),
+					array(
+						'relation' => 'OR',
+						array(
+							'key'     => 'it_rep_status_confirmed',
+							'value'   => '1',
+							'compare' => '!=',
+						),
+						array(
+							'key'     => 'it_rep_status_confirmed',
+							'compare' => 'NOT EXISTS',
+						),
+					),
+				),
+			);
+		} elseif ( current_user_can( 'wso_business_staff' ) ) {
+			$todo_query_args = array(
+				'post_type'      => 'wsorder',
+				'posts_per_page' => -1,
+				'fields'         => 'ids',
+				'post_status'    => array( 'draft', 'action_required', 'returned' ),
+				'order'          => 'ASC',
+				'meta_query'     => array(
+					'relation' => 'AND',
+					array(
+						'key'   => 'business_staff_status_business_staff',
+						'value' => $user_id,
+					),
+					array(
+						'key'     => 'it_rep_status_confirmed',
+						'value'   => '1',
+					),
+					array(
+						'relation' => 'OR',
+						array(
+							'key'     => 'business_staff_status_confirmed',
+							'value'   => '1',
+							'compare' => '!=',
+						),
+						array(
+							'key'     => 'business_staff_status_confirmed',
+							'compare' => 'NOT EXISTS',
+						),
+					),
+				),
+			);
+		} else {
+			$todo_query_args = array(
+				'post_type'      => 'wsorder',
+				'posts_per_page' => -1,
+				'fields'         => 'ids',
+				'post_status'    => array( 'draft', 'action_required', 'returned' ),
+				'order'          => 'ASC',
+				'meta_query'     => array(
+					'relation' => 'AND',
+					array(
+						'key'     => 'it_rep_status_confirmed',
+						'value'   => '1',
+					),
+					array(
+						'relation' => 'OR',
+						array(
+							'key'   => 'business_staff_status_confirmed',
+							'value' => '1',
+						),
+						array(
+							'key'   => 'business_staff_status_business_staff',
+							'value' => '',
+						),
+					),
+					array(
+						'relation' => 'OR',
+						array(
+							'key'     => 'it_logistics_status_confirmed',
+							'value'   => '1',
+							'compare' => '!=',
+						),
+						array(
+							'key'     => 'it_logistics_status_confirmed',
+							'compare' => 'NOT EXISTS',
+						),
+						array(
+							'key'     => 'it_logistics_status_ordered',
+							'value'   => '1',
+							'compare' => '!=',
+						),
+						array(
+							'key'     => 'it_logistics_status_ordered',
+							'compare' => 'NOT EXISTS',
+						),
+					),
+				),
+			);
+		}
+		$todo_posts = get_posts( $todo_query_args );
+		foreach ($todo_posts as $post_id) {
+			$title = get_the_title( $post_id );
+			$link  = get_edit_post_link( $post_id );
+			// Output links.
+			$output .= "<li><a href=\"{$link}\">{$title}</a></li>";
+		}
+		$output .= '</ul>';
+		echo $output;
+
 	}
 
 	/**
@@ -154,10 +186,21 @@ class Dashboard {
 		$program_id = (int) get_site_option( 'options_current_program' );
 		$program_post = get_post( $program_id );
 		wp_add_dashboard_widget(
-			'cla_dashboard_widget', // Widget slug.
-			'Orders - ' . $program_post->post_title, // Title.
-			array( $this, 'dashboard_widget_function' ) // Display function.
+			'cla_dashboard_subscribers', // Widget slug.
+			'Quick Links', // Title.
+			array( $this, 'dashboard_widget_subscribers' ) // Display function.
 		);
+		if (
+			current_user_can( 'wso_logistics' )
+			|| current_user_can( 'wso_it_rep' )
+			|| current_user_can( 'wso_business_staff' )
+		) {
+			wp_add_dashboard_widget(
+				'cla_dashboard_todo', // Widget slug.
+				'Orders requiring your attention', // Title.
+				array( $this, 'dashboard_widget_todo' ) // Display function.
+			);
+		}
 	}
 
 	/**
