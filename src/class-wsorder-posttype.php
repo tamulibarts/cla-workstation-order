@@ -55,7 +55,11 @@ class WSOrder_PostType {
 		add_filter( 'acf/update_value/key=field_5fff6b71a22b0', array( $this, 'confirming_it_rep_as_current_user' ), 11, 2 );
 		// When the BUsiness Admin confirmation checkbox is checked, set the confirming business admin to the current user.
 		add_filter( 'acf/update_value/key=field_5fff6ec0e4385', array( $this, 'confirming_business_admin_as_current_user' ), 11, 2 );
-		add_filter( 'wp_insert_post_data', array( $this, 'save_order_timestamp_fields' ), 11, 2);
+		// Add a timestamp for when the IT Rep confirms the order.
+		add_filter( 'acf/update_value/key=field_5fff6b71a22b0', array( $this, 'timestamp_it_rep_confirm' ), 11, 2 );
+		add_filter( 'acf/update_value/key=field_5fff6ec0e4385', array( $this, 'timestamp_business_admin_confirm' ), 11, 2 );
+		add_filter( 'acf/update_value/key=field_5fff6f3cef757', array( $this, 'timestamp_logistics_confirm' ), 11, 2 );
+		add_filter( 'acf/update_value/key=field_60074e2222cee', array( $this, 'timestamp_logistics_ordered' ), 11, 2 );
 
 		/**
 		 * Change features of edit.php list view for order posts.
@@ -151,8 +155,42 @@ class WSOrder_PostType {
 					update_post_meta( $postarr['ID'], 'it_logistics_status_ordered_at', gmdate('Y-m-d H:i:s') );
 				}
 			}
+	}
+
+	public function timestamp_it_rep_confirm( $value, $post_id  ) {
+		$old_value = (int) get_post_meta( $post_id, 'it_rep_status_confirmed', true );
+		if ( 1 === intval( $value ) && 0 === $old_value ) {
+			// Is checked now.
+			update_post_meta( $post_id, 'it_rep_status_date', gmdate('Y-m-d H:i:s') );
 		}
-		return $data;
+		return $value;
+	}
+
+	public function timestamp_business_admin_confirm( $value, $post_id  ) {
+		$old_value = (int) get_post_meta( $post_id, 'it_rep_status_confirmed', true );
+		if ( 1 === intval( $value ) && 0 === $old_value ) {
+			// Is checked now.
+			update_post_meta( $post_id, 'business_staff_status_date', gmdate('Y-m-d H:i:s') );
+		}
+		return $value;
+	}
+
+	public function timestamp_logistics_confirm( $value, $post_id  ) {
+		$old_value = (int) get_post_meta( $post_id, 'it_logistics_status_confirmed', true );
+		if ( 1 === intval( $value ) && 0 === $old_value ) {
+			// Is checked now.
+			update_post_meta( $post_id, 'it_logistics_status_date', gmdate('Y-m-d H:i:s') );
+		}
+		return $value;
+	}
+
+	public function timestamp_logistics_ordered( $value, $post_id  ) {
+		$old_value = (int) get_post_meta( $post_id, 'it_logistics_status_ordered', true );
+		if ( 1 === intval( $value ) && 0 === $old_value ) {
+			// Is checked now.
+			update_post_meta( $post_id, 'it_logistics_status_ordered_at', gmdate('Y-m-d H:i:s') );
+		}
+		return $value;
 	}
 
 	/**
