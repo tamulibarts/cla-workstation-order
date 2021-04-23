@@ -69,7 +69,7 @@ $meta['it_rep_status_it_rep'] = $it_rep_user->data->display_name;
 $it_rep_confirm_date          = strtotime( $meta['it_rep_status_date'].' UTC' );
 $meta['it_rep_status_date']   = 'Confirmed - ' . date( 'M j, Y \a\t g:i a', $it_rep_confirm_date );
 // Extra Business Staff data.
-if ( '0' === $meta['business_staff_status_confirmed'] ) {
+if ( ! isset( $meta['business_staff_status_business_staff'] ) || '' === $meta['business_staff_status_business_staff'] ) {
 	$meta['business_staff_status_date'] = 'Not required';
 } else {
   $business_staff_confirm_date                  = strtotime( $meta['business_staff_status_date'].' UTC' );
@@ -82,19 +82,23 @@ $logistics_confirm_date           = strtotime( $meta['it_logistics_status_date']
 $meta['it_logistics_status_date'] = 'Confirmed - ' . date( 'M j, Y \a\t g:i a', $logistics_confirm_date );
 // Modify purchase item data.
 $meta['products_subtotal'] = '$' . number_format( $meta['products_subtotal'], 2, '.', ',' );
-for ($inc=0; $inc < $meta['order_items']; $inc++) {
-	$price                            = $meta["order_items_{$inc}_price"];
-	$meta["order_items_{$inc}_price"] = '$' . number_format( $price, 2, '.', ',' );
-	$date                             = $meta["order_items_{$inc}_requisition_date"];
-	if ( ! empty( $date ) ) {
-		$date                                        = strtotime( $date );
-		$date                                        = date('M j, Y', $date);
-		$meta["order_items_{$inc}_requisition_date"] = $date;
+if ( isset( $meta['order_items'] ) ) {
+	for ($inc=0; $inc < $meta['order_items']; $inc++) {
+		$price                            = $meta["order_items_{$inc}_price"];
+		$meta["order_items_{$inc}_price"] = '$' . number_format( $price, 2, '.', ',' );
+		$date                             = $meta["order_items_{$inc}_requisition_date"];
+		if ( ! empty( $date ) ) {
+			$date                                        = strtotime( $date );
+			$date                                        = date('M j, Y', $date);
+			$meta["order_items_{$inc}_requisition_date"] = $date;
+		}
 	}
 }
-for ($inc=0; $inc < $meta['quotes']; $inc++) {
-	$price                       = $meta["quotes_{$inc}_price"];
-	$meta["quotes_{$inc}_price"] = '$' . number_format( $price, 2, '.', ',' );
+if ( isset( $meta['quotes'] ) ) {
+	for ($inc=0; $inc < $meta['quotes']; $inc++) {
+		$price                       = $meta["quotes_{$inc}_price"];
+		$meta["quotes_{$inc}_price"] = '$' . number_format( $price, 2, '.', ',' );
+	}
 }
 
 // Generate the PDF.
