@@ -4,6 +4,31 @@
         "title": "Order Fields",
         "fields": [
             {
+                "key": "field_608174efb5deb",
+                "label": "Status",
+                "name": "status",
+                "type": "select",
+                "instructions": "",
+                "required": 0,
+                "conditional_logic": 0,
+                "wrapper": {
+                    "width": "",
+                    "class": "",
+                    "id": ""
+                },
+                "choices": {
+                    "action_required": "Action Required",
+                    "returned": "Returned"
+                },
+                "default_value": "action_required",
+                "allow_null": 0,
+                "multiple": 0,
+                "ui": 0,
+                "return_format": "value",
+                "ajax": 0,
+                "placeholder": ""
+            },
+            {
                 "key": "field_60074b5ee982b",
                 "label": "Products Subtotal",
                 "name": "products_subtotal",

@@ -15,6 +15,31 @@ acf_add_local_field_group(array(
 	'title' => 'Order Fields',
 	'fields' => array(
 		array(
+			'key' => 'field_608174efb5deb',
+			'label' => 'Status',
+			'name' => 'status',
+			'type' => 'select',
+			'instructions' => '',
+			'required' => 0,
+			'conditional_logic' => 0,
+			'wrapper' => array(
+				'width' => '',
+				'class' => '',
+				'id' => '',
+			),
+			'choices' => array(
+				'action_required' => 'Action Required',
+				'returned' => 'Returned',
+			),
+			'default_value' => 'action_required',
+			'allow_null' => 0,
+			'multiple' => 0,
+			'ui' => 0,
+			'return_format' => 'value',
+			'ajax' => 0,
+			'placeholder' => '',
+		),
+		array(
 			'key' => 'field_60074b5ee982b',
 			'label' => 'Products Subtotal',
 			'name' => 'products_subtotal',
