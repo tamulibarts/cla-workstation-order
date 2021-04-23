@@ -56,7 +56,7 @@ class User_Roles {
     // $subscriber_role->add_cap( 'edit_others_wsorders', false );
     // $subscriber_role->add_cap( 'edit_private_wsorders', false );
     // $subscriber_role->add_cap( 'edit_published_wsorders', false );
-    $subscriber_role->add_cap( 'publish_wsorders', true );
+    // $subscriber_role->add_cap( 'publish_wsorders', true ); // Required for changing the post status.
     // $subscriber_role->add_cap( 'read_private_wsorders', false );
 
 		/**
@@ -145,7 +145,7 @@ class User_Roles {
       'edit_wsorders'             => true,
       'edit_others_wsorders'      => true,
       'edit_private_wsorders'     => true,
-      // 'edit_published_wsorders'   => true,
+      'edit_published_wsorders'   => true,
       'publish_wsorders'          => true, // Required for changing the post status.
       'read_private_wsorders'     => true,
       'read'                      => true,
@@ -163,7 +163,7 @@ class User_Roles {
       'edit_others_wsorders'      => true,
       'edit_private_wsorders'     => true,
       // 'edit_published_wsorders'   => true,
-      'publish_wsorders'          => true, // Required for changing the post status.
+      // 'publish_wsorders'          => true, // Required for changing the post status.
       'read_private_wsorders'     => true,
       'read'                      => true,
 		);
@@ -189,7 +189,7 @@ class User_Roles {
       'edit_others_wsorders'      => true,
       'edit_private_wsorders'     => true,
       // 'edit_published_wsorders'   => true,
-      'publish_wsorders'          => true, // Required for changing the post status.
+      // 'publish_wsorders'          => true, // Required for changing the post status.
       'read_private_wsorders'     => true,
       'read'                      => true,
 		);

@@ -410,7 +410,7 @@ class WSOrder_PostType_Emails {
 		 */
 		if (
 			'returned' === $old_status
-			&& 'action_required' === $new_status
+			&& 'returned' !== $new_status
 		) {
 
 			// Notify the person who returned the request.
@@ -418,7 +418,6 @@ class WSOrder_PostType_Emails {
 			$returner_data        = get_userdata( $returner_id );
 			$returner_roles       = $returner_data->roles;
 			$returner_email       = $returner_data->user_email;
-			$returner_role_emails = '';
 			$to                   = $returner_email;
 			// Figure out who returned it.
 			if ( in_array( 'wso_it_rep', $returner_roles, true ) ) {
@@ -442,7 +441,7 @@ class WSOrder_PostType_Emails {
 					$headers[]    = 'CC:' . $other_emails;
 				}
 			}
-			$to              = $returner_role_emails;
+			$to              = $returner_email;
 			$title           = "[{$order_name}] Returned Workstation Order - {$department_abbreviation} - {$end_user_name}";
 			$admin_order_url = admin_url() . "post.php?post={$post_id}&action=edit";
 			$message         = "Please check on this work order as the end user has passed it on: $admin_order_url";

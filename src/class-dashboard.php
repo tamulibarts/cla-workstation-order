@@ -65,7 +65,7 @@ class Dashboard {
 				'post_type'      => 'wsorder',
 				'posts_per_page' => -1,
 				'fields'         => 'ids',
-				'post_status'    => array( 'draft', 'action_required', 'returned' ),
+				'post_status'    => array( 'draft', 'action_required' ),
 				'order'          => 'ASC',
 				'meta_query'     => array(
 					'relation' => 'AND',
@@ -92,7 +92,7 @@ class Dashboard {
 				'post_type'      => 'wsorder',
 				'posts_per_page' => -1,
 				'fields'         => 'ids',
-				'post_status'    => array( 'draft', 'action_required', 'returned' ),
+				'post_status'    => array( 'draft', 'action_required' ),
 				'order'          => 'ASC',
 				'meta_query'     => array(
 					'relation' => 'AND',
@@ -123,7 +123,7 @@ class Dashboard {
 				'post_type'      => 'wsorder',
 				'posts_per_page' => -1,
 				'fields'         => 'ids',
-				'post_status'    => array( 'draft', 'action_required', 'returned' ),
+				'post_status'    => array( 'draft', 'action_required' ),
 				'order'          => 'ASC',
 				'meta_query'     => array(
 					'relation' => 'AND',
@@ -134,20 +134,23 @@ class Dashboard {
 					array(
 						'relation' => 'OR',
 						array(
-							'key'   => 'business_staff_status_confirmed',
-							'value' => '1',
-						),
-						array(
 							'key'   => 'business_staff_status_business_staff',
 							'value' => '',
+						),
+						array(
+							'key'     => 'business_staff_status_business_staff',
+							'compare' => 'NOT EXISTS',
+						),
+						array(
+							'key'   => 'business_staff_status_confirmed',
+							'value' => '1',
 						),
 					),
 					array(
 						'relation' => 'OR',
 						array(
 							'key'     => 'it_logistics_status_confirmed',
-							'value'   => '1',
-							'compare' => '!=',
+							'value'   => '0',
 						),
 						array(
 							'key'     => 'it_logistics_status_confirmed',
@@ -155,8 +158,7 @@ class Dashboard {
 						),
 						array(
 							'key'     => 'it_logistics_status_ordered',
-							'value'   => '1',
-							'compare' => '!=',
+							'value'   => '0',
 						),
 						array(
 							'key'     => 'it_logistics_status_ordered',

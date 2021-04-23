@@ -10,7 +10,7 @@ body.wp-admin.post-type-wsorder {
 	.misc-pub-section.misc-pub-visibility,
 	.misc-pub-section.misc-pub-curtime,
 	.row-actions .inline,
-	.row-actions .trash,
+	// .row-actions .trash,
 	.acf-field-5ffcc2b90682c .acf-actions,
 	.acf-field-600858275c27f .acf-actions {
 		display: none;
@@ -40,8 +40,12 @@ body.wp-admin.post-type-wsorder {
 		}
 	}
 
-	&:not(.wso_admin) input#publish {
+	&:not(.wso_admin):not(.wso_logistics) input#publish {
 		display: none;
+	}
+
+	&.returned:not(.wso_admin):not(.wso_logistics):not(.wso_it_rep):not(.wso_business_admin) input#publish {
+		display: block;
 	}
 
 	&.wso_admin.completed input#publish {

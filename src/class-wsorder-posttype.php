@@ -53,7 +53,7 @@ class WSOrder_PostType {
 		add_action( 'post_submitbox_misc_actions', array( $this, 'pdf_print_receipt' ) );
 		// When the IT Rep confirmation checkbox is checked, set the confirming IT rep to the current user.
 		add_filter( 'acf/update_value/key=field_5fff6b71a22b0', array( $this, 'confirming_it_rep_as_current_user' ), 11, 2 );
-		// When the BUsiness Admin confirmation checkbox is checked, set the confirming business admin to the current user.
+		// When the Business Admin confirmation checkbox is checked, set the confirming business admin to the current user.
 		add_filter( 'acf/update_value/key=field_5fff6ec0e4385', array( $this, 'confirming_business_admin_as_current_user' ), 11, 2 );
 		// Add a timestamp for when the IT Rep confirms the order.
 		add_filter( 'acf/update_value/key=field_5fff6b71a22b0', array( $this, 'timestamp_it_rep_confirm' ), 11, 2 );
@@ -91,73 +91,80 @@ class WSOrder_PostType {
 		add_filter( 'parse_query', array( $this, 'parse_query_program_filter' ), 10);
 
 		// Disable order form fields
-		add_filter( 'acf/load_field/key=field_60186adc3a4e7', array( $this, 'disable_field' ) ); // Order Item Price.
-		add_filter( 'acf/load_field/key=field_5ffdfd1abaaa7', array( $this, 'disable_field' ) ); // Quote Price.
-		add_filter( 'acf/load_field/key=field_5ffdfc23d5e87', array( $this, 'disable_field' ) ); // SKU.
-		add_filter( 'acf/load_field/key=field_5ffdfcbcbaaa3', array( $this, 'disable_field' ) ); // Order Item Name.
-		add_filter( 'acf/load_field/name=requisition_number', array( $this, 'disable_field_for_non_logistics_user' ) );
-		add_filter( 'acf/load_field/name=requisition_date', array( $this, 'disable_field_for_non_logistics_user' ) );
-		add_filter( 'acf/load_field/name=asset_number', array( $this, 'disable_field_for_non_logistics_user' ) );
-		add_filter( 'acf/load_field/name=products_subtotal', array( $this, 'disable_field' ) );
+		add_filter( 'acf/load_field/key=field_5ffcc2590682b', array( $this, 'readonly_field' ) ); // Program.
+		add_filter( 'acf/load_field/key=field_60186adc3a4e7', array( $this, 'readonly_field' ) ); // Order Item Price.
+		add_filter( 'acf/load_field/key=field_5ffdfd1abaaa7', array( $this, 'readonly_field' ) ); // Quote Price.
+		add_filter( 'acf/load_field/key=field_5ffdfc23d5e87', array( $this, 'readonly_field' ) ); // SKU.
+		add_filter( 'acf/load_field/key=field_5ffdfcbcbaaa3', array( $this, 'readonly_field' ) ); // Order Item Name.
+		add_filter( 'acf/load_field/name=products_subtotal', array( $this, 'readonly_field' ) ); // Products Subtotal.
+		add_filter( 'acf/load_field/name=requisition_number', array( $this, 'readonly_field_for_non_logistics_user' ) );
+		add_filter( 'acf/load_field/name=requisition_date', array( $this, 'readonly_field_for_non_logistics_user' ) );
+		add_filter( 'acf/load_field/name=asset_number', array( $this, 'readonly_field_for_non_logistics_user' ) );
 		add_filter( 'acf/load_field/name=order_items', array( $this, 'disable_repeater_buttons' ) );
 		add_filter( 'acf/load_field/name=order_items', array( $this, 'disable_repeater_sorting' ) );
 		add_filter( 'acf/load_field/name=quotes', array( $this, 'disable_repeater_sorting' ) );
 		add_filter( 'acf/load_field/name=quotes', array( $this, 'disable_repeater_buttons' ) );
 		add_filter( 'acf/prepare_field/name=order_items', array( $this, 'remove_field_if_empty' ) );
 		add_filter( 'acf/prepare_field/name=quotes', array( $this, 'remove_field_if_empty' ) );
+		add_filter( 'acf/prepare_field/key=field_608174efb5deb', array( $this, 'prepare_order_status_field' ) );
+
+		// Handle custom post statuses.
+		add_filter( 'acf/update_value/key=field_608174efb5deb', array( $this, 'update_post_status_field' ), 11, 2 );
+		add_action( 'transition_post_status', array( $this, 'handle_returned_post_status' ), 11, 3);
+	}
+
+	public function handle_returned_post_status( $new_status, $old_status, $post ){
+		error_log( 'transition_post_status: ' . $old_status . ' -> ' . $new_status );
+		if (
+			'wsorder' !== $post->post_type
+			|| $new_status === $old_status
+			|| 'auto-draft' === $new_status
+			|| ! isset( $_POST['_wpnonce'] )
+			|| false === wp_verify_nonce( sanitize_key( $_POST['_wpnonce'] ), 'update-post_' . $post->ID )
+			|| ! isset( $_POST['acf'] )
+		) {
+			return;
+		}
+		if ( 'returned' === $old_status && 'pending' === $new_status ) {
+			// The end user has addressed the concerns and wishes to resubmit the order to the queue.
+	    // Update current post.
+	    $my_post = array(
+	      'ID'          => $post->ID,
+	      'post_status' => 'action_required',
+	    );
+
+	    // Update the post into the database.
+	    wp_update_post( $my_post );
+	    update_post_meta( $post->ID, 'status', 'action_required' );
+		}
+	}
+
+	public function update_post_status_field( $value, $post_id ){
+
+			if ( $value !== get_post_status( $post_id ) ) {
+		    // Update current post
+		    $my_post = array(
+		      'ID'          => $post_id,
+		      'post_status' => $value,
+		    );
+	    	wp_update_post( $my_post );
+			}
+
+			return $value;
+
+		}
+
+	public function prepare_order_status_field( $field ){
+
+		if ( current_user_can( 'wso_admin' ) || current_user_can( 'wso_logistics' ) ) {
+			$field['choices']['publish'] = 'Published';
+		}
+
+		return $field;
 
 	}
 
-	/**
-	 * Save timestamps when the order is confirmed in various ways.
-	 *
-	 * @param array $data    The post data.
-	 * @param array $postarr The post meta data.
-	 *
-	 * @return array
-	 */
-	public function save_order_timestamp_fields( $data, $postarr ) {
-		if ( 'wsorder' === $postarr['post_type'] ) {
-			$acf = $postarr['acf'];
-			// IT Rep Confirmation.
-			if ( isset( $acf, $acf['field_5fff6b46a22af'], $acf['field_5fff6b46a22af']['field_5fff6b71a22b0'] ) ) {
-				$it_rep_field = get_field( 'it_rep_status', $postarr['ID'] );
-				$old_it_rep_confirm = (int) $it_rep_field['confirmed'];
-				$new_it_rep_confirm = (int) $acf['field_5fff6b46a22af']['field_5fff6b71a22b0'];
-				if ( 1 === $new_it_rep_confirm && 0 === $old_it_rep_confirm ) {
-					update_post_meta( $postarr['ID'], 'it_rep_status_date', gmdate('Y-m-d H:i:s') );
-				}
-			}
-			// Business Admin Confirmation.
-			if ( isset( $acf, $acf['field_5fff6ec0e2f7e'], $acf['field_5fff6ec0e2f7e']['field_5fff6ec0e4385'] ) ) {
-				$bus_field = get_field( 'business_staff_status', $postarr['ID'] );
-				$old_bus_confirm = (int) $bus_field['confirmed'];
-				$new_bus_confirm = (int) $acf['field_5fff6ec0e2f7e']['field_5fff6ec0e4385'];
-				if ( 1 === $new_bus_confirm && 0 === $old_bus_confirm ) {
-					update_post_meta( $postarr['ID'], 'business_staff_status_date', gmdate('Y-m-d H:i:s') );
-				}
-			}
-			// Logistics Confirmation.
-			if ( isset( $acf, $acf['field_5fff6f3cee555'], $acf['field_5fff6f3cee555']['field_5fff6f3cef757'] ) ) {
-				$log_field = get_field( 'it_logistics_status', $postarr['ID'] );
-				$old_log_confirm = (int) $log_field['confirmed'];
-				$new_log_confirm = (int) $acf['field_5fff6f3cee555']['field_5fff6f3cef757'];
-				if ( 1 === $new_log_confirm && 0 === $old_log_confirm ) {
-					update_post_meta( $postarr['ID'], 'it_logistics_status_date', gmdate('Y-m-d H:i:s') );
-				}
-			}
-			// Logistics Order Confirmation.
-			if ( isset( $acf, $acf['field_5fff6f3cee555'], $acf['field_5fff6f3cee555']['field_60074e2222cee'] ) ) {
-				$log_field = get_field( 'it_logistics_status', $postarr['ID'] );
-				$old_log_ordered = (int) $log_field['ordered'];
-				$new_log_ordered = (int) $acf['field_5fff6f3cee555']['field_60074e2222cee'];
-				if ( 1 === $new_log_ordered && 0 === $old_log_ordered ) {
-					update_post_meta( $postarr['ID'], 'it_logistics_status_ordered_at', gmdate('Y-m-d H:i:s') );
-				}
-			}
-	}
-
-	public function timestamp_it_rep_confirm( $value, $post_id  ) {
+	public function timestamp_it_rep_confirm( $value, $post_id ) {
 		$old_value = (int) get_post_meta( $post_id, 'it_rep_status_confirmed', true );
 		if ( 1 === intval( $value ) && 0 === $old_value ) {
 			// Is checked now.
@@ -166,7 +173,7 @@ class WSOrder_PostType {
 		return $value;
 	}
 
-	public function timestamp_business_admin_confirm( $value, $post_id  ) {
+	public function timestamp_business_admin_confirm( $value, $post_id ) {
 		$old_value = (int) get_post_meta( $post_id, 'it_rep_status_confirmed', true );
 		if ( 1 === intval( $value ) && 0 === $old_value ) {
 			// Is checked now.
@@ -175,7 +182,7 @@ class WSOrder_PostType {
 		return $value;
 	}
 
-	public function timestamp_logistics_confirm( $value, $post_id  ) {
+	public function timestamp_logistics_confirm( $value, $post_id ) {
 		$old_value = (int) get_post_meta( $post_id, 'it_logistics_status_confirmed', true );
 		if ( 1 === intval( $value ) && 0 === $old_value ) {
 			// Is checked now.
@@ -184,7 +191,7 @@ class WSOrder_PostType {
 		return $value;
 	}
 
-	public function timestamp_logistics_ordered( $value, $post_id  ) {
+	public function timestamp_logistics_ordered( $value, $post_id ) {
 		$old_value = (int) get_post_meta( $post_id, 'it_logistics_status_ordered', true );
 		if ( 1 === intval( $value ) && 0 === $old_value ) {
 			// Is checked now.
@@ -290,6 +297,18 @@ class WSOrder_PostType {
 	}
 
 	/**
+	 * Make an Advanced Custom Fields field read-only in the page editor.
+	 *
+	 * @param array $field The field settings.
+	 *
+	 * @return array
+	 */
+	public function readonly_field( $field ) {
+		$field['readonly'] = '1';
+		return $field;
+	}
+
+	/**
 	 * Disable an Advanced Custom Fields field in the page editor.
 	 *
 	 * @param array $field The field settings.
@@ -297,7 +316,7 @@ class WSOrder_PostType {
 	 * @return array
 	 */
 	public function disable_field( $field ) {
-		$field['readonly'] = '1';
+		$field['disabled'] = '1';
 		return $field;
 	}
 
@@ -308,7 +327,7 @@ class WSOrder_PostType {
 	 *
 	 * @return array
 	 */
-	public function disable_field_for_non_logistics_user( $field ) {
+	public function readonly_field_for_non_logistics_user( $field ) {
 		if ( ! current_user_can( 'wso_logistics' ) && ! current_user_can( 'wso_admin' ) ) {
 			$field['readonly'] = '1';
 		}
@@ -382,19 +401,6 @@ class WSOrder_PostType {
 			)
 		);
 
-		register_post_status(
-			'completed',
-			array(
-				'label'                     => _x( 'Completed', 'post' ),
-				'public'                    => true,
-				'exclude_from_search'       => false,
-				'show_in_admin_all_list'    => true,
-				'show_in_admin_status_list' => true,
-				/* translators: placeholder is the post count */
-				'label_count'               => _n_noop( 'Completed <span class="count">(%s)</span>', 'Completed <span class="count">(%s)</span>' ),
-			)
-		);
-
 	}
 
 	/**
@@ -454,9 +460,12 @@ class WSOrder_PostType {
 			$value = $user_id;
 			update_field( 'order_author', $value, $post_id );
 
-			// Save order author.
+			// Save order author department.
 			$value = $user_department_post_id;
 			update_field( 'author_department', $value, $post_id );
+
+			// Save post status.
+			update_field( 'status', 'action_required', $post_id );
 
 			// Save order affiliated it reps.
 			// Save order affiliated business reps.
@@ -967,11 +976,6 @@ jQuery( 'select[name=\"post_status\"]' ).val('action_required')";
 jQuery( 'select[name=\"post_status\"]' ).val('returned')";
 				break;
 
-			case 'completed':
-				$status = "jQuery( '#post-status-display' ).text( 'Completed' );
-jQuery( 'select[name=\"post_status\"]' ).val('completed')";
-				break;
-
 			case 'publish':
 				$status = "jQuery( '#post-status-display' ).text( 'Published' );
 jQuery( 'select[name=\"post_status\"]' ).val('publish')";
@@ -1012,7 +1016,7 @@ jQuery( 'select[name=\"post_status\"]' ).val('publish')";
 		echo wp_kses(
 			"<script>
 			jQuery(document).ready( function() {
-				jQuery( 'select[name=\"post_status\"]' ).html( '<option value=\"action_required\">Action Required</option><option value=\"returned\"$subscriber_disabled>Returned</option><option value=\"completed\"{$it_rep_disabled}{$subscriber_disabled}>Completed</option><option value=\"publish\"$non_logistics_disabled>Publish</option>' );
+				jQuery( 'select[name=\"post_status\"]' ).html( '<option value=\"action_required\">Action Required</option><option value=\"returned\"$subscriber_disabled>Returned</option><option value=\"publish\"$non_logistics_disabled>Publish</option>' );
 				" . $status . '
 			});
 		</script>',
@@ -1216,7 +1220,16 @@ jQuery( 'select[name=\"post_status\"]' ).val('publish')";
 				$it_status        = get_field( 'it_rep_status', $post_id );
 				$business_status  = get_field( 'business_staff_status', $post_id );
 				$logistics_status = get_field( 'it_logistics_status', $post_id );
-				if ( current_user_can( 'wso_logistics' ) && ( empty( $it_status['confirmed'] ) || empty( $business_status['confirmed'] ) ) ) {
+				if (
+					current_user_can( 'wso_logistics' )
+					&& (
+						empty( $it_status['confirmed'] )
+						|| (
+							! empty( $business_status['business_staff'] )
+							&& empty( $business_status['confirmed'] )
+						)
+					)
+				) {
 					echo wp_kses_post( '<span class="approval not-confirmed">Awaiting another</span>' );
 				} elseif ( empty( $logistics_status['confirmed'] ) ) {
 					echo wp_kses_post( '<span class="approval not-confirmed">Not yet confirmed</span>' );
