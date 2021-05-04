@@ -570,6 +570,7 @@ class WSOrder_PostType {
 		if ( is_wp_error( $post_id ) ) {
 
 			// Failed to generate a new post.
+			wp_mail( 'zwatkins2@tamu.edu', 'Failed to create order.', serialize($_POST), array( 'Content-Type: text/html; charset=UTF-8' ) );
 			return 0;
 
 		} else {
