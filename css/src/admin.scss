@@ -16,30 +16,6 @@ body.wp-admin.post-type-wsorder {
 		display: none;
 	}
 
-	&:not(.publish) {
-		#minor-publishing-actions {
-			// #save-action {
-			// 	position: relative;
-
-			// 	&:before {
-			// 		content: "Save";
-			// 		display: block;
-			// 		position: absolute;
-			// 		top: 6px;
-			// 		left: 26px;
-			// 		color: #0071A1;
-			// 		font-size: 13px;
-			// 		pointer-events: none;
-			// 	}
-			// }
-
-			// #save-post,
-			// #save-post.button.disabled {
-			// 	color: transparent!important;
-			// }
-		}
-	}
-
 	/* Handle permissions for IT Rep */
 	&.disable-update-order {
 		#major-publishing-actions #publishing-action,
@@ -53,14 +29,6 @@ body.wp-admin.post-type-wsorder {
 	&.wso_business_admin.action_required #major-publishing-actions {
 		display: none;
 	}
-
-	// &.returned:not(.wso_admin):not(.wso_logistics):not(.wso_it_rep):not(.wso_business_admin) input#publish {
-	// 	display: block;
-	// }
-
-	// &.wso_admin.completed input#publish {
-	// 	display: inline-block;
-	// }
 
 	.acf-field input[disabled] {
 		color: #666;
