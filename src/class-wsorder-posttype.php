@@ -102,6 +102,9 @@ class WSOrder_PostType {
 		add_filter( 'acf/prepare_field/name=order_items', array( $this, 'remove_field_if_empty' ) );
 		add_filter( 'acf/prepare_field/name=quotes', array( $this, 'remove_field_if_empty' ) );
 
+		// Keep certain fields from being updated when they can't be disabled.
+		add_filter( 'acf/update_value/key=field_5ffcc2590682b', array( $this, 'lock_program_field_value' ), 11, 3 );
+
 		// Add a timestamp for when users complete their tasks in the order.
 		add_filter( 'acf/update_value/key=field_5fff6b71a22b0', array( $this, 'timestamp_it_rep_confirm' ), 11, 2 );
 		add_filter( 'acf/update_value/key=field_5fff6ec0e4385', array( $this, 'timestamp_business_admin_confirm' ), 11, 2 );
@@ -117,9 +120,6 @@ class WSOrder_PostType {
 
 		// Customize post permissions.
 		add_action( 'acf/validate_save_post', array( $this, 'disable_save_order' ) );
-
-		// Keep certain fields from being updated when they can't be disabled.
-		add_filter( 'acf/update_value/key=field_5ffcc2590682b', array( $this, 'lock_program_field_value' ), 11, 3 );
 
 	}
 
@@ -436,18 +436,6 @@ class WSOrder_PostType {
 	 */
 	public function readonly_field( $field ) {
 		$field['readonly'] = '1';
-		return $field;
-	}
-
-	/**
-	 * Disable an Advanced Custom Fields field in the page editor.
-	 *
-	 * @param array $field The field settings.
-	 *
-	 * @return array
-	 */
-	public function disable_field( $field ) {
-		$field['disabled'] = '1';
 		return $field;
 	}
 
