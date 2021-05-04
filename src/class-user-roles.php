@@ -46,18 +46,18 @@ class User_Roles {
 		$subscriber_role = get_role( 'subscriber' );
     $subscriber_role->add_cap( 'edit_wsorder', true );
     $subscriber_role->add_cap( 'read_wsorder', true );
-    // $subscriber_role->add_cap( 'delete_wsorder', false );
-    $subscriber_role->add_cap( 'create_wsorders', true );
-    // $subscriber_role->add_cap( 'delete_wsorders', false );
-    // $subscriber_role->add_cap( 'delete_others_wsorders', false );
-    // $subscriber_role->add_cap( 'delete_private_wsorders', false );
-    // $subscriber_role->add_cap( 'delete_published_wsorders', false );
+    $subscriber_role->add_cap( 'create_wsorders', true ); // For some reason this is required to view the post list page.
+    $subscriber_role->add_cap( 'delete_wsorder', false );
+    $subscriber_role->add_cap( 'delete_wsorders', false );
+    $subscriber_role->add_cap( 'delete_others_wsorders', false );
+    $subscriber_role->add_cap( 'delete_private_wsorders', false );
+    $subscriber_role->add_cap( 'delete_published_wsorders', false );
     $subscriber_role->add_cap( 'edit_wsorders', true );
-    // $subscriber_role->add_cap( 'edit_others_wsorders', false );
-    // $subscriber_role->add_cap( 'edit_private_wsorders', false );
-    // $subscriber_role->add_cap( 'edit_published_wsorders', false );
-    // $subscriber_role->add_cap( 'publish_wsorders', true ); // Required for changing the post status.
-    // $subscriber_role->add_cap( 'read_private_wsorders', false );
+    $subscriber_role->add_cap( 'edit_others_wsorders', false );
+    $subscriber_role->add_cap( 'edit_private_wsorders', false );
+    $subscriber_role->add_cap( 'edit_published_wsorders', true );
+    $subscriber_role->add_cap( 'publish_wsorders', false ); // Required for changing the post status.
+    $subscriber_role->add_cap( 'read_private_wsorders', false );
 
 		/**
 		 * Add new roles with custom post type capabilities.
@@ -145,10 +145,12 @@ class User_Roles {
       'edit_wsorders'             => true,
       'edit_others_wsorders'      => true,
       'edit_private_wsorders'     => true,
-      'edit_published_wsorders'   => true,
+      'edit_published_wsorders'   => true, // Required to read published wsorders.
       'publish_wsorders'          => true, // Required for changing the post status.
       'read_private_wsorders'     => true,
       'read'                      => true,
+      'delete_wsorders'           => true,
+      'delete_others_wsorders'    => true,
 		);
 		$this->add_role( 'wso_logistics', 'Logistics', false, $logistics_caps );
 
@@ -158,12 +160,12 @@ class User_Roles {
 		$it_rep_caps = array(
 			'edit_wsorder'              => true,
       'read_wsorder'              => true,
-      'create_wsorders'           => true, // This is needed to edit others orders for some reason.
+      'create_wsorders'           => true, // Required to edit others orders for some reason.
       'edit_wsorders'             => true,
       'edit_others_wsorders'      => true,
       'edit_private_wsorders'     => true,
-      // 'edit_published_wsorders'   => true,
-      // 'publish_wsorders'          => true, // Required for changing the post status.
+      'edit_published_wsorders'   => true, // Required to read published wsorders.
+      'publish_wsorders'          => false, // Required for changing the post status.
       'read_private_wsorders'     => true,
       'read'                      => true,
 		);
@@ -184,12 +186,11 @@ class User_Roles {
 		$business_admin_caps = array(
 			'edit_wsorder'              => true,
       'read_wsorder'              => true,
-      'create_wsorders'           => true, // This is needed to edit others orders for some reason.
+      'create_wsorders'           => true, // Required to edit others orders for some reason.
       'edit_wsorders'             => true,
       'edit_others_wsorders'      => true,
       'edit_private_wsorders'     => true,
-      // 'edit_published_wsorders'   => true,
-      // 'publish_wsorders'          => true, // Required for changing the post status.
+      'edit_published_wsorders'   => true, // Required to read published wsorders.
       'read_private_wsorders'     => true,
       'read'                      => true,
 		);

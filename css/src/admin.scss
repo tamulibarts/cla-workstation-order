@@ -40,17 +40,27 @@ body.wp-admin.post-type-wsorder {
 		}
 	}
 
-	&:not(.wso_admin):not(.wso_logistics) input#publish {
+	/* Handle permissions for IT Rep */
+	&.disable-update-order {
+		#major-publishing-actions #publishing-action,
+		#minor-publishing-actions,
+		.edit-post-status {
+			display: none;
+		}
+	}
+
+	&.wso_it_rep.action_required #major-publishing-actions,
+	&.wso_business_admin.action_required #major-publishing-actions {
 		display: none;
 	}
 
-	&.returned:not(.wso_admin):not(.wso_logistics):not(.wso_it_rep):not(.wso_business_admin) input#publish {
-		display: block;
-	}
+	// &.returned:not(.wso_admin):not(.wso_logistics):not(.wso_it_rep):not(.wso_business_admin) input#publish {
+	// 	display: block;
+	// }
 
-	&.wso_admin.completed input#publish {
-		display: inline-block;
-	}
+	// &.wso_admin.completed input#publish {
+	// 	display: inline-block;
+	// }
 
 	.acf-field input[disabled] {
 		color: #666;

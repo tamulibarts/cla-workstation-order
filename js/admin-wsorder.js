@@ -7,6 +7,13 @@ jQuery(window).on('load', function(){
 	jQuery('#post-status-select #post_status').on('change', function(){
 		jQuery('body').removeClass('action_required completed returned awaiting_another').addClass(this.value);
 	});
-	// Disable the order status option "returned" for general users.
-	jQuery('body.wp-admin.post-type-wsorder:not(.wso_admin):not(.wso_it_rep):not(.wso_business_admin):not(.wso_logistics) select#acf-field_608174efb5deb option[value="returned"]').attr('disabled','disabled');
+
+	// Disable the order program field.
+	if ( false === jQuery('body').is('.wso_admin,.wso_logistics') ) {
+		acf.addAction('select2_init', function( $select, options, data ){
+			if ( 'field_5ffcc2590682b' === data.field.data.key ) {
+				$select.select2({disabled:true});
+			}
+		});
+	}
 });

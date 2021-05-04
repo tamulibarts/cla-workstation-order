@@ -113,7 +113,7 @@ acf_add_local_field_group(array(
 							array(
 								'field' => 'field_601d731345341',
 								'operator' => '==pattern',
-								'value' => '^\\d\\d\\d\\d\\d\\d-\\D\\D\\D\\D-\\d\\d\\d\\d\\d$',
+								'value' => '^\\d\\d-\\D\\D\\D\\D-\\d\\d\\d\\d\\d\\d-\\d\\d\\d\\d\\d$',
 							),
 						),
 					),

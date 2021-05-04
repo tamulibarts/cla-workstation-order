@@ -4,31 +4,6 @@
         "title": "Order Fields",
         "fields": [
             {
-                "key": "field_608174efb5deb",
-                "label": "Status",
-                "name": "status",
-                "type": "select",
-                "instructions": "",
-                "required": 0,
-                "conditional_logic": 0,
-                "wrapper": {
-                    "width": "",
-                    "class": "",
-                    "id": ""
-                },
-                "choices": {
-                    "action_required": "Action Required",
-                    "returned": "Returned"
-                },
-                "default_value": "action_required",
-                "allow_null": 0,
-                "multiple": 0,
-                "ui": 0,
-                "return_format": "value",
-                "ajax": 0,
-                "placeholder": ""
-            },
-            {
                 "key": "field_60074b5ee982b",
                 "label": "Products Subtotal",
                 "name": "products_subtotal",
@@ -47,7 +22,8 @@
                 "append": "",
                 "min": 0,
                 "max": "",
-                "step": ""
+                "step": "",
+                "readonly": "1"
             },
             {
                 "key": "field_5ffcc10806825",
@@ -192,7 +168,7 @@
                 "name": "program",
                 "type": "post_object",
                 "instructions": "",
-                "required": 1,
+                "required": 0,
                 "conditional_logic": 0,
                 "wrapper": {
                     "width": "",
@@ -206,7 +182,8 @@
                 "allow_null": 0,
                 "multiple": 0,
                 "return_format": "id",
-                "ui": 1
+                "ui": 1,
+                "readonly": "1"
             },
             {
                 "key": "field_5ffcc2b90682c",
@@ -244,7 +221,8 @@
                         "placeholder": "",
                         "prepend": "",
                         "append": "",
-                        "maxlength": ""
+                        "maxlength": "",
+                        "readonly": "1"
                     },
                     {
                         "key": "field_5ffdfcbcbaaa3",
@@ -263,7 +241,8 @@
                         "placeholder": "",
                         "prepend": "",
                         "append": "",
-                        "maxlength": ""
+                        "maxlength": "",
+                        "readonly": "1"
                     },
                     {
                         "key": "field_5ffdfcfabaaa4",
@@ -339,7 +318,8 @@
                         "append": "",
                         "min": "",
                         "max": "",
-                        "step": ""
+                        "step": "",
+                        "readonly": "1"
                     }
                 ]
             },
@@ -400,7 +380,8 @@
                         "append": "",
                         "min": "",
                         "max": "",
-                        "step": ""
+                        "step": "",
+                        "readonly": "1"
                     },
                     {
                         "key": "field_60186af63a4e8",

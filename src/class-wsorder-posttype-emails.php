@@ -27,11 +27,11 @@ class WSOrder_PostType_Emails {
 	public function __construct() {
 
 		// Notify parties of changes to order status.
-		add_action( 'transition_post_status', array( $this, 'order_rep_confirmed_bus_approval_needed' ), 10, 3 );
-		add_action( 'transition_post_status', array( $this, 'order_rep_confirmed_bus_approval_not_needed' ), 10, 3 );
-		add_action( 'transition_post_status', array( $this, 'order_bus_confirmed_notify_logistics' ), 10, 3 );
-		add_action( 'transition_post_status', array( $this, 'order_logistics_confirmed_notify_end_user' ), 10, 3 );
-		add_action( 'transition_post_status', array( $this, 'handle_returned_order_emails' ), 10, 3 );
+		add_action( 'transition_post_status', array( $this, 'order_rep_confirmed_bus_approval_needed' ), 12, 3 );
+		add_action( 'transition_post_status', array( $this, 'order_rep_confirmed_bus_approval_not_needed' ), 12, 3 );
+		add_action( 'transition_post_status', array( $this, 'order_bus_confirmed_notify_logistics' ), 12, 3 );
+		add_action( 'transition_post_status', array( $this, 'order_logistics_confirmed_notify_end_user' ), 12, 3 );
+		add_action( 'transition_post_status', array( $this, 'handle_returned_order_emails' ), 12, 3 );
 
 	}
 
@@ -106,6 +106,22 @@ class WSOrder_PostType_Emails {
 	}
 
 	/**
+	 * Determine if the order requires business approval.
+	 *
+	 * @param int $post_id The post ID.
+	 *
+	 * @return boolean
+	 */
+	private function order_requires_business_approval( $post_id ) {
+		$business_admin = (int) get_post_meta( $post_id, 'business_staff_status_business_staff', true );
+		if ( ! empty( $business_admin ) ) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	/**
 	 * Once IT Rep has confirmed, if business approval NOT needed then
 	 * send an email to the logistics address.
 	 *
@@ -129,21 +145,22 @@ class WSOrder_PostType_Emails {
 
 		if (
 			current_user_can( 'wso_it_rep' )
+			|| current_user_can( 'wso_logistics' )
 			|| current_user_can( 'wso_admin' )
 		) {
 
 			// Get confirmation statuses.
 			$old_post_it_confirm = (int) get_post_meta( $post->ID, 'it_rep_status_confirmed', true );
 			$new_post_it_confirm = (int) $_POST['acf']['field_5fff6b46a22af']['field_5fff6b71a22b0'];
-			// If business admin is assigned, continue.
-			$business_admin_id = isset( $_POST['acf']['field_5fff70b84ffe4'] ) ? (int) $_POST['acf']['field_5fff70b84ffe4'] : '';
+			// If business approval is needed.
+			$requires_bus_approval = $this->order_requires_business_approval( $post->ID );
 			// Get logistics email setting.
 			$enable_logistics_email = (int) get_field( 'enable_emails_to_logistics', 'option' );
 
 			if (
 				0 === $old_post_it_confirm
 				&& 1 === $new_post_it_confirm
-				&& empty( $business_admin_id )
+				&& false === $requires_bus_approval
 				&& 1 === $enable_logistics_email
 			) {
 

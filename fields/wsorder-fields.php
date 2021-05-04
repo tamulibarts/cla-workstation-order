@@ -15,31 +15,6 @@ acf_add_local_field_group(array(
 	'title' => 'Order Fields',
 	'fields' => array(
 		array(
-			'key' => 'field_608174efb5deb',
-			'label' => 'Status',
-			'name' => 'status',
-			'type' => 'select',
-			'instructions' => '',
-			'required' => 0,
-			'conditional_logic' => 0,
-			'wrapper' => array(
-				'width' => '',
-				'class' => '',
-				'id' => '',
-			),
-			'choices' => array(
-				'action_required' => 'Action Required',
-				'returned' => 'Returned',
-			),
-			'default_value' => 'action_required',
-			'allow_null' => 0,
-			'multiple' => 0,
-			'ui' => 0,
-			'return_format' => 'value',
-			'ajax' => 0,
-			'placeholder' => '',
-		),
-		array(
 			'key' => 'field_60074b5ee982b',
 			'label' => 'Products Subtotal',
 			'name' => 'products_subtotal',
@@ -59,6 +34,7 @@ acf_add_local_field_group(array(
 			'min' => 0,
 			'max' => '',
 			'step' => '',
+			'readonly' => '1',
 		),
 		array(
 			'key' => 'field_5ffcc10806825',
@@ -203,7 +179,7 @@ acf_add_local_field_group(array(
 			'name' => 'program',
 			'type' => 'post_object',
 			'instructions' => '',
-			'required' => 1,
+			'required' => 0,
 			'conditional_logic' => 0,
 			'wrapper' => array(
 				'width' => '',
@@ -218,6 +194,7 @@ acf_add_local_field_group(array(
 			'multiple' => 0,
 			'return_format' => 'id',
 			'ui' => 1,
+			'readonly' => '1',
 		),
 		array(
 			'key' => 'field_5ffcc2b90682c',
@@ -256,6 +233,7 @@ acf_add_local_field_group(array(
 					'prepend' => '',
 					'append' => '',
 					'maxlength' => '',
+					'readonly' => '1',
 				),
 				array(
 					'key' => 'field_5ffdfcbcbaaa3',
@@ -275,6 +253,7 @@ acf_add_local_field_group(array(
 					'prepend' => '',
 					'append' => '',
 					'maxlength' => '',
+					'readonly' => '1',
 				),
 				array(
 					'key' => 'field_5ffdfcfabaaa4',
@@ -351,6 +330,7 @@ acf_add_local_field_group(array(
 					'min' => '',
 					'max' => '',
 					'step' => '',
+					'readonly' => '1',
 				),
 			),
 		),
@@ -412,6 +392,7 @@ acf_add_local_field_group(array(
 					'min' => '',
 					'max' => '',
 					'step' => '',
+					'readonly' => '1',
 				),
 				array(
 					'key' => 'field_60186af63a4e8',

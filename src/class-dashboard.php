@@ -38,11 +38,32 @@ class Dashboard {
 	 * @return void
 	 */
 	public function dashboard_widget_subscribers() {
-		$url = get_site_url();
+		$url             = get_site_url();
+		$current_user    = wp_get_current_user();
+		$current_user_id = $current_user->ID;
 		// Output all links.
-		echo '<ul>';
-		echo "<li><a href=\"{$url}/new-order/\">+ Place a New Order</a></li><li><a href=\"{$url}/my-orders/\">My Orders</a></li>";
-		echo '</ul>';
+		$output = '<ul>';
+		$output .= "<li><a href=\"{$url}/new-order/\">+ Place a New Order</a></li><li><a href=\"{$url}/my-orders/\">My Orders</a></li>";
+		$output .= '</ul>';
+		$returned_query_args = array(
+			'post_type' => 'wsorder',
+			'posts_per_page' => -1,
+			'fields' => 'ids',
+			'post_status' => 'returned',
+			'order' => 'ASC',
+			'author' => $current_user_id,
+		);
+		$returned_posts = get_posts( $returned_query_args );
+		if ( count( $returned_posts ) > 0 ) {
+			$output .= '<div><strong>Returned Orders</strong></div>';
+		}
+		foreach ( $returned_posts as $post_id ) {
+			$title                   = get_the_title( $post_id );
+			$link                    = get_edit_post_link( $post_id );
+			// Output links.
+			$output .= "<div><a href=\"{$link}\">{$title} (click to edit)</a></div>";
+		}
+		echo $output;
 	}
 
 	/**
@@ -87,7 +108,7 @@ class Dashboard {
 					),
 				),
 			);
-		} elseif ( current_user_can( 'wso_business_staff' ) ) {
+		} elseif ( current_user_can( 'wso_business_admin' ) ) {
 			$todo_query_args = array(
 				'post_type'      => 'wsorder',
 				'posts_per_page' => -1,
@@ -206,7 +227,7 @@ class Dashboard {
 		if (
 			current_user_can( 'wso_logistics' )
 			|| current_user_can( 'wso_it_rep' )
-			|| current_user_can( 'wso_business_staff' )
+			|| current_user_can( 'wso_business_admin' )
 		) {
 			wp_add_dashboard_widget(
 				'cla_dashboard_todo', // Widget slug.

@@ -55,11 +55,6 @@ class WSOrder_PostType {
 		add_filter( 'acf/update_value/key=field_5fff6b71a22b0', array( $this, 'confirming_it_rep_as_current_user' ), 11, 2 );
 		// When the Business Admin confirmation checkbox is checked, set the confirming business admin to the current user.
 		add_filter( 'acf/update_value/key=field_5fff6ec0e4385', array( $this, 'confirming_business_admin_as_current_user' ), 11, 2 );
-		// Add a timestamp for when the IT Rep confirms the order.
-		add_filter( 'acf/update_value/key=field_5fff6b71a22b0', array( $this, 'timestamp_it_rep_confirm' ), 11, 2 );
-		add_filter( 'acf/update_value/key=field_5fff6ec0e4385', array( $this, 'timestamp_business_admin_confirm' ), 11, 2 );
-		add_filter( 'acf/update_value/key=field_5fff6f3cef757', array( $this, 'timestamp_logistics_confirm' ), 11, 2 );
-		add_filter( 'acf/update_value/key=field_60074e2222cee', array( $this, 'timestamp_logistics_ordered' ), 11, 2 );
 
 		/**
 		 * Change features of edit.php list view for order posts.
@@ -106,61 +101,197 @@ class WSOrder_PostType {
 		add_filter( 'acf/load_field/name=quotes', array( $this, 'disable_repeater_buttons' ) );
 		add_filter( 'acf/prepare_field/name=order_items', array( $this, 'remove_field_if_empty' ) );
 		add_filter( 'acf/prepare_field/name=quotes', array( $this, 'remove_field_if_empty' ) );
-		add_filter( 'acf/prepare_field/key=field_608174efb5deb', array( $this, 'prepare_order_status_field' ) );
 
-		// Handle custom post statuses.
-		add_filter( 'acf/update_value/key=field_608174efb5deb', array( $this, 'update_post_status_field' ), 11, 2 );
-		add_action( 'transition_post_status', array( $this, 'handle_returned_post_status' ), 11, 3);
+		// Add a timestamp for when users complete their tasks in the order.
+		add_filter( 'acf/update_value/key=field_5fff6b71a22b0', array( $this, 'timestamp_it_rep_confirm' ), 11, 2 );
+		add_filter( 'acf/update_value/key=field_5fff6ec0e4385', array( $this, 'timestamp_business_admin_confirm' ), 11, 2 );
+		add_filter( 'acf/update_value/key=field_5fff6f3cef757', array( $this, 'timestamp_logistics_confirm' ), 11, 2 );
+		add_filter( 'acf/update_value/key=field_60074e2222cee', array( $this, 'timestamp_logistics_ordered' ), 11, 2 );
+
+		// Handle "Returned" custom post status checkbox field.
+		add_filter( 'acf/update_value/key=field_608964b7880fe', array( $this, 'update_returned_order_field' ), 11, 2 );
+		add_action( 'transition_post_status', array( $this, 'handle_returned_post_meta' ), 11, 3 );
+
+		// Redirect "Pending" post status to "Action Required".
+		add_action( 'transition_post_status', array( $this, 'handle_pending_post_status' ), 11, 3 );
+
+		// Customize post permissions.
+		add_action( 'acf/validate_save_post', array( $this, 'disable_save_order' ) );
+
+		// Keep certain fields from being updated when they can't be disabled.
+		add_filter( 'acf/update_value/key=field_5ffcc2590682b', array( $this, 'lock_program_field_value' ), 11, 3 );
+
 	}
 
-	public function handle_returned_post_status( $new_status, $old_status, $post ){
-		error_log( 'transition_post_status: ' . $old_status . ' -> ' . $new_status );
+	public function lock_program_field_value ( $value, $post_id, $field ) {
+
+		if ( ! current_user_can( 'wso_admin' ) && ! current_user_can( 'wso_logistics' ) ) {
+			$value = get_post_meta( $post_id, $field['name'], true );
+		}
+
+		return $value;
+
+	}
+
+	/**
+	 * Decide if user can update the order. Return true or the error message.
+	 *
+	 * @param int $post_id The post ID.
+	 *
+	 * @return true|string
+	 */
+	private function can_current_user_update_order( $post_id ) {
+
+    $post_status = get_post_status( $post_id );
+    $can_update  = true;
+    $message     = '';
+  	if (
+  		'publish' === $post_status
+  		&& ! current_user_can( 'wso_admin' )
+  		&& ! current_user_can( 'wso_logistics' )
+  	) {
+  		$can_update = false;
+  		$message    = 'This order is already published and cannot be changed.';
+  	} elseif (
+  		'returned' === $post_status
+  		&& (
+  			current_user_can( 'wso_it_rep' )
+  			|| current_user_can( 'wso_business_admin' )
+  			|| current_user_can( 'wso_logistics' )
+  			|| current_user_can( 'wso_admin' )
+  			|| current_user_can( 'administrator' )
+  		)
+  	) {
+  		$can_update = false;
+  		$message    = 'This order is being corrected by the customer.';
+  	} elseif ( current_user_can('wso_it_rep') ) {
+  		$it_rep_confirmed = (int) get_post_meta( $post_id, 'it_rep_status_confirmed', true );
+  		if ( 1 === $it_rep_confirmed ) {
+  			// IT Rep already confirmed the order, so they cannot change it right now.
+  			$can_update = false;
+  			$message    = 'You have already confirmed the order.';
+  		}
+    } elseif ( current_user_can( 'wso_business_admin' ) ) {
+  		$it_rep_confirmed   = (int) get_post_meta( $post_id, 'it_rep_status_confirmed', true );
+  		$bus_user_confirmed = (int) get_post_meta( $post_id, 'business_staff_status_confirmed', true );
+  		if ( 0 === $it_rep_confirmed ) {
+  			$can_update = false;
+  			$message    = 'The IT Rep has not confirmed the order yet.';
+  		} elseif ( 1 === $bus_user_confirmed ) {
+  			$can_update = false;
+  			$message    = 'You have already confirmed the order.';
+  		}
+    } elseif ( current_user_can( 'wso_logistics' ) ) {
+  		$it_rep_confirmed   = (int) get_post_meta( $post_id, 'it_rep_status_confirmed', true );
+  		$bus_user_confirmed = (int) get_post_meta( $post_id, 'business_staff_status_confirmed', true );
+  		if ( 0 === $it_rep_confirmed ) {
+  			$can_update = false;
+  			$message    = 'The IT Rep has not confirmed the order yet.';
+  		} elseif ( 0 === $bus_user_confirmed ) {
+  			$can_update = false;
+  			$message    = 'The business admin has not confirmed the order yet.';
+  		}
+    } elseif (
+    	! current_user_can( 'wso_admin' )
+    	&& ! current_user_can( 'administrator' )
+    	&& 'returned' !== $post_status
+    ) {
+    	// Likely the user who submitted the order.
+    	$can_update = false;
+    	$message    = 'You can only change the order when it is returned to you.';
+    }
+
+    if ( $can_update ) {
+      return true;
+    } else {
+    	return $message;
+    }
+	}
+
+	/**
+	 * Prevent users from saving changes to the order.
+	 */
+	public function disable_save_order() {
+
+    // Remove all errors if user is an administrator.
+    if ( current_user_can('manage_options') ) {
+      acf_reset_validation_errors();
+    }
+
+    $post_id    = $_POST['post_ID'];
+    $can_update = $this->can_current_user_update_order( $post_id );
+    if ( true !== $can_update ) {
+      acf_add_validation_error( false, $can_update );
+    }
+
+	}
+
+	public function handle_pending_post_status( $new_status, $old_status, $post ) {
+
 		if (
 			'wsorder' !== $post->post_type
 			|| $new_status === $old_status
 			|| 'auto-draft' === $new_status
-			|| ! isset( $_POST['_wpnonce'] )
-			|| false === wp_verify_nonce( sanitize_key( $_POST['_wpnonce'] ), 'update-post_' . $post->ID )
-			|| ! isset( $_POST['acf'] )
 		) {
 			return;
 		}
-		if ( 'returned' === $old_status && 'pending' === $new_status ) {
-			// The end user has addressed the concerns and wishes to resubmit the order to the queue.
-	    // Update current post.
+
+		if ( 'pending' === $new_status ) {
+
+	    // Update current post
 	    $my_post = array(
 	      'ID'          => $post->ID,
 	      'post_status' => 'action_required',
 	    );
+    	wp_update_post( $my_post );
 
-	    // Update the post into the database.
-	    wp_update_post( $my_post );
-	    update_post_meta( $post->ID, 'status', 'action_required' );
+		}
+
+	}
+
+	public function handle_returned_post_meta( $new_status, $old_status, $post ){
+
+		if (
+			'wsorder' !== $post->post_type
+			|| $new_status === $old_status
+			|| 'auto-draft' === $new_status
+		) {
+			return;
+		}
+
+		$returned_meta_value = (int) get_post_meta( $post->ID, 'returned', true );
+
+		// Make the "Returned" checkbox reflect a change in the post status.
+		if ( 1 === $returned_meta_value && 'returned' === $old_status && 'returned' !== $new_status ) {
+			update_post_meta( $post->ID, 'returned', 0 );
+		} elseif ( 0 === $returned_meta_value && 'returned' !== $old_status && 'returned' === $new_status ) {
+			update_post_meta( $post->ID, 'returned', 1 );
 		}
 	}
 
-	public function update_post_status_field( $value, $post_id ){
+	public function update_returned_order_field( $value, $post_id ){
 
-			if ( $value !== get_post_status( $post_id ) ) {
-		    // Update current post
-		    $my_post = array(
-		      'ID'          => $post_id,
-		      'post_status' => $value,
-		    );
-	    	wp_update_post( $my_post );
-			}
+		$value = (int) $value;
+		$current_field_value = (int) get_post_meta( $post_id, 'returned', true );
+		$current_post_status = get_post_status( $post_id );
 
-			return $value;
-
+		if ( 1 === $value && 0 === $current_field_value && 'returned' !== $current_post_status ) {
+	    // Update current post
+	    $my_post = array(
+	      'ID'          => $post_id,
+	      'post_status' => 'returned',
+	    );
+    	wp_update_post( $my_post );
+		} elseif ( 0 === $value && 1 === $current_field_value && 'returned' === $current_post_status ) {
+	    // Update current post
+	    $my_post = array(
+	      'ID'          => $post_id,
+	      'post_status' => 'action_required',
+	    );
+    	wp_update_post( $my_post );
 		}
 
-	public function prepare_order_status_field( $field ){
-
-		if ( current_user_can( 'wso_admin' ) || current_user_can( 'wso_logistics' ) ) {
-			$field['choices']['publish'] = 'Published';
-		}
-
-		return $field;
+		return $value;
 
 	}
 
@@ -168,16 +299,16 @@ class WSOrder_PostType {
 		$old_value = (int) get_post_meta( $post_id, 'it_rep_status_confirmed', true );
 		if ( 1 === intval( $value ) && 0 === $old_value ) {
 			// Is checked now.
-			update_post_meta( $post_id, 'it_rep_status_date', gmdate('Y-m-d H:i:s') );
+			update_post_meta( $post_id, 'it_rep_status_date', date('Y-m-d H:i:s') );
 		}
 		return $value;
 	}
 
 	public function timestamp_business_admin_confirm( $value, $post_id ) {
-		$old_value = (int) get_post_meta( $post_id, 'it_rep_status_confirmed', true );
+		$old_value = (int) get_post_meta( $post_id, 'business_staff_status_confirmed', true );
 		if ( 1 === intval( $value ) && 0 === $old_value ) {
 			// Is checked now.
-			update_post_meta( $post_id, 'business_staff_status_date', gmdate('Y-m-d H:i:s') );
+			update_post_meta( $post_id, 'business_staff_status_date', date('Y-m-d H:i:s') );
 		}
 		return $value;
 	}
@@ -186,7 +317,7 @@ class WSOrder_PostType {
 		$old_value = (int) get_post_meta( $post_id, 'it_logistics_status_confirmed', true );
 		if ( 1 === intval( $value ) && 0 === $old_value ) {
 			// Is checked now.
-			update_post_meta( $post_id, 'it_logistics_status_date', gmdate('Y-m-d H:i:s') );
+			update_post_meta( $post_id, 'it_logistics_status_date', date('Y-m-d H:i:s') );
 		}
 		return $value;
 	}
@@ -195,7 +326,7 @@ class WSOrder_PostType {
 		$old_value = (int) get_post_meta( $post_id, 'it_logistics_status_ordered', true );
 		if ( 1 === intval( $value ) && 0 === $old_value ) {
 			// Is checked now.
-			update_post_meta( $post_id, 'it_logistics_status_ordered_at', gmdate('Y-m-d H:i:s') );
+			update_post_meta( $post_id, 'it_logistics_status_ordered_at', date('Y-m-d H:i:s') );
 		}
 		return $value;
 	}
@@ -862,6 +993,12 @@ class WSOrder_PostType {
 				$user        = wp_get_current_user();
 				$roles       = (array) $user->roles;
 				$classes    .= " $post_status " . implode( ' ', $roles );
+
+		    // Add disable update class.
+		    $can_update = $this->can_current_user_update_order( $post_id );
+		    if ( true !== $can_update ) {
+		    	$classes .= ' disable-update-order';
+		    }
 			}
 		}
 
@@ -1441,7 +1578,7 @@ jQuery( 'select[name=\"post_status\"]' ).val('publish')";
 		}
 		$bare_url     = CLA_WORKSTATION_ORDER_DIR_URL . 'order-receipt.php?postid=' . $post->ID;
 		$complete_url = wp_nonce_url( $bare_url, 'auth-post_' . $post->ID, 'token' );
-		$html         = '<div id="major-publishing-actions" style="overflow:hidden">';
+		$html         = '<div class="misc-pub-section" style="overflow:hidden">';
 		$html        .= '<div id="publishing-action">';
 		$html        .= '<a class="button-primary" href="' . $complete_url . '" id="printpdf" target="_blank">Save as PDF</a>';
 		$html        .= '</div>';

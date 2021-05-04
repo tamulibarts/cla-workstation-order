@@ -66,7 +66,7 @@ class Assets {
 		wp_register_script(
 			'cla-workstation-order-admin-script',
 			CLA_WORKSTATION_ORDER_DIR_URL . 'js/admin-wsorder.js',
-			false,
+			array('select2'),
 			filemtime( CLA_WORKSTATION_ORDER_DIR_PATH . 'js/admin-wsorder.js' ),
 			true
 		);
@@ -82,6 +82,7 @@ class Assets {
 	public static function enqueue_admin_styles() {
 
 		wp_enqueue_style( 'cla-workstation-order-admin-styles' );
+		wp_enqueue_script( 'cla-workstation-order-admin-script' );
 
 	}
 
