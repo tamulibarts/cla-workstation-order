@@ -121,9 +121,36 @@ class WSOrder_PostType {
 		// Customize post permissions.
 		add_action( 'acf/validate_save_post', array( $this, 'disable_save_order' ) );
 
+		// Lock the post title from being edited.
+		add_filter( 'wp_insert_post_data', array( $this, 'lock_post_title' ), 11, 2 );
+		add_action( 'edit_form_after_title', array( $this, 'show_post_title' ) );
+
 	}
 
 	public function lock_program_field_value ( $value, $post_id, $field ) {
+	/**
+	 * Show the order title manually on the order editor page.
+	 *
+	 * @param WP_Post $post The post object.
+	 *
+	 * @return void
+	 */
+	public function show_post_title( $post ){
+		echo wp_kses_post( '<h1><strong>' . get_the_title( $post ) . '</strong></h1>' );
+	}
+
+	/**
+	 * Prevent the order title from being changed.
+	 *
+	 * @param array $data    The post data.
+	 * @param array $postarr The extended post data.
+	 *
+	 * @return array
+	 */
+	public function lock_post_title( $data, $postarr ) {
+		$data['post_title'] = get_the_title( $postarr['ID'] );
+		return $data;
+	}
 
 		if ( ! current_user_can( 'wso_admin' ) && ! current_user_can( 'wso_logistics' ) ) {
 			$value = get_post_meta( $post_id, $field['name'], true );
@@ -471,7 +498,7 @@ class WSOrder_PostType {
 			'wsorder',
 			array(),
 			'dashicons-media-spreadsheet',
-			array( 'title' ),
+			false,
 			array(
 				'capabilities'       => array(
 					'edit_post'              => 'edit_wsorder',
