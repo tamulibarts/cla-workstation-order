@@ -127,7 +127,6 @@ class WSOrder_PostType {
 
 	}
 
-	public function lock_program_field_value ( $value, $post_id, $field ) {
 	/**
 	 * Show the order title manually on the order editor page.
 	 *
@@ -152,6 +151,16 @@ class WSOrder_PostType {
 		return $data;
 	}
 
+	/**
+	 * Prevent people other than admins and logistics from editing the program field.
+	 *
+	 * @param mixed      $value   The field value.
+	 * @param int|string $post_id The post ID where the value is saved.
+	 * @param array      $field   The field array containing all settings.
+	 *
+	 * @return array
+	 */
+	public function lock_program_field_value ( $value, $post_id, $field ) {
 		if ( ! current_user_can( 'wso_admin' ) && ! current_user_can( 'wso_logistics' ) ) {
 			$value = get_post_meta( $post_id, $field['name'], true );
 		}
