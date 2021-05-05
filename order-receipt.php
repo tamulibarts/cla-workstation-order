@@ -315,23 +315,23 @@ for ($inc=0; $inc < $item_length; $inc++) {
 	// Item Name.
 	$offsetX = $left_margin_x;
 	$pdf->setXY($offsetX, $offsetY);
-	$pdf->MultiCell($column_1_width, 5, $meta['order_items_' . $inc . '_item'], 0);
+	$pdf->MultiCell($column_1_width, 5, $meta['order_items_' . $inc . '_item'], 0, 'L');
 	// SKU.
 	$offsetX += $column_1_width;
 	$pdf->setXY($offsetX, $offsetY);
-	$pdf->MultiCell($column_2_width, 5, $meta['order_items_' . $inc . '_sku'], 0);
+	$pdf->MultiCell($column_2_width, 5, $meta['order_items_' . $inc . '_sku'], 0, 'L');
 	// Requisition Number.
 	$offsetX += $column_2_width;
 	$pdf->setXY($offsetX, $offsetY);
-	$pdf->MultiCell($column_3_width, 5, $meta['order_items_' . $inc . '_requisition_number'], 0);
+	$pdf->MultiCell($column_3_width, 5, $meta['order_items_' . $inc . '_requisition_number'], 0, 'L');
 	// Requisition Date.
 	$offsetX += $column_3_width;
 	$pdf->setXY($offsetX, $offsetY);
-	$pdf->MultiCell($column_4_width, 5, $meta['order_items_' . $inc . '_requisition_date'], 0);
+	$pdf->MultiCell($column_4_width, 5, $meta['order_items_' . $inc . '_requisition_date'], 0, 'L');
 	// Price.
 	$offsetX += $column_4_width;
 	$pdf->setXY($offsetX, $offsetY);
-	$pdf->MultiCell($column_5_width, 5, $meta['order_items_' . $inc . '_price'], 0);
+	$pdf->MultiCell($column_5_width, 5, $meta['order_items_' . $inc . '_price'], 0, 'R');
 	// Figure out the maximum line count among all details of this item.
 	$lines = 1;
 	$line_count = 0;
