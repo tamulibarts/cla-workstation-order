@@ -33,6 +33,7 @@
 		// Get elements and values.
 		var $this = $(this);
 		var productID = $this.attr('data-product-id');
+		console.log(productID);
 		var productName = $('#product-' + productID + ' .card-header').html();
 		var productPrice = $this.attr('data-product-price');
 		var $thumb = $('#product-'+productID+'.card .wp-post-image');
@@ -163,7 +164,6 @@
 		// Convert total to string and push to DOM elements.
 		var totalString = '$' + total.toFixed(2).replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1,");
 		$('#products_total').html(totalString);
-		$('#cla_total_purchase').val(total);
 
 		// Check for contribution needed.
 		var $allocationData = $('#allocation-data');
@@ -277,7 +277,7 @@
 				html += '</div>';
 
 		// Add to page.
-		$form.find('.products-custom-quote .products').append(html);
+		$form.find('.products-custom-quote #list_quotes').append(html);
 
 		// Add event handlers.
 		$item = $form.find('.cla-quote-item[data-quote-index="'+newIndex+'"]');
@@ -325,7 +325,7 @@
 		  $(this).attr('value', $(this).val());
 		});
 		$form.find('textarea').each(function(){
-			$(this).attr('value', $(this).val());
+			$(this).html($(this).val());
 		});
 		$form.find('select').each(function(){
 			var val = $(this).val();

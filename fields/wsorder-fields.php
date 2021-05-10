@@ -34,7 +34,6 @@ acf_add_local_field_group(array(
 			'min' => 0,
 			'max' => '',
 			'step' => '',
-			'readonly' => '1',
 		),
 		array(
 			'key' => 'field_5ffcc10806825',
@@ -194,7 +193,6 @@ acf_add_local_field_group(array(
 			'multiple' => 0,
 			'return_format' => 'id',
 			'ui' => 1,
-			'readonly' => '1',
 		),
 		array(
 			'key' => 'field_5ffcc2b90682c',
@@ -213,7 +211,7 @@ acf_add_local_field_group(array(
 			'min' => 0,
 			'max' => 0,
 			'layout' => 'block',
-			'button_label' => '',
+			'button_label' => 'Add Product',
 			'sub_fields' => array(
 				array(
 					'key' => 'field_5ffdfc23d5e87',
@@ -233,7 +231,6 @@ acf_add_local_field_group(array(
 					'prepend' => '',
 					'append' => '',
 					'maxlength' => '',
-					'readonly' => '1',
 				),
 				array(
 					'key' => 'field_5ffdfcbcbaaa3',
@@ -253,7 +250,6 @@ acf_add_local_field_group(array(
 					'prepend' => '',
 					'append' => '',
 					'maxlength' => '',
-					'readonly' => '1',
 				),
 				array(
 					'key' => 'field_5ffdfcfabaaa4',
@@ -330,7 +326,28 @@ acf_add_local_field_group(array(
 					'min' => '',
 					'max' => '',
 					'step' => '',
-					'readonly' => '1',
+				),
+				array(
+					'key' => 'field_60992c45f8994',
+					'label' => 'Product',
+					'name' => 'post_id',
+					'type' => 'post_object',
+					'instructions' => '',
+					'required' => 0,
+					'conditional_logic' => 0,
+					'wrapper' => array(
+						'width' => '',
+						'class' => '',
+						'id' => '',
+					),
+					'post_type' => array(
+						0 => 'product',
+					),
+					'taxonomy' => '',
+					'allow_null' => 1,
+					'multiple' => 0,
+					'return_format' => 'id',
+					'ui' => 1,
 				),
 			),
 		),
@@ -351,7 +368,7 @@ acf_add_local_field_group(array(
 			'min' => 0,
 			'max' => 0,
 			'layout' => 'block',
-			'button_label' => '',
+			'button_label' => 'Add Quote',
 			'sub_fields' => array(
 				array(
 					'key' => 'field_60186acd3a4e6',
@@ -392,7 +409,6 @@ acf_add_local_field_group(array(
 					'min' => '',
 					'max' => '',
 					'step' => '',
-					'readonly' => '1',
 				),
 				array(
 					'key' => 'field_60186af63a4e8',

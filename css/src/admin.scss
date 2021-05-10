@@ -11,8 +11,8 @@ body.wp-admin.post-type-wsorder {
 	.misc-pub-section.misc-pub-curtime,
 	.row-actions .inline,
 	// .row-actions .trash,
-	.acf-field-5ffcc2b90682c .acf-actions,
-	.acf-field-600858275c27f .acf-actions {
+	&.post-edit-php .acf-field-5ffcc2b90682c .acf-actions,
+	&.post-edit-php .acf-field-600858275c27f .acf-actions {
 		display: none;
 	}
 
@@ -27,6 +27,10 @@ body.wp-admin.post-type-wsorder {
 
 	&.wso_it_rep.action_required #major-publishing-actions,
 	&.wso_business_admin.action_required #major-publishing-actions {
+		display: none;
+	}
+
+	#post-body-content #titlediv {
 		display: none;
 	}
 

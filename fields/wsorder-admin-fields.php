@@ -115,6 +115,29 @@ acf_add_local_field_group(array(
 			'multiple' => 1,
 			'return_format' => 'id',
 		),
+		array(
+			'key' => 'field_60994a3b0425c',
+			'label' => 'Selected Products and Bundles',
+			'name' => 'selected_products_and_bundles',
+			'type' => 'post_object',
+			'instructions' => '',
+			'required' => 0,
+			'conditional_logic' => 0,
+			'wrapper' => array(
+				'width' => '',
+				'class' => '',
+				'id' => '',
+			),
+			'post_type' => array(
+				0 => 'product',
+				1 => 'bundle',
+			),
+			'taxonomy' => '',
+			'allow_null' => 1,
+			'multiple' => 1,
+			'return_format' => 'id',
+			'ui' => 1,
+		),
 	),
 	'location' => array(
 		array(

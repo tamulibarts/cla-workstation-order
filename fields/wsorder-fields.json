@@ -22,8 +22,7 @@
                 "append": "",
                 "min": 0,
                 "max": "",
-                "step": "",
-                "readonly": "1"
+                "step": ""
             },
             {
                 "key": "field_5ffcc10806825",
@@ -182,8 +181,7 @@
                 "allow_null": 0,
                 "multiple": 0,
                 "return_format": "id",
-                "ui": 1,
-                "readonly": "1"
+                "ui": 1
             },
             {
                 "key": "field_5ffcc2b90682c",
@@ -202,7 +200,7 @@
                 "min": 0,
                 "max": 0,
                 "layout": "block",
-                "button_label": "",
+                "button_label": "Add Product",
                 "sub_fields": [
                     {
                         "key": "field_5ffdfc23d5e87",
@@ -221,8 +219,7 @@
                         "placeholder": "",
                         "prepend": "",
                         "append": "",
-                        "maxlength": "",
-                        "readonly": "1"
+                        "maxlength": ""
                     },
                     {
                         "key": "field_5ffdfcbcbaaa3",
@@ -241,8 +238,7 @@
                         "placeholder": "",
                         "prepend": "",
                         "append": "",
-                        "maxlength": "",
-                        "readonly": "1"
+                        "maxlength": ""
                     },
                     {
                         "key": "field_5ffdfcfabaaa4",
@@ -318,8 +314,29 @@
                         "append": "",
                         "min": "",
                         "max": "",
-                        "step": "",
-                        "readonly": "1"
+                        "step": ""
+                    },
+                    {
+                        "key": "field_60992c45f8994",
+                        "label": "Product",
+                        "name": "post_id",
+                        "type": "post_object",
+                        "instructions": "",
+                        "required": 0,
+                        "conditional_logic": 0,
+                        "wrapper": {
+                            "width": "",
+                            "class": "",
+                            "id": ""
+                        },
+                        "post_type": [
+                            "product"
+                        ],
+                        "taxonomy": "",
+                        "allow_null": 1,
+                        "multiple": 0,
+                        "return_format": "id",
+                        "ui": 1
                     }
                 ]
             },
@@ -340,7 +357,7 @@
                 "min": 0,
                 "max": 0,
                 "layout": "block",
-                "button_label": "",
+                "button_label": "Add Quote",
                 "sub_fields": [
                     {
                         "key": "field_60186acd3a4e6",
@@ -380,8 +397,7 @@
                         "append": "",
                         "min": "",
                         "max": "",
-                        "step": "",
-                        "readonly": "1"
+                        "step": ""
                     },
                     {
                         "key": "field_60186af63a4e8",

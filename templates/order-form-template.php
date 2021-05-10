@@ -71,7 +71,7 @@ add_action( 'wp_enqueue_scripts', 'cla_workstation_order_form_scripts', 1 );
  *
  * @return void
  */
-function cla_render_order_form() {
+function cla_render_order_form( $content ) {
 
 	if ( ! is_user_logged_in() ) {
 
@@ -79,11 +79,14 @@ function cla_render_order_form() {
 
 	} else {
 
-		/**
-		 * Build and output the form.
-		 */
-		// Get current user and user ID.
-		$user      = wp_get_current_user();
+		global $post;
+
+		$maybe_order_author_id = (int) get_post_meta( $post->ID, 'order_author', true );
+		if ( 'wsorder' === $post->post_type && ! empty( $maybe_order_author_id ) ) {
+			$user = get_user_by( 'id', $maybe_order_author_id );
+		} else {
+			$user = wp_get_current_user();
+		}
 		$user_id   = $user->get( 'ID' );
 		$user_meta = get_user_meta( $user_id );
 
@@ -92,9 +95,14 @@ function cla_render_order_form() {
 		$user_department_post_id = $user_department_post->ID;
 
 		// Get current program meta.
-		$current_program_post      = get_field( 'current_program', 'option' );
-		$current_program_id        = $current_program_post->ID;
-		$current_program_post_meta = get_post_meta( $current_program_id, '', true );
+		$maybe_program_post = get_post_meta( $post->ID, 'program', true );
+		if ( 'wsorder' === $post->post_type && ! empty( $maybe_program_post ) ) {
+			$program_post = get_post( $maybe_program_post );
+		} else {
+			$program_post = get_field( 'current_program', 'option' );
+		}
+		$program_id        = $program_post->ID;
+		$program_post_meta = get_post_meta( $program_id, '', true );
 
 		/**
 		 * Get current user info
@@ -112,38 +120,52 @@ function cla_render_order_form() {
 		/**
 		 * Additional Funding
 		 */
+		$contribution_amount = get_post_meta( $post->ID, 'contribution_amount', true );
+		if ( empty( $contribution_amount ) ) {
+			$contribution_amount = '0.0';
+		}
+		$contribution_account = get_post_meta( $post->ID, 'contribution_account', true );
+		if ( empty( $contribution_account ) ) {
+			$contribution_account = '';
+		}
 		$additional_funding  = '<div id="cla_add_funding"><h3>Additional Funding</h3><p>Enter any additional funds that you would like to contribute on top of your base allowance.<br>Your cart calculations will include this amount. It\'s also required if your cart total exceeds the base allowance.</p>';
-		$additional_funding .= '<div class="form-group"><label for="cla_contribution_amount">Contribution Amount</label> <div class="grid-x"><div class="cell shrink dollar-field">$</div><div class="cell auto"><input id="cla_contribution_amount" name="cla_contribution_amount" type="number" min="0" value="0.0" step="any" /></div></div></div>';
-		$additional_funding .= '<div class="form-group"><label for="cla_account_number">Account</label> <input id="cla_account_number" name="cla_account_number" type="text" /><small><br>Research, Bursary, etc. or the Acct #</small></div>';
+		$additional_funding .= '<div class="form-group"><label for="cla_contribution_amount">Contribution Amount</label> <div class="grid-x"><div class="cell shrink dollar-field">$</div><div class="cell auto"><input id="cla_contribution_amount" name="cla_contribution_amount" type="number" min="0" value="' . $contribution_amount . '" step="any" /></div></div></div>';
+		$additional_funding .= '<div class="form-group"><label for="cla_account_number">Account</label> <input id="cla_account_number" name="cla_account_number" type="text" value="' . $contribution_account . '"/><small><br>Research, Bursary, etc. or the Acct #</small></div>';
 		$additional_funding .= '</div>';
 
 		/**
 		 * Get dropdown of users
 		 */
-
-		// Get current program IT Reps and Business Admins assigned to current user's department.
-		$department_ids = array();
-		foreach ( $current_program_post_meta as $key => $value ) {
-			$value = $value[0];
-			if ( false !== strpos( $key, '_department_post_id' ) && false === strpos( $value, 'field_' ) ) {
-				$department_ids[ $key ] = (int) $value;
+		$it_rep_ids = get_field( 'field_6048e8d2b575a', $post->ID );
+		if ( empty( $affiliated_it_reps ) ) {
+			// Get current program IT Reps assigned to current user's department.
+			$department_ids = array();
+			foreach ( $program_post_meta as $key => $value ) {
+				$value = $value[0];
+				if ( false !== strpos( $key, '_department_post_id' ) && false === strpos( $value, 'field_' ) ) {
+					$department_ids[ $key ] = (int) $value;
+				}
 			}
-		}
-		$dept_key = '';
-		foreach ( $department_ids as $key => $value ) {
-			if ( $user_department_post_id === $value ) {
-				$dept_key = str_replace( '_department_post_id', '', $key );
+			$dept_key = '';
+			foreach ( $department_ids as $key => $value ) {
+				if ( $user_department_post_id === $value ) {
+					$dept_key = str_replace( '_department_post_id', '', $key );
+				}
 			}
+
+			$it_rep_ids = get_post_meta( $program_id, "{$dept_key}_it_reps", true );
 		}
 
-		$it_rep_ids         = get_post_meta( $current_program_id, "{$dept_key}_it_reps", true );
-		$business_admin_ids = get_post_meta( $current_program_id, "{$dept_key}_business_admins", true );
-
-		$it_rep_args     = array(
+		$it_rep_args = array(
 			'echo'    => false,
 			'include' => $it_rep_ids,
 			'name'    => 'cla_it_rep_id',
 		);
+		$selected_rep = (int) get_post_meta( $post->ID, 'it_rep_status_it_rep', true );
+		if ( ! empty( $selected_rep ) ) {
+			$it_rep_args['selected'] = $selected_rep;
+			$it_rep_args['include_selected'] = true;
+		}
 		$it_rep_dropdown = wp_dropdown_users( $it_rep_args );
 		// Handle when no IT Representatives are found.
 		if ( false === strpos( $it_rep_dropdown, '<option' ) ) {
@@ -169,40 +191,102 @@ function cla_render_order_form() {
 		$addons_list = $cla_form_helper->cla_get_products( 'add-on' );
 
 		/**
-		 * Purchased product IDs field.
-		 */
-		$purchase_field = '<input type="hidden" id="cla_product_ids" name="cla_product_ids" />';
-
-		/**
-		 * Total Purchase price field.
-		 */
-		$total_purchase_field = '<input type="hidden" id="cla_total_purchase" name="cla_total_purchase" value="0" />';
-
-		/**
-		 * Purchased product list view.
-		 */
-		$list_purchases = '<div id="list_purchases"></div>';
-
-		/**
 		 * Allocation and allocation threshold.
 		 */
-		$allocation           = $current_program_post_meta['allocation'][0];
-		$allocation_threshold = $current_program_post_meta['threshold'][0];
+		$allocation           = $program_post_meta['allocation'][0];
+		$allocation_threshold = $program_post_meta['threshold'][0];
 
 		/**
 		 * Add advanced quote button.
 		 */
-		$button_add_quote = '<div class="products"><button class="button" type="button" id="cla_add_quote">Add an Advanced Teaching/Research Quote</button></div>';
+		$button_add_quote = '<button class="button" type="button" id="cla_add_quote">Add an Advanced Teaching/Research Quote</button>';
+
+		/**
+		 * Shopping cart items.
+		 */
+		$purchase_list_items = '';
+
+		/**
+		 * Purchased product IDs field.
+		 */
+		$selected_products_and_bundles = get_field( 'selected_products_and_bundles', $post->ID );
+		$selected_pab_value = '';
+		if ( !empty( $selected_products_and_bundles ) ) {
+			$selected_pab_value = implode( ',', $selected_products_and_bundles );
+			foreach ( $selected_products_and_bundles as $key => $pob_post_id ) {
+				$pob_price = get_field( 'price', $pob_post_id );
+				$cart_price = floatval( $pob_price );
+				$cart_price = '$' . number_format( $cart_price, 2, '.', ',' );
+				$pob_thumb = get_the_post_thumbnail_url( $pob_post_id );
+				$item = '<div class="cart-item shopping-cart-'.$pob_post_id.' grid-x">';
+				if ( $pob_thumb ) {
+					$item .= '<div class="cell shrink"><img width="50" src="' . $pob_thumb . '"></div>';
+				}
+				$item .= '<div class="cell auto">' . get_the_title( $pob_post_id ) . '</div>';
+				$item .= '<div class="cell shrink align-right bold"><button class="trash" type="button" data-product-id="'.$pob_post_id.'" data-product-price="' . $cart_price . '">Remove product from cart</button>' . $cart_price . '</div>';
+				$item .= '</div>';
+				$purchase_list_items .= $item;
+			}
+		}
+		$purchase_field = '<input type="hidden" id="cla_product_ids" name="cla_product_ids" value="' . $selected_pab_value . '" />';
 
 		/**
 		 * Store number of quotes.
 		 */
-		$count_quotes = '<input type="hidden" id="cla_quote_count" name="cla_quote_count" value="0" />';
+		$custom_quotes = get_field( 'quotes', $post->ID );
+		$quote_count   = 0;
+		$quote_html    = '';
+		if ( ! empty( $custom_quotes ) ) {
+			$quote_count = count( $custom_quotes );
+			foreach ( $custom_quotes as $key => $quote ) {
+				$quote_html .= serialize($quote);
+				$file_field = '';
+				if ( ! empty( $quote['file'] ) ) {
+					$file_field = '<a target="_blank" href="' . $quote['file']['url'] . '">' . $quote['file']['filename'] . '</a>';
+				} else {
+					$file_field = '<input name="cla_quote_' . $key . '_file" id="cla_quote_' . $key . '_file" class="cla-quote-file" type="file" accept=".pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"/>';
+				}
+				$quote_html .= '<div class="cla-quote-item grid-x grid-margin-x" data-quote-index="' . $key . '">';
+				$quote_html .= '<div class="cell small-12 medium-4"><label for="cla_quote_' . $key . '_name">Name</label><input name="cla_quote_' . $key . '_name" id="cla_quote_' . $key . '_name" class="cla-quote-name" type="text" value="' . $quote['name'] . '" />';
+				$quote_html .= '<label for="cla_quote_' . $key . '_price">Price</label><input name="cla_quote_' . $key . '_price" id="cla_quote_' . $key . '_price" class="cla-quote-price" type="number" min="0" value="' . $quote['price'] . '" /></div>';
+				$quote_html .= '<div class="cell small-12 medium-4"><label for="cla_quote_' . $key . '_description">Description</label><textarea name="cla_quote_' . $key . '_description" id="cla_quote_' . $key . '_description" class="cla-quote-description" name="cla_quote_' . $key . '_description">' . $quote['description'] . '</textarea></div>';
+				$quote_html .= '<div class="cell small-12 medium-auto"><label for="cla_quote_' . $key . '_file">File</label>' . $file_field . '</div>';
+				$quote_html .= '<div class="cell small-12 medium-shrink"><button type="button" class="remove" data-quote-index="' . $key . '">Remove this quote item</button></div>';
+				$quote_html .= '</div>';
+
+				// Shopping cart item.
+				$cart_price = floatval( $quote['price'] );
+				$cart_price = '$' . number_format( $cart_price, 2, '.', ',' );
+				$item = '<div class="cart-item quote-item quote-item-' . $key . ' grid-x">';
+				$item .= '<div class="cell auto">' . $quote['name'] . '</div>';
+				$item .= '<div class="cell shrink align-right bold"><button class="trash" type="button" data-quote-index="' . $key . '" data-product-price="' . $cart_price . '">Remove product from cart</button><span class="price">' . $cart_price . '</span></div>';
+				$item .= '</div>';
+				$purchase_list_items .= $item;
+			}
+		}
+		$count_quotes = '<input type="hidden" id="cla_quote_count" name="cla_quote_count" value="' . $quote_count . '" />';
+		$list_quotes  = "<div id=\"list_quotes\">{$quote_html}</div>";
+
+		/**
+		 * Purchased product list view.
+		 */
+		$list_purchases = "<div id=\"list_purchases\">{$purchase_list_items}</div>";
+
+		/**
+		 * Order subtotal.
+		 */
+		$subtotal = '$0.00';
+		$subtotal_field = get_field( 'products_subtotal', $post->ID );
+		if ( ! empty( $subtotal_field ) ) {
+			$subtotal_float = floatval( $subtotal_field );
+			$subtotal       = '$' . number_format( $subtotal_float, 2, '.', ',' );
+		}
 
 		/**
 		 * Submit button.
 		 */
-		$submit_button = '<input type="submit" id="cla_submit" name="cla_submit" value="Place Order">';
+		$submit_text = 'wsorder' === $post->post_type ? 'Update Order' : 'Place Order';
+		$submit_button = '<input type="submit" id="cla_submit" name="cla_submit" value="' . $submit_text . '">';
 
 		/**
 		 * Nonce field.
@@ -210,22 +294,68 @@ function cla_render_order_form() {
 		$nonce_field = wp_nonce_field( 'verify_order_form_nonce8', 'the_superfluous_nonceity_n8me', true, false );
 
 		/**
+		 * Building field.
+		 */
+		$building = get_post_meta( $post->ID, 'building', true );
+		if ( empty( $building ) ) {
+			$building = '';
+		}
+		$building_field = "<input id=\"cla_building_name\" name=\"cla_building_name\" type=\"text\" value=\"{$building}\"/>";
+
+		/**
+		 * Room number.
+		 */
+		$room_number = get_post_meta( $post->ID, 'office_location', true );
+		if ( empty( $room_number ) ) {
+			$room_number = '';
+		}
+		$room_number_field = "<input id=\"cla_room_number\" name=\"cla_room_number\" type=\"text\" value=\"{$room_number}\"/>";
+
+		/**
+		 * Asset number.
+		 */
+		$asset_number = get_post_meta( $post->ID, 'current_asset', true );
+		if ( empty( $asset_number ) ) {
+			$asset_number = '';
+		}
+		$asset_number_field = "<input id=\"cla_current_asset_number\" name=\"cla_current_asset_number\" type=\"text\" value=\"{$asset_number}\"/>";
+
+		/**
+		 * No computer yet.
+		 */
+		$no_computer = (int) get_post_meta( $post->ID, 'i_dont_have_a_computer_yet', true );
+		if ( 1 === $no_computer ) {
+			$no_computer = ' checked';
+		} else {
+			$no_computer = '';
+		}
+		$no_computer_field = "<input id=\"cla_no_computer_yet\" name=\"cla_no_computer_yet\" type=\"checkbox\"$no_computer />";
+
+		/**
+		 * Order comment.
+		 */
+		$order_comment = get_post_meta( $post->ID, 'order_comment', true );
+		if ( empty( $order_comment ) ) {
+			$order_comment = '';
+		}
+		$order_comment_field = "<textarea id=\"cla_order_comments\" name=\"cla_order_comments\" rows=\"5\">{$order_comment}</textarea>";
+
+		/**
 		 * Form
 		 */
 		$permalink = get_permalink();
-		// $search_form = "{$validation_message}<div id=\"cla_order_form_wrap\">
-		$search_form = "<div id=\"cla_order_form_wrap\">
+		$order_form = "<div id=\"cla_order_form_wrap\">
 <form method=\"post\" enctype=\"multipart/form-data\" id=\"cla_order_form\" action=\"{$permalink}\">
 <div class=\"grid-x grid-margin-x\"><div class=\"cell medium-6\">{$order_info}</div><div class=\"cell medium-6\">{$additional_funding}</div></div><div class=\"grid-x grid-margin-x\"><div class=\"cell small-12\"><hr /></div></div>
 <div class=\"grid-x grid-margin-x\"><div class=\"cell medium-6\">
 <div><label for=\"cla_it_rep_id\">IT Representative *</label> {$it_rep_dropdown}<br><small>To whom in IT should your order be sent to for confirmation?</small></div>
-<div class=\"grid-x grid-margin-x\"><div class=\"building-name cell medium-6\"><label for=\"cla_building_name\">Building *</label> <input id=\"cla_building_name\" name=\"cla_building_name\" type=\"text\" /><br><small>What building is your primary office located in?</small></div><div class=\"room-number cell medium-6\">
-<label for=\"cla_room_number\">Room Number *</label> <input id=\"cla_room_number\" name=\"cla_room_number\" type=\"text\" /><br><small>What is the room number of your primary office?</small></div>
+<div class=\"grid-x grid-margin-x\"><div class=\"building-name cell medium-6\"><label for=\"cla_building_name\">Building *</label> {$building_field}<br><small>What building is your primary office located in?</small></div><div class=\"room-number cell medium-6\">
+<label for=\"cla_room_number\">Room Number *</label> {$room_number_field}<br><small>What is the room number of your primary office?</small></div>
 </div>
-<div><label for=\"cla_current_asset_number\">Current Workstation Asset Number *</label> <input id=\"cla_current_asset_number\" name=\"cla_current_asset_number\" type=\"text\" /><br><small>What is the TAMU asset number of your current workstation computer? Example: 021500123456</small></div>
-<div class=\"nobreak\"><input id=\"cla_no_computer_yet\" name=\"cla_no_computer_yet\" type=\"checkbox\" /><label for=\"cla_no_computer_yet\">I don't have a computer yet.</label></div>
+<div><label for=\"cla_current_asset_number\">Current Workstation Asset Number *</label> {$asset_number_field}<br><small>What is the TAMU asset number of your current workstation computer? Example: 021500123456</small></div>
+<div class=\"nobreak\">{$no_computer_field}<label for=\"cla_no_computer_yet\">I don't have a computer yet.</label></div>
 </div><div class=\"cell medium-6\">
-<div><label for=\"cla_order_comments\">Order Comment *</label> <textarea id=\"cla_order_comments\" name=\"cla_order_comments\" rows=\"5\"></textarea><br><small>Any additional information that would be helpful to pass along.
+<div><label for=\"cla_order_comments\">Order Comment *</label> {$order_comment_field}<br><small>Any additional information that would be helpful to pass along.
 </small></div>
 </div>
 </div>
@@ -234,13 +364,13 @@ function cla_render_order_form() {
 <div class=\"products-apple toggle\"><h3><a class=\"btn\" href=\"#\">Apple</a></h3>{$apple_list}</div>
 <div class=\"products-pc toggle\"><h3><a class=\"btn\" href=\"#\">PC</a></h3>{$pc_list}</div>
 <div class=\"products-addons toggle\"><h3><a class=\"btn\" href=\"#\">Add Ons</a></h3>{$addons_list}</div>
-<div class=\"products-custom-quote toggle\"><h3><a class=\"btn\" href=\"#\">Advanced Teaching/Research Quote</a></h3>{$button_add_quote}</div>
+<div class=\"products-custom-quote toggle\"><h3><a class=\"btn\" href=\"#\">Advanced Teaching/Research Quote</a></h3><div class=\"products\">{$button_add_quote}{$list_quotes}</div></div>
 </div>
 <div id=\"shopping_cart\" class=\"cell small-12 medium-3\"><h3>Shopping Cart</h3>
-{$count_quotes}{$purchase_field}{$total_purchase_field}{$list_purchases}<hr />
+{$count_quotes}{$purchase_field}{$list_purchases}<hr />
 <div class=\"grid-x\">
 <div class=\"cell shrink\">Products Total:</div>
-<div id=\"products_total\" class=\"cell auto align-right\">$0.00</div>
+<div id=\"products_total\" class=\"cell auto align-right\">{$subtotal}</div>
 </div>
 <div id=\"allocation-data\" class=\"hidden\" data-allocation=\"{$allocation}\" data-allocation-threshold=\"{$allocation_threshold}\">
 <div class=\"grid-x\">
@@ -273,6 +403,7 @@ function cla_render_order_form() {
 				'value' => array(),
 				'id'    => array(),
 				'name'  => array(),
+				'selected' => array(),
 			),
 			'label'    => array(
 				'for' => array(),
@@ -283,6 +414,8 @@ function cla_render_order_form() {
 				'type'     => array(),
 				'value'    => array(),
 				'disabled' => array(),
+				'checked'  => array(),
+				'files'    => array(),
 			),
 			'div'      => array(
 				'class'                     => array(),
@@ -314,8 +447,9 @@ function cla_render_order_form() {
 			),
 			'hr'       => array(),
 			'a'        => array(
-				'class' => array(),
-				'href'  => array(),
+				'class'  => array(),
+				'href'   => array(),
+				'target' => array(),
 			),
 			'img'      => array(
 				'src'     => array(),
@@ -329,11 +463,11 @@ function cla_render_order_form() {
 			'li'       => array(),
 			'p'        => array(),
 		);
-		echo wp_kses( $search_form, $allowed_html );
+		return wp_kses( $order_form, $allowed_html );
 
 	}
 }
-add_action( 'the_content', 'cla_render_order_form' );
+add_filter( 'the_content', 'cla_render_order_form' );
 
 if ( function_exists( 'genesis' ) ) {
 	genesis();

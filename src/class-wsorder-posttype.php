@@ -86,12 +86,12 @@ class WSOrder_PostType {
 		add_filter( 'parse_query', array( $this, 'parse_query_program_filter' ), 10);
 
 		// Disable order form fields
+		add_filter( 'acf/prepare_field/key=field_60074b5ee982b', array( $this, 'readonly_field_if_not_empty' ) ); // Products Subtotal.
 		add_filter( 'acf/load_field/key=field_5ffcc2590682b', array( $this, 'readonly_field' ) ); // Program.
 		add_filter( 'acf/load_field/key=field_60186adc3a4e7', array( $this, 'readonly_field' ) ); // Order Item Price.
 		add_filter( 'acf/load_field/key=field_5ffdfd1abaaa7', array( $this, 'readonly_field' ) ); // Quote Price.
 		add_filter( 'acf/load_field/key=field_5ffdfc23d5e87', array( $this, 'readonly_field' ) ); // SKU.
 		add_filter( 'acf/load_field/key=field_5ffdfcbcbaaa3', array( $this, 'readonly_field' ) ); // Order Item Name.
-		add_filter( 'acf/load_field/name=products_subtotal', array( $this, 'readonly_field' ) ); // Products Subtotal.
 		add_filter( 'acf/load_field/name=requisition_number', array( $this, 'readonly_field_for_non_logistics_user' ) );
 		add_filter( 'acf/load_field/name=requisition_date', array( $this, 'readonly_field_for_non_logistics_user' ) );
 		add_filter( 'acf/load_field/name=asset_number', array( $this, 'readonly_field_for_non_logistics_user' ) );
@@ -125,6 +125,27 @@ class WSOrder_PostType {
 		add_filter( 'wp_insert_post_data', array( $this, 'lock_post_title' ), 11, 2 );
 		add_action( 'edit_form_after_title', array( $this, 'show_post_title' ) );
 
+		// Render single order view.
+		add_filter( 'single_template', array( $this, 'get_single_template' ) );
+
+	}
+
+	/**
+	 * Shows the single template when needed
+	 *
+	 * @param  string $single_template The default single template.
+	 * @return string                  The correct single template
+	 */
+	public function get_single_template( $single_template ) {
+
+		global $post;
+
+		if ( 'wsorder' === get_query_var( 'post_type' ) ) {
+			$single_template = CLA_WORKSTATION_ORDER_TEMPLATE_PATH . '/order-form-template.php';
+		}
+
+		return $single_template;
+
 	}
 
 	/**
@@ -135,7 +156,9 @@ class WSOrder_PostType {
 	 * @return void
 	 */
 	public function show_post_title( $post ){
-		echo wp_kses_post( '<h1><strong>' . get_the_title( $post ) . '</strong></h1>' );
+		if ( 'wsorder' === $post->post_type ) {
+			echo wp_kses_post( '<h1><strong>' . get_the_title( $post ) . '</strong></h1>' );
+		}
 	}
 
 	/**
@@ -147,7 +170,12 @@ class WSOrder_PostType {
 	 * @return array
 	 */
 	public function lock_post_title( $data, $postarr ) {
-		$data['post_title'] = get_the_title( $postarr['ID'] );
+		if ( 'wsorder' === $data['post_type'] ) {
+			$the_title = get_the_title( $postarr['ID'] );
+			if ( ! empty( $the_title ) ) {
+				$data['post_title'] = $the_title;
+			}
+		}
 		return $data;
 	}
 
@@ -413,7 +441,8 @@ class WSOrder_PostType {
 	 * @return array
 	 */
 	public function remove_field_if_empty( $field ) {
-		if ( empty( $field['value'] ) ) {
+		global $post;
+		if ( is_object( $post ) && 'wsorder' === $post->post_type && empty( $field['value'] ) ) {
 			return false;
 		}
 		return $field;
@@ -471,7 +500,27 @@ class WSOrder_PostType {
 	 * @return array
 	 */
 	public function readonly_field( $field ) {
-		$field['readonly'] = '1';
+		global $post;
+		if ( is_object( $post ) && 'wsorder' === $post->post_type ) {
+			$field['readonly'] = '1';
+		}
+		return $field;
+	}
+
+
+
+	/**
+	 * Make an Advanced Custom Fields field read-only in the page editor if it is empty.
+	 *
+	 * @param array $field The field settings.
+	 *
+	 * @return array
+	 */
+	public function readonly_field_if_not_empty( $field ) {
+		global $post;
+		if ( is_object( $post ) && 'wsorder' === $post->post_type && ! empty( $field['value'] ) ) {
+			$field['readonly'] = '1';
+		}
 		return $field;
 	}
 
@@ -483,7 +532,8 @@ class WSOrder_PostType {
 	 * @return array
 	 */
 	public function readonly_field_for_non_logistics_user( $field ) {
-		if ( ! current_user_can( 'wso_logistics' ) && ! current_user_can( 'wso_admin' ) ) {
+		global $post;
+		if ( is_object( $post ) && 'wsorder' === $post->post_type && ! current_user_can( 'wso_logistics' ) && ! current_user_can( 'wso_admin' ) ) {
 			$field['readonly'] = '1';
 		}
 		return $field;
@@ -507,7 +557,7 @@ class WSOrder_PostType {
 			'wsorder',
 			array(),
 			'dashicons-media-spreadsheet',
-			false,
+			array( 'title' ),
 			array(
 				'capabilities'       => array(
 					'edit_post'              => 'edit_wsorder',
@@ -526,7 +576,11 @@ class WSOrder_PostType {
 					'read_private_posts'     => 'read_private_wsorders',
 				),
 				'map_meta_cap'       => true,
-				'publicly_queryable' => false,
+				'rewrite'            => array(
+					'with_front' => false,
+					'slug'       => 'order',
+				),
+				// 'publicly_queryable' => false,
 			)
 		);
 
@@ -619,9 +673,6 @@ class WSOrder_PostType {
 			// Save order author department.
 			$value = $user_department_post_id;
 			update_field( 'author_department', $value, $post_id );
-
-			// Save post status.
-			update_field( 'status', 'action_required', $post_id );
 
 			// Save order affiliated it reps.
 			// Save order affiliated business reps.
@@ -744,6 +795,7 @@ class WSOrder_PostType {
 
 				$product_post_ids = sanitize_text_field( wp_unslash( $_POST['cla_product_ids'] ) );
 				$product_post_ids = explode( ',', $product_post_ids );
+
 				// Ensure no product IDs are included that user is not allowed to buy.
 				$disallowed_product_ids = $this->get_disallowed_product_and_bundle_ids();
 				if ( ! empty( $disallowed_product_ids ) ) {
@@ -756,6 +808,9 @@ class WSOrder_PostType {
 				}
 
 				if ( count( $product_post_ids ) > 0 ) {
+
+					// Save product and bundle ids.
+					update_field( 'selected_products_and_bundles', $product_post_ids, $post_id );
 
 					// Get subtotal for products and bundles.
 					foreach ($product_post_ids as $product_post_id) {
@@ -793,9 +848,10 @@ class WSOrder_PostType {
 					$product_fields = array();
 					foreach ( $product_post_ids as $key => $product_post_id ) {
 						$product_fields[ $key ] = array(
-							'sku'   => get_field( 'sku', $product_post_id ),
-							'item'  => get_the_title( $product_post_id ),
-							'price' => get_field( 'price', $product_post_id ),
+							'sku'     => get_field( 'sku', $product_post_id ),
+							'item'    => get_the_title( $product_post_id ),
+							'price'   => get_field( 'price', $product_post_id ),
+							'post_id' => $product_post_id,
 						);
 					}
 					update_field( 'order_items', $product_fields, $post_id );
@@ -1011,7 +1067,7 @@ class WSOrder_PostType {
 	public function set_admin_body_class( $classes ) {
 		global $pagenow;
 
-		if ( 'post.php' === $pagenow ) {
+		if ( 'post.php' === $pagenow || 'post-new.php' === $pagenow ) {
 			$post_id = get_the_ID();
 			if ( 'wsorder' === get_post_type( $post_id ) ) {
 				$post_status = get_post_status( $post_id );
@@ -1178,7 +1234,7 @@ jQuery( 'select[name=\"post_status\"]' ).val('publish')";
 		echo wp_kses(
 			"<script>
 			jQuery(document).ready( function() {
-				jQuery( 'select[name=\"post_status\"]' ).html( '<option value=\"action_required\">Action Required</option><option value=\"returned\"$subscriber_disabled>Returned</option><option value=\"publish\"$non_logistics_disabled>Publish</option>' );
+				jQuery( 'select[name=\"post_status\"]' ).append( '<option value=\"action_required\">Action Required</option><option value=\"returned\"$subscriber_disabled>Returned</option><option value=\"publish\"$non_logistics_disabled>Publish</option>' );
 				" . $status . '
 			});
 		</script>',
@@ -1449,9 +1505,9 @@ jQuery( 'select[name=\"post_status\"]' ).val('publish')";
 	 */
 	public function pre_get_posts( $query ) {
 		if ( 'wsorder' === $query->get( 'post_type' ) ) {
-			if ( ! ( is_admin() && $query->is_main_query() ) ) {
-				return;
-			}
+			// if ( ! ( is_admin() && $query->is_main_query() ) ) {
+			// 	return;
+			// }
 			// Allow admins and logistics to see all orders.
 			if (
 				current_user_can( 'administrator' )
@@ -1499,8 +1555,7 @@ jQuery( 'select[name=\"post_status\"]' ).val('publish')";
 		global $pagenow;
 
 		if (
-		! current_user_can( 'administrator' )
-		&& 'post-new.php' === $pagenow
+		'post-new.php' === $pagenow
 		&& isset( $_GET['post_type'] ) //phpcs:ignore
 		&& 'wsorder' === $_GET['post_type'] //phpcs:ignore
 		) {
