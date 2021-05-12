@@ -10,10 +10,9 @@
 
 		// Get variables used to update the shopping cart.
 		var productID = this.getAttribute('data-product-id');
-
 		// Remove product ID from form field.
 		var $productIDsField = $('#cla_product_ids');
-		var newProductIDs = $productIDsField.val().replace( productID, '' ).replace( /,+/g, ',' ).replace( /^,/, '' );
+		var newProductIDs = $productIDsField.val().replace( productID, '' ).replace( /,+/g, ',' ).replace( /^,|,$/, '' );
 		$productIDsField.val(newProductIDs);
 
 		// Remove the shopping cart element.
@@ -33,9 +32,8 @@
 		// Get elements and values.
 		var $this = $(this);
 		var productID = $this.attr('data-product-id');
-		console.log(productID);
 		var productName = $('#product-' + productID + ' .card-header').html();
-		var productPrice = $this.attr('data-product-price');
+		var productPrice = formatDollars( cla_product_prices[productID] );
 		var $thumb = $('#product-'+productID+'.card .wp-post-image');
 
 		// Add product ID to form field.
@@ -58,14 +56,14 @@
 			listItem += '<div class="cell shrink"><img width="50" src="'+$thumb.attr('src')+'"></div>';
 		}
 		listItem += '<div class="cell auto">'+productName+'</div>';
-		listItem += '<div class="cell shrink align-right bold"><button class="trash" type="button" data-product-id="'+productID+'" data-product-price="'+productPrice+'">Remove product from cart</button>'+productPrice+'</div>';
+		listItem += '<div class="cell shrink align-right bold"><button class="trash trash-product" type="button" data-product-id="'+productID+'">Remove product from cart</button>'+productPrice+'</div>';
 		listItem += '</div>';
 
 		// Append item.
 		$('#list_purchases').append(listItem);
 
 		// Add event handlers
-		$('#list_purchases').find('.shopping-cart-'+productID+' .trash').on('click', removeProduct);
+		// $('#list_purchases').find('.shopping-cart-'+productID+' .trash').on('click', removeProduct);
 
 		// Disable button.
 		this.setAttribute('disabled','disabled');
@@ -75,8 +73,8 @@
 		updateTotals();
 
 		// Prevent default behavior on click.
-		e.preventDefault();
-		return false;
+		// e.preventDefault();
+		// return false;
 
 	};
 
@@ -99,56 +97,42 @@
 		// Add price associated with each product to total.
 		var total = 0;
 		for ( var i=0; i < ids.length; i++ ) {
-			var price = $('.price-' + ids[i]).html();
-					price = price.replace( /\$|,/g, '' );
-					price = parseFloat( price );
-			total += price;
+			var id = ids[i];
+			var price = parseFloat( cla_product_prices[id] );
+			total = Number((total + price).toFixed(2));
 		}
 
 		// Get quote items total.
 		var $quotePrices = $form.find('.products-custom-quote .cla-quote-price');
-		var quoteTotal = 0;
 		$quotePrices.each(function(){
 
 			if ( this.value === '' || this.value === '.' ) {
-				floatval = 0;
+				var price = 0;
 			} else {
-				floatval = parseFloat( this.value.replace(/\$|,/g, '') );
+				var price = parseFloat( this.value.replace(/\$|,/g, '') );
 			}
-			quoteTotal += floatval;
+			total = Number((total + price).toFixed(2));
 		});
-		total += quoteTotal;
-
 		return total;
 
 	};
 
-	var isOverageTriggered = function(){
-
-		var $allocationData = $('#allocation-data');
+	var validateContribution = function(){
 
 		// Get numbers involved.
 		var total = getTotal();
-		var contributionMade = $('#cla_contribution_amount').val();
-		var allocation = parseFloat( $allocationData.attr('data-allocation') );
-		var threshold = parseFloat( $allocationData.attr('data-allocation-threshold') );
-		var contributionAmountNeeded = total - contributionMade - allocation;
-		var returnVal = {};
+		var contributionMade = '' === $('#cla_contribution_amount').val() ? 0 : parseFloat( $('#cla_contribution_amount').val() );
+		var returnVal = {
+			needsContribution: false,
+			difference: 0
+		};
 
-		if ( threshold < total ) {
-			// They have to pay everything beyond the allocation.
-			var contributionAmountNeeded = total - contributionMade - allocation;
-			returnVal.overage = contributionAmountNeeded;
-
-			if ( contributionAmountNeeded > 0 ) {
-				returnVal.allowed = false;
-			} else {
-				returnVal.allowed = true;
-			}
+		// Determine if change in contribution needed.
+		if ( cla_threshold < total ) {
+			returnVal.needsContribution = true;
+			returnVal.difference = Number((total - cla_allocation - contributionMade).toFixed(2));
 		} else {
-			// They can make this purchase.
-			returnVal.allowed = true;
-			returnVal.overage = 0;
+			returnVal.difference = 0 - contributionMade;
 		}
 
 		return returnVal;
@@ -162,34 +146,30 @@
 		var total = getTotal();
 
 		// Convert total to string and push to DOM elements.
-		var totalString = '$' + total.toFixed(2).replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1,");
+		var totalString = formatDollars(total);
 		$('#products_total').html(totalString);
 
 		// Check for contribution needed.
 		var $allocationData = $('#allocation-data');
 		var $contributionNeededEl = $('#contribution_needed');
-		var isOverThreshold = isOverageTriggered();
+		var contribution = validateContribution();
 
 		// Show or hide the contribution amount needed and disable the form.
-		if ( isOverThreshold.allowed === false ) {
-
-			// Contribution needed.
-			var contributionAmountNeeded = isOverThreshold.overage.toFixed(2).replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1,");
-			$contributionNeededEl.html('$'+contributionAmountNeeded);
-
-			if ( $allocationData.hasClass('hidden') ) {
-				// Show contribution needed.
-				$allocationData.removeClass('hidden');
-			}
-
+		console.log(contribution.difference);
+		if ( contribution.difference === 0 ) {
+			$allocationData.addClass('hidden');
+			$('#contribution_needed_label').html('Contribution needed');
+			$contributionNeededEl.html('$0.00');
 		} else {
-
-			// Contribution not needed. Hide element if visible.
-			if ( ! $allocationData.hasClass('hidden') ) {
-				$allocationData.addClass('hidden');
-				$contributionNeededEl.html('$0.00');
+			$allocationData.removeClass('hidden');
+			$contributionNeededEl.html( formatDollars( Math.abs( contribution.difference ) ) );
+			if ( contribution.difference > 0 ) {
+				// Underpaid.
+				$('#contribution_needed_label').html('Contribution needed');
+			} else {
+				// Overpaid.
+				$('#contribution_needed_label').html('Excess contribution');
 			}
-
 		}
 
 	};
@@ -270,7 +250,7 @@
 		var newIndex = $form.find('.cla-quote-item').length;
 		var html = '<div class="cla-quote-item grid-x grid-margin-x" data-quote-index="'+newIndex+'">';
 				html += '<div class="cell small-12 medium-4"><label for="cla_quote_'+newIndex+'_name">Name</label><input name="cla_quote_'+newIndex+'_name" id="cla_quote_'+newIndex+'_name" class="cla-quote-name" type="text" />';
-				html += '<label for="cla_quote_'+newIndex+'_price">Price</label><input name="cla_quote_'+newIndex+'_price" id="cla_quote_'+newIndex+'_price" class="cla-quote-price" type="number" min="0" /></div>';
+				html += '<label for="cla_quote_'+newIndex+'_price">Price</label><input name="cla_quote_'+newIndex+'_price" id="cla_quote_'+newIndex+'_price" class="cla-quote-price" type="number" min="0" step="0.01" /></div>';
 				html += '<div class="cell small-12 medium-4"><label for="cla_quote_'+newIndex+'_description">Description</label><textarea name="cla_quote_'+newIndex+'_description" id="cla_quote_'+newIndex+'_description" class="cla-quote-description" name="cla_quote_'+newIndex+'_description"></textarea></div>'
 				html += '<div class="cell small-12 medium-auto"><label for="cla_quote_'+newIndex+'_file">File</label><input name="cla_quote_'+newIndex+'_file" id="cla_quote_'+newIndex+'_file" class="cla-quote-file" type="file" accept=".pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"/></div>';
 				html += '<div class="cell small-12 medium-shrink"><button type="button" class="remove" data-quote-index="'+newIndex+'">Remove this quote item</button></div>';
@@ -299,14 +279,14 @@
 		// Generate HTML elements for shopping cart listing.
 		var listItem = '<div class="cart-item quote-item quote-item-'+newIndex+' grid-x">';
 				listItem += '<div class="cell auto">'+productName+'</div>';
-				listItem += '<div class="cell shrink align-right bold"><button class="trash" type="button" data-quote-index="'+newIndex+'" data-product-price="'+strProductPrice+'">Remove product from cart</button><span class="price">'+strProductPrice+'</span></div>';
+				listItem += '<div class="cell shrink align-right bold"><button class="trash trash-quote" type="button" data-quote-index="'+newIndex+'">Remove product from cart</button><span class="price">'+strProductPrice+'</span></div>';
 				listItem += '</div>';
 
 		// Append item.
 		$('#list_purchases').append(listItem);
 
 		// Add event handlers
-		$('#list_purchases').find('.quote-item-'+newIndex+' .trash').on('click', removeQuoteFieldset);
+		// $('#list_purchases').find('.quote-item-'+newIndex+' .trash').on('click', removeQuoteFieldset);
 
 		// Increment quote counter.
 		var count = parseInt( $form.find('#cla_quote_count').val() );
@@ -334,8 +314,8 @@
 		var cloned = $form.clone(true);
 		localStorage.setItem("cla-order-form", JSON.stringify(cloned.html()));
 
-		e.preventDefault();
-		return false;
+		// e.preventDefault();
+		// return false;
 
 	};
 
@@ -403,19 +383,23 @@
 
 		// Account Number.
 		var $accountNumber = $form.find('#cla_account_number');
-		var $contributionAmount = $form.find('#cla_contribution_amount');
-		var isOverThreshold = isOverageTriggered();
-		if ( parseInt( $contributionAmount.val() ) > 0 && $accountNumber.val() === '' ) {
+		var contributionAmount = parseFloat( $form.find('#cla_contribution_amount').val() );
+		var contribution = validateContribution();
+		if ( contribution.needsContribution === true && $accountNumber.val() === '' ) {
 			// Contribution and account number don't match up.
 			valid = false;
 			$form.find('label[for="cla_account_number"]').addClass('flagged');
 			message += '<li>Please provide a contribution account.</li>';
-		} else if ( isOverThreshold.allowed === false ) {
+		}
+		if ( contribution.difference > 0 ) {
 			// Contribution still needed.
 			valid = false;
 			$form.find('label[for="cla_contribution_amount"]').addClass('flagged');
-			$form.find('label[for="cla_account_number"]').addClass('flagged');
-			message += '<li>Please provide a contribution amount and account.</li>';
+			message += '<li>You must contribute more funds.</li>';
+		} else if ( contribution.difference < 0 ) {
+			valid = false;
+			$form.find('label[for="cla_contribution_amount"]').addClass('flagged');
+			message += '<li>You must reduce your funds contribution.</li>';
 		}
 
 		// Products purchased.
@@ -493,6 +477,11 @@
 	// validateForm();
 
 	// Add event handlers.
+
+	// Add event handlers
+	$('#list_purchases').on( 'click', '.trash-product', removeProduct );
+	$('#list_purchases').on( 'click', '.trash-quote', removeQuoteFieldset );
+	$('#list_quotes').on( 'click', '.remove', removeQuoteFieldset );
 	$('.add-product').on('click', addProductToCart);
 	$('#cla_contribution_amount').on('keyup', updateTotals);
 	$form.find('#cla_add_quote').on('click', addQuoteFieldset);

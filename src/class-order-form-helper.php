@@ -287,10 +287,12 @@ class Order_Form_Helper {
 	 * and an optional category taconomy term.
 	 *
 	 * @param string|false $category The category taxonomy term to filter by.
+	 * @param boolean      $preview  Whether or not these products are shown on a Preview page.
+	 * @param array        $selected Which post IDs should be rendered as selected.
 	 *
 	 * @return string
 	 */
-	public function cla_get_products( $category = false, $preview = false ) {
+	public function cla_get_products( $category = false, $preview = false, $selected = array() ) {
 
 		/**
 		 * Display products.
@@ -303,7 +305,7 @@ class Order_Form_Helper {
 
 			// Define the card variables.
 			$permalink   = get_permalink( $post_id );
-			$price       = (int) get_post_meta( $post_id, 'price', true );
+			$price       = (float) get_post_meta( $post_id, 'price', true );
 			$price       = number_format( $price, 2, '.', ',' );
 			$thumbnail   = get_the_post_thumbnail( $post_id, 'post-thumbnail', 'style=""' );
 			$thumbnail   = preg_replace( '/ style="[^"]*"/', '', $thumbnail );
@@ -318,9 +320,11 @@ class Order_Form_Helper {
 			if ( ! empty( $more_info ) ) {
 				$output .= "<div class=\"more-details-wrap align-left cell shrink\"><button class=\"more-details link\" type=\"button\">More Details<div class=\"info\">$more_info<a href=\"#\" class=\"close\">Close</a></div></button></div>";
 			}
-			$output .= "<div class=\"cell auto align-right display-price price-{$post_id}\">\${$price}</div>";
+			$output .= "<div class=\"cell auto align-right display-price\">\${$price}</div>";
 			if ( false === $preview ) {
-				$output .= "<div class=\"cart-cell cell small-12 align-left\"><button id=\"cart-btn-{$post_id}\" data-product-id=\"{$post_id}\" data-product-price=\"\${$price}\" type=\"button\" class=\"add-product\">Add</button></div>";
+				$disabled    = in_array( $post_id, $selected ) ? ' disabled="disabled"' : '';
+				$button_text = in_array( $post_id, $selected ) ? 'In cart' : 'Add';
+				$output      .= "<div class=\"cart-cell cell small-12 align-left\"><button id=\"cart-btn-{$post_id}\" data-product-id=\"{$post_id}\" type=\"button\" class=\"add-product\"{$disabled}>{$button_text}</button></div>";
 			}
 			$output .= "</div></div>";
 			$output .= "</div>";

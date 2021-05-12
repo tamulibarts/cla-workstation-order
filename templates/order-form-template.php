@@ -57,11 +57,36 @@ function cla_workstation_order_form_scripts() {
 
 	wp_enqueue_script( 'jquery' );
 	wp_enqueue_script( 'cla-workstation-order-form-scripts' );
-	$ajax_params = array(
-		'ajaxurl' => admin_url( 'admin-ajax.php' ),
-		'nonce'   => wp_create_nonce( 'make_order' ),
-	);
-	wp_localize_script( 'cla-workstation-order-form-scripts', 'WSOAjax', $ajax_params );
+	// Include admin ajax URL and nonce.
+	$script_variables = 'var WSOAjax = {"ajaxurl":"'.admin_url('admin-ajax.php').'","nonce":"'.wp_create_nonce('make_order').'"};';
+	// Include products and prices.
+	require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-order-form-helper.php';
+	$cla_form_helper      = new \CLA_Workstation_Order\Order_Form_Helper();
+	$products_and_bundles = $cla_form_helper->get_product_post_objects_for_program_by_user_dept();
+	foreach ( $products_and_bundles as $post_id => $post_title ) {
+		$products_and_bundles[$post_id] = get_post_meta( $post_id, 'price', true );
+	}
+	$script_variables .= "
+";
+	$script_variables .= 'var cla_product_prices = ' . json_encode($products_and_bundles);
+	// Allocation data.
+	$maybe_program_post = get_post_meta( get_the_ID(), 'program', true );
+	if ( ! empty( $maybe_program_post ) ) {
+		$program_id = (int) $maybe_program_post;
+	} else {
+		$program_post = get_field( 'current_program', 'option' );
+		$program_id   = $program_post->ID;
+	}
+	$allocation           = (float) get_post_meta( $program_id, 'allocation', true );
+	$allocation_threshold = (float) get_post_meta( $program_id, 'threshold', true );
+	$script_variables .= "
+";
+	$script_variables .= "var cla_allocation = {$allocation};";
+	$script_variables .= "
+";
+	$script_variables .= "var cla_threshold = {$allocation_threshold};";
+
+	wp_add_inline_script( 'cla-workstation-order-form-scripts', $script_variables, 'before' );
 
 }
 add_action( 'wp_enqueue_scripts', 'cla_workstation_order_form_scripts', 1 );
@@ -129,7 +154,7 @@ function cla_render_order_form( $content ) {
 			$contribution_account = '';
 		}
 		$additional_funding  = '<div id="cla_add_funding"><h3>Additional Funding</h3><p>Enter any additional funds that you would like to contribute on top of your base allowance.<br>Your cart calculations will include this amount. It\'s also required if your cart total exceeds the base allowance.</p>';
-		$additional_funding .= '<div class="form-group"><label for="cla_contribution_amount">Contribution Amount</label> <div class="grid-x"><div class="cell shrink dollar-field">$</div><div class="cell auto"><input id="cla_contribution_amount" name="cla_contribution_amount" type="number" min="0" value="' . $contribution_amount . '" step="any" /></div></div></div>';
+		$additional_funding .= '<div class="form-group"><label for="cla_contribution_amount">Contribution Amount</label> <div class="grid-x"><div class="cell shrink dollar-field">$</div><div class="cell auto"><input id="cla_contribution_amount" name="cla_contribution_amount" type="number" min="0" step="0.01" value="' . $contribution_amount . '" step="any" /></div></div></div>';
 		$additional_funding .= '<div class="form-group"><label for="cla_account_number">Account</label> <input id="cla_account_number" name="cla_account_number" type="text" value="' . $contribution_account . '"/><small><br>Research, Bursary, etc. or the Acct #</small></div>';
 		$additional_funding .= '</div>';
 
@@ -178,6 +203,11 @@ function cla_render_order_form( $content ) {
 		}
 
 		/**
+		 * Identify which products or bundles were selected during ordering.
+		 */
+		$selected_products_and_bundles = get_field( 'selected_products_and_bundles', $post->ID );
+
+		/**
 		 * Get the CLA Form Helper class.
 		 */
 		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-order-form-helper.php';
@@ -186,15 +216,10 @@ function cla_render_order_form( $content ) {
 		/**
 		 * Get product categories.
 		 */
-		$apple_list  = $cla_form_helper->cla_get_products( 'apple' );
-		$pc_list     = $cla_form_helper->cla_get_products( 'pc' );
-		$addons_list = $cla_form_helper->cla_get_products( 'add-on' );
-
-		/**
-		 * Allocation and allocation threshold.
-		 */
-		$allocation           = $program_post_meta['allocation'][0];
-		$allocation_threshold = $program_post_meta['threshold'][0];
+		$selected_array = ! empty( $selected_products_and_bundles ) ? $selected_products_and_bundles : array();
+		$apple_list  = $cla_form_helper->cla_get_products( 'apple', false, $selected_array );
+		$pc_list     = $cla_form_helper->cla_get_products( 'pc', false, $selected_array );
+		$addons_list = $cla_form_helper->cla_get_products( 'add-on', false, $selected_array );
 
 		/**
 		 * Add advanced quote button.
@@ -209,7 +234,6 @@ function cla_render_order_form( $content ) {
 		/**
 		 * Purchased product IDs field.
 		 */
-		$selected_products_and_bundles = get_field( 'selected_products_and_bundles', $post->ID );
 		$selected_pab_value = '';
 		if ( !empty( $selected_products_and_bundles ) ) {
 			$selected_pab_value = implode( ',', $selected_products_and_bundles );
@@ -223,7 +247,7 @@ function cla_render_order_form( $content ) {
 					$item .= '<div class="cell shrink"><img width="50" src="' . $pob_thumb . '"></div>';
 				}
 				$item .= '<div class="cell auto">' . get_the_title( $pob_post_id ) . '</div>';
-				$item .= '<div class="cell shrink align-right bold"><button class="trash" type="button" data-product-id="'.$pob_post_id.'" data-product-price="' . $cart_price . '">Remove product from cart</button>' . $cart_price . '</div>';
+				$item .= '<div class="cell shrink align-right bold"><button class="trash trash-product" type="button" data-product-id="'.$pob_post_id.'">Remove product from cart</button>' . $cart_price . '</div>';
 				$item .= '</div>';
 				$purchase_list_items .= $item;
 			}
@@ -239,7 +263,6 @@ function cla_render_order_form( $content ) {
 		if ( ! empty( $custom_quotes ) ) {
 			$quote_count = count( $custom_quotes );
 			foreach ( $custom_quotes as $key => $quote ) {
-				$quote_html .= serialize($quote);
 				$file_field = '';
 				if ( ! empty( $quote['file'] ) ) {
 					$file_field = '<a target="_blank" href="' . $quote['file']['url'] . '">' . $quote['file']['filename'] . '</a>';
@@ -248,7 +271,7 @@ function cla_render_order_form( $content ) {
 				}
 				$quote_html .= '<div class="cla-quote-item grid-x grid-margin-x" data-quote-index="' . $key . '">';
 				$quote_html .= '<div class="cell small-12 medium-4"><label for="cla_quote_' . $key . '_name">Name</label><input name="cla_quote_' . $key . '_name" id="cla_quote_' . $key . '_name" class="cla-quote-name" type="text" value="' . $quote['name'] . '" />';
-				$quote_html .= '<label for="cla_quote_' . $key . '_price">Price</label><input name="cla_quote_' . $key . '_price" id="cla_quote_' . $key . '_price" class="cla-quote-price" type="number" min="0" value="' . $quote['price'] . '" /></div>';
+				$quote_html .= '<label for="cla_quote_' . $key . '_price">Price</label><input name="cla_quote_' . $key . '_price" id="cla_quote_' . $key . '_price" class="cla-quote-price" type="number" min="0" step="0.01" value="' . $quote['price'] . '" /></div>';
 				$quote_html .= '<div class="cell small-12 medium-4"><label for="cla_quote_' . $key . '_description">Description</label><textarea name="cla_quote_' . $key . '_description" id="cla_quote_' . $key . '_description" class="cla-quote-description" name="cla_quote_' . $key . '_description">' . $quote['description'] . '</textarea></div>';
 				$quote_html .= '<div class="cell small-12 medium-auto"><label for="cla_quote_' . $key . '_file">File</label>' . $file_field . '</div>';
 				$quote_html .= '<div class="cell small-12 medium-shrink"><button type="button" class="remove" data-quote-index="' . $key . '">Remove this quote item</button></div>';
@@ -258,8 +281,8 @@ function cla_render_order_form( $content ) {
 				$cart_price = floatval( $quote['price'] );
 				$cart_price = '$' . number_format( $cart_price, 2, '.', ',' );
 				$item = '<div class="cart-item quote-item quote-item-' . $key . ' grid-x">';
-				$item .= '<div class="cell auto">' . $quote['name'] . '</div>';
-				$item .= '<div class="cell shrink align-right bold"><button class="trash" type="button" data-quote-index="' . $key . '" data-product-price="' . $cart_price . '">Remove product from cart</button><span class="price">' . $cart_price . '</span></div>';
+				$item .= '<div class="cell auto">Advanced Teaching/Research Item</div>';
+				$item .= '<div class="cell shrink align-right bold"><button class="trash trash-quote" type="button" data-quote-index="' . $key . '">Remove product from cart</button><span class="price">' . $cart_price . '</span></div>';
 				$item .= '</div>';
 				$purchase_list_items .= $item;
 			}
@@ -372,9 +395,9 @@ function cla_render_order_form( $content ) {
 <div class=\"cell shrink\">Products Total:</div>
 <div id=\"products_total\" class=\"cell auto align-right\">{$subtotal}</div>
 </div>
-<div id=\"allocation-data\" class=\"hidden\" data-allocation=\"{$allocation}\" data-allocation-threshold=\"{$allocation_threshold}\">
+<div id=\"allocation-data\" class=\"hidden\">
 <div class=\"grid-x\">
-	<div class=\"cell shrink\">Contribution Needed:</div>
+	<div id=\"contribution_needed_label\" class=\"cell shrink\">Contribution Needed:</div>
 	<div id=\"contribution_needed\" class=\"cell auto align-right\">$0.00</div>
 </div>
 </div>
@@ -416,25 +439,30 @@ function cla_render_order_form( $content ) {
 				'disabled' => array(),
 				'checked'  => array(),
 				'files'    => array(),
+				'class'    => array(),
+				'min'      => array(),
+				'step'     => array(),
+				'accept'   => array(),
 			),
 			'div'      => array(
-				'class'                     => array(),
-				'id'                        => array(),
-				'data-allocation'           => array(),
-				'data-allocation-threshold' => array(),
+				'class'            => array(),
+				'id'               => array(),
+				'data-quote-index' => array(),
 			),
 			'textarea' => array(
-				'id'   => array(),
-				'name' => array(),
-				'rows' => array(),
+				'id'    => array(),
+				'name'  => array(),
+				'rows'  => array(),
+				'class' => array(),
 			),
 			'button'   => array(
 				'type'               => array(),
 				'id'                 => array(),
 				'class'              => array(),
+				'disabled'           => array(),
 				'data-product-id'    => array(),
 				'data-product-name'  => array(),
-				'data-product-price' => array(),
+				'data-quote-index'   => array(),
 			),
 			'small'    => array(),
 			'dl'       => array(),

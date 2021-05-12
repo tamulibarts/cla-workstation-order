@@ -92,6 +92,7 @@ class WSOrder_PostType {
 		add_filter( 'acf/load_field/key=field_5ffdfd1abaaa7', array( $this, 'readonly_field' ) ); // Quote Price.
 		add_filter( 'acf/load_field/key=field_5ffdfc23d5e87', array( $this, 'readonly_field' ) ); // SKU.
 		add_filter( 'acf/load_field/key=field_5ffdfcbcbaaa3', array( $this, 'readonly_field' ) ); // Order Item Name.
+		add_filter( 'acf/prepare_field/key=field_60992c45f8994', '__return_false' ); // Order Item Post Object.
 		add_filter( 'acf/load_field/name=requisition_number', array( $this, 'readonly_field_for_non_logistics_user' ) );
 		add_filter( 'acf/load_field/name=requisition_date', array( $this, 'readonly_field_for_non_logistics_user' ) );
 		add_filter( 'acf/load_field/name=asset_number', array( $this, 'readonly_field_for_non_logistics_user' ) );
