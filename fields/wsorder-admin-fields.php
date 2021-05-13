@@ -51,7 +51,7 @@ acf_add_local_field_group(array(
 			'role' => '',
 			'allow_null' => 0,
 			'multiple' => 0,
-			'return_format' => 'array',
+			'return_format' => 'id',
 		),
 		array(
 			'key' => 'field_6048dfb535163',

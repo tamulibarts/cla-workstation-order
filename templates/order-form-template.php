@@ -19,6 +19,11 @@ function cla_empty_edit_link() {
 add_filter( 'edit_post_link', 'cla_empty_edit_link' );
 
 /**
+ * Remove entry meta.
+ */
+remove_action( 'genesis_entry_header', 'genesis_post_info', 12 );
+
+/**
  * Registers and enqueues template styles.
  *
  * @since 1.0.0
@@ -57,8 +62,14 @@ function cla_workstation_order_form_scripts() {
 
 	wp_enqueue_script( 'jquery' );
 	wp_enqueue_script( 'cla-workstation-order-form-scripts' );
+	// Identify if the page is an order.
+	$post_id          = get_the_ID();
+	$post_type        = get_post_type( $post_id );
+	$script_variables = 'var cla_post_type = "' . $post_type . '";';
+	$script_variables .= "
+";
 	// Include admin ajax URL and nonce.
-	$script_variables = 'var WSOAjax = {"ajaxurl":"'.admin_url('admin-ajax.php').'","nonce":"'.wp_create_nonce('make_order').'"};';
+	$script_variables .= 'var WSOAjax = {"ajaxurl":"'.admin_url('admin-ajax.php').'","nonce":"'.wp_create_nonce('make_order').'"};';
 	// Include products and prices.
 	require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-order-form-helper.php';
 	$cla_form_helper      = new \CLA_Workstation_Order\Order_Form_Helper();

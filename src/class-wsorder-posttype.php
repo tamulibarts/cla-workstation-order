@@ -142,7 +142,11 @@ class WSOrder_PostType {
 		global $post;
 
 		if ( 'wsorder' === get_query_var( 'post_type' ) ) {
-			$single_template = CLA_WORKSTATION_ORDER_TEMPLATE_PATH . '/order-form-template.php';
+			if ( 'publish' !== $post->post_status ) {
+				$single_template = CLA_WORKSTATION_ORDER_TEMPLATE_PATH . '/order-form-template.php';
+			} else {
+				$single_template = CLA_WORKSTATION_ORDER_TEMPLATE_PATH . '/order-template.php';
+			}
 		}
 
 		return $single_template;
@@ -248,11 +252,12 @@ class WSOrder_PostType {
   		}
     } elseif ( current_user_can( 'wso_logistics' ) ) {
   		$it_rep_confirmed   = (int) get_post_meta( $post_id, 'it_rep_status_confirmed', true );
+  		$bus_user           = (int) get_post_meta( $post_id, 'business_staff_status_business_staff', true );
   		$bus_user_confirmed = (int) get_post_meta( $post_id, 'business_staff_status_confirmed', true );
   		if ( 0 === $it_rep_confirmed ) {
   			$can_update = false;
   			$message    = 'The IT Rep has not confirmed the order yet.';
-  		} elseif ( 0 === $bus_user_confirmed ) {
+  		} elseif ( ! empty( $bus_user ) && 0 === $bus_user_confirmed ) {
   			$can_update = false;
   			$message    = 'The business admin has not confirmed the order yet.';
   		}
@@ -621,32 +626,78 @@ class WSOrder_PostType {
 		// Ensure nonce is valid.
 		check_ajax_referer( 'make_order' );
 
-		// Get current user and user ID.
-		$user    = wp_get_current_user();
-		$user_id = $user->get( 'ID' );
+		// Get referring post properties.
+		$url       = wp_get_referer();
+		$post_id   = url_to_postid( $url );
+		$post_type = get_post_type( $post_id );
 
-		// Get current program meta.
-		$current_program_post      = get_field( 'current_program', 'option' );
-		$current_program_id        = $current_program_post->ID;
-		$current_program_post_meta = get_post_meta( $current_program_id );
-		$current_program_prefix    = $current_program_post_meta['prefix'][0];
+		if ( 'wsorder' === $post_type && 'publish' === get_post_status( $post_id ) ) {
+			return;
+		}
 
-		// Get new wsorder ID.
-		$last_wsorder_id = $this->get_last_order_id( $current_program_id );
-		$new_wsorder_id  = $last_wsorder_id + 1;
+		if ( 'wsorder' !== $post_type ) {
 
-		// Insert post.
-		$postarr = array(
-			'post_author'    => $user_id,
-			'post_status'    => 'action_required',
-			'post_type'      => 'wsorder',
-			'comment_status' => 'closed',
-			'post_title'     => "{$current_program_prefix}-{$new_wsorder_id}",
-			'post_content'   => '',
-		);
-		$post_id = wp_insert_post( $postarr, true );
+			// Make a new order.
+			// Get current user and user ID.
+			$user    = wp_get_current_user();
+			$user_id = $user->get( 'ID' );
 
-		if ( is_wp_error( $post_id ) ) {
+			// Get current program meta.
+			$program_post   = get_field( 'current_program', 'option' );
+			$program_id     = $program_post->ID;
+			$program_prefix = get_post_meta( $program_id, 'prefix', true );
+
+			// Get new wsorder ID.
+			$last_wsorder_id = $this->get_last_order_id( $program_id );
+			$wsorder_id      = $last_wsorder_id + 1;
+
+			// Get user's department.
+			$user_department_post    = get_field( 'department', "user_{$user_id}" );
+			$user_department_post_id = $user_department_post->ID;
+
+			// Save order affiliated it reps.
+			// Save order affiliated business reps.
+			$program_department_fields = $this->get_program_department_fields( $user_department_post_id, $program_id );
+			$affiliated_it_reps        = $program_department_fields['it_reps'];
+			$affiliated_business_staff = $program_department_fields['business_admins'];
+
+			// Insert post.
+			$postarr = array(
+				'post_author'    => $user_id,
+				'post_status'    => 'action_required',
+				'post_type'      => 'wsorder',
+				'comment_status' => 'closed',
+				'post_title'     => "{$program_prefix}-{$wsorder_id}",
+				'post_content'   => '',
+				'meta_input'     => array(
+					'order_id'                  => $wsorder_id,
+					'order_author'              => $user_id,
+					'author_department'         => $user_department_post_id,
+					'affiliated_it_reps'        => $affiliated_it_reps,
+					'affiliated_business_staff' => $affiliated_business_staff,
+					'program'                   => $program_id,
+				),
+			);
+			$post_id = wp_insert_post( $postarr, true );
+
+		} else {
+
+			// Update an existing order.
+			// Get user and user ID.
+			$user_id = get_field( 'order_author', $post_id );
+			$user    = get_user_by( 'id', $user_id );
+
+			// Get user's department.
+			$user_department_post    = get_field( 'department', "user_{$user_id}" );
+			$user_department_post_id = $user_department_post->ID;
+
+			// Get current program meta.
+			$program_id     = get_field( 'program', $post_id );
+			$program_prefix = get_post_meta( $program_id, 'prefix', true );
+
+		}
+
+		if ( 'wsorder' !== $post_type && is_wp_error( $post_id ) ) {
 
 			// Failed to generate a new post.
 			wp_mail( 'zwatkins2@tamu.edu', 'Failed to create order.', serialize($_POST), array( 'Content-Type: text/html; charset=UTF-8' ) );
@@ -654,38 +705,10 @@ class WSOrder_PostType {
 
 		} else {
 
-			// Get user's department.
-			$user_department_post    = get_field( 'department', "user_{$user_id}" );
-			$user_department_post_id = $user_department_post->ID;
-
 			/**
 			 * Save ACF field values.
 			 * https://www.advancedcustomfields.com/resources/update_field/
 			 */
-
-			// Save order ID.
-			$value = $new_wsorder_id;
-			update_field( 'order_id', $value, $post_id );
-
-			// Save order author.
-			$value = $user_id;
-			update_field( 'order_author', $value, $post_id );
-
-			// Save order author department.
-			$value = $user_department_post_id;
-			update_field( 'author_department', $value, $post_id );
-
-			// Save order affiliated it reps.
-			// Save order affiliated business reps.
-			$program_department_fields = $this->get_program_department_fields( $user_department_post_id, $current_program_id );
-			$value                     = $program_department_fields['it_reps'];
-			update_field( 'affiliated_it_reps', $value, $post_id );
-			$value = $program_department_fields['business_admins'];
-			update_field( 'affiliated_business_staff', $value, $post_id );
-
-			// Save program.
-			$value = $current_program_id;
-			update_field( 'program', $value, $post_id );
 
 			// Save building location.
 			if ( isset( $_POST['cla_building_name'] ) ) {
@@ -777,10 +800,14 @@ class WSOrder_PostType {
 						}
 
 						// Handle uploading quote file.
-						$attachment_id = media_handle_upload( "cla_quote_{$i}_file", 0 );
-						if ( ! is_wp_error( $attachment_id ) ) {
-							// Attach file.
-							$quote_fields[ $i ]['file'] = $attachment_id;
+						if ( array_key_exists( "cla_quote_{$i}_file", $_FILES ) ) {
+							$attachment_id = media_handle_upload( "cla_quote_{$i}_file", 0 );
+							if ( ! is_wp_error( $attachment_id ) ) {
+								// Attach file.
+								$quote_fields[ $i ]['file'] = $attachment_id;
+							}
+						} else {
+							$quote_fields[ $i ]['file'] = get_post_meta( $post_id, "quotes_{$i}_file", true );
 						}
 					}
 					update_field( 'quotes', $quote_fields, $post_id );
@@ -866,17 +893,22 @@ class WSOrder_PostType {
 
 			// Save department Business Admin.
 			// Get business admin assigned to active user's department for current program.
-			$threshold = (float) get_field( 'threshold', $current_program_id );
+			$threshold = (float) get_field( 'threshold', $program_id );
 			if ( $product_subtotal > $threshold ) {
-				$dept_assigned_business_admins = $this->get_program_business_admin_user_id( $current_program_id, $user_department_post_id );
-				$value                         = empty( $dept_assigned_business_admins ) ? '' : $dept_assigned_business_admins[0];
-				update_field( 'business_staff_status', array( 'business_staff' => $value ), $post_id );
+				$current_value = get_post_meta( $post_id, 'business_staff_status_business_staff', true );
+				if ( empty( $current_value ) ) {
+					$dept_assigned_business_admins = $this->get_program_business_admin_user_id( $program_id, $user_department_post_id );
+					$value                         = empty( $dept_assigned_business_admins ) ? '' : $dept_assigned_business_admins[0];
+				}
+			} else {
+				$value = '';
 			}
+			update_post_meta( $post_id, 'business_staff_status_business_staff', $value );
 
 			// Send emails.
-			if ( isset( $_POST['cla_it_rep_id'] ) ) {
+			if ( 'wsorder' !== $post_type && isset( $_POST['cla_it_rep_id'] ) ) {
 				$it_rep_id = sanitize_text_field( wp_unslash( $_POST['cla_it_rep_id'] ) );
-				$this->send_confirmation_email( "{$current_program_prefix}-{$new_wsorder_id}", $user, $it_rep_id, $post_id, $_POST );
+				$this->send_confirmation_email( "{$program_prefix}-{$wsorder_id}", $user, $it_rep_id, $post_id, $_POST );
 			}
 		}
 
@@ -983,12 +1015,11 @@ class WSOrder_PostType {
 		$headers = array( 'Content-Type: text/html; charset=UTF-8' );
 
 		// Get current program meta.
-		$current_program_post = get_field( 'current_program', 'option' );
-		$current_program_id   = $current_program_post->ID;
-		$program_name         = get_the_title( $current_program_id );
+		$program_id   = get_field( 'program', $post_id );
+		$program_name = get_the_title( $program_id );
 
 		// Get order information.
-		$order_url = admin_url() . "post.php?post={$post_id}&action=edit";
+		$order_url = get_permalink( $post_id );
 
 		// Email end user.
 		$message = "<p>Howdy,</p>
@@ -1029,7 +1060,7 @@ class WSOrder_PostType {
   Please review this order carefully for any errors or omissions, then confirm it to pass along in the ordering workflow, or return it to the customer with your feedback and ask that they correct the order.
 </p>
 <p>
-  You can view the order at this link: {$order_url}.
+  You can view the order at this link: {$admin_url}.
 </p>
 <p>
   Have a great day!

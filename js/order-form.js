@@ -514,12 +514,18 @@
 				processData: false,
 	      data: form_data,
 	      success: function(data) {
-        	$form.find("#order-message").html(data);
-	      	if ( data.indexOf('Error') === -1 ) {
+        	if ( 'wsorder' === cla_post_type ) {
+        		$form.find("#order-message").html('<div class="fade-out">Order updated.</div>');
+        		window.setTimeout(function(){
+        			$form.find('#order-message .fade-out').fadeOut();
+        		}, 3000);
+	      	} else if ( data.indexOf('Error') === -1 ) {
 	      		// Clear form.
 	      		$formParent = $form.parent();
 	      		$formParent.html('<div class="confirmation-message"><p>Your order was submitted successfully.</p><p>We will notify you via email when there are updates to your order.</p></div>');
-	      	}
+	      	} else {
+	        	$form.find("#order-message").html(data);
+	        }
 	      },
 	      error: function( jqXHR, textStatus, errorThrown ) {
 	      	$form.find('#order-message').html('The application encountered an error while submitting your request (' + errorThrown + ').<br>' + jqXHR.responseText );

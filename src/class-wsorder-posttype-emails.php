@@ -546,7 +546,7 @@ class WSOrder_PostType_Emails {
 		$actor_user       = wp_get_current_user();
 		$actor_name       = $actor_user->display_name;
 		$returned_comment = $acf_data['field_601d52f2e5418'];
-		$admin_order_url  = admin_url() . "post.php?post={$order_post_id}&action=edit";
+		$order_url        = get_permalink( $order_post_id );
 		$message          = "<p>
   Howdy,
 </p>
@@ -557,7 +557,7 @@ class WSOrder_PostType_Emails {
   Comments from {$actor_name}: {$returned_comment}
 </p>
 <p>
-  Next step is to resolve your order's issue with the person who returned it (who has been copied on this email for your convenience), then correct the existing order. You may access your order online at any time using this link: <a href=\"{$admin_order_url}\">{$admin_order_url}</a>.
+  Next step is to resolve your order's issue with the person who returned it (who has been copied on this email for your convenience), then correct the existing order. You may access your order online at any time using this link: <a href=\"{$order_url}\">{$order_url}</a>.
 </p>
 
 <p>

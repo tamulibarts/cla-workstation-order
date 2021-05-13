@@ -2,3 +2,33 @@
 
 @import "foundation";
 @import "settings";
+
+dl.horizontal {
+	display: flex;
+	flex-wrap: wrap;
+	margin-right: -15px;
+	margin-left: -15px;
+
+	dt {
+		margin-bottom: .5rem;
+		text-align: right;
+		flex: 0 0 33.3333333333%;
+		max-width: 33.3333333333%;
+		position: relative;
+		width: 100%;
+		min-height: 1px;
+		padding-right: 15px;
+		padding-left: 15px;
+	}
+
+	dd {
+		text-align: left;
+		flex: 0 0 66.6666666667%;
+		max-width: 66.6666666667%;
+		position: relative;
+		width: 100%;
+		min-height: 1px;
+		padding-right: 15px;
+		padding-left: 15px;
+	}
+}
