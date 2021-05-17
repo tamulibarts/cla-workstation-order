@@ -48,11 +48,23 @@ foreach ( $meta as $key => $value ) {
 	}
 }
 $meta['logo'] = CLA_WORKSTATION_ORDER_DIR_URL . 'images/logo-support-center.png';
-// Extra basic order data.
+// Get timestamps.
 date_default_timezone_set('America/Chicago');
-$publish_date = strtotime( $post->post_modified_gmt.' UTC' );
-$meta['publish_date_formatted'] = date( 'M j, Y \a\t g:i a', $publish_date );
-$meta['now']                    = date( 'M j, Y \a\t g:i a' );
+$publish_time        = strtotime( $post->post_modified_gmt.' UTC' );
+$publish_date        = date( 'M j, Y \a\t g:i a', $publish_time );
+$now_date            = date( 'M j, Y \a\t g:i a' );
+$it_rep_confirm_time = strtotime( $meta['it_rep_status_date'].' UTC' );
+$it_rep_confirm_date = date( 'M j, Y \a\t g:i a', $it_rep_confirm_time );
+$business_staff_date = '';
+if ( isset( $meta['business_staff_status_date'] ) && ! empty( $meta['business_staff_status_date'] ) ) {
+	$business_staff_time = strtotime( $meta['business_staff_status_date'].' UTC' );
+	$business_staff_date = date( 'M j, Y \a\t g:i a', $business_staff_time );
+}
+$logistics_confirm_time = strtotime( $meta['it_logistics_status_date'].' UTC' );
+$logistics_confirm_date = date( 'M j, Y \a\t g:i a', $logistics_confirm_time );
+// Extra basic order data.
+$meta['publish_date_formatted'] = $publish_date;
+$meta['now']                    = $now_date;
 $meta['post_title']             = $post->post_title;
 $meta['program_name']           = get_the_title( $meta['program'] );
 $meta['program_fiscal_year']    = get_post_meta( $meta['program'], 'fiscal_year', true );
@@ -66,20 +78,17 @@ $meta['author_department'] = get_the_title( $meta['author_department'] );
 // Extra IT Rep data.
 $it_rep_user                  = get_user_by( 'id', intval( $meta['it_rep_status_it_rep'] ) );
 $meta['it_rep_status_it_rep'] = $it_rep_user->data->display_name;
-$it_rep_confirm_date          = strtotime( $meta['it_rep_status_date'].' UTC' );
-$meta['it_rep_status_date']   = 'Confirmed - ' . date( 'M j, Y \a\t g:i a', $it_rep_confirm_date );
+$meta['it_rep_status_date']   = 'Confirmed - ' . $it_rep_confirm_date;
 // Extra Business Staff data.
 if ( ! isset( $meta['business_staff_status_business_staff'] ) || '' === $meta['business_staff_status_business_staff'] ) {
 	$meta['business_staff_status_date'] = 'Not required';
 } else {
-  $business_staff_confirm_date                  = strtotime( $meta['business_staff_status_date'].' UTC' );
-	$meta['business_staff_status_date']           = 'Confirmed - ' . date( 'M j, Y \a\t g:i a', $business_staff_confirm_date );
+	$meta['business_staff_status_date']           = 'Confirmed - ' . $business_staff_confirm_date;
   $business_user                                = get_user_by('id', intval( $meta['business_staff_status_business_staff'] ) );
   $meta['business_staff_status_business_staff'] = $business_user->data->display_name;
 }
-// Extra Logistics data.
-$logistics_confirm_date           = strtotime( $meta['it_logistics_status_date'].' UTC' );
-$meta['it_logistics_status_date'] = 'Confirmed - ' . date( 'M j, Y \a\t g:i a', $logistics_confirm_date );
+// Extra Logistics data.\
+$meta['it_logistics_status_date'] = 'Confirmed - ' . $logistics_confirm_date;
 // Modify purchase item data.
 $meta['products_subtotal'] = '$' . number_format( $meta['products_subtotal'], 2, '.', ',' );
 if ( isset( $meta['order_items'] ) ) {
@@ -469,5 +478,5 @@ $pdf->Cell(25, 5, $meta['products_subtotal'], 0, 0, 'R');
 /**
  * Finish
  */
-$pdf->Output('D','order-receipt-' . $meta['post_title'] . '.pdf');
+$pdf->Output('I', $meta['post_title'] . '.pdf');
 ?>

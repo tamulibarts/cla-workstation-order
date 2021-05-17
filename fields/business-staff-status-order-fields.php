@@ -108,15 +108,7 @@ acf_add_local_field_group(array(
 					'type' => 'true_false',
 					'instructions' => '',
 					'required' => 0,
-					'conditional_logic' => array(
-						array(
-							array(
-								'field' => 'field_601d731345341',
-								'operator' => '==pattern',
-								'value' => '^\\d\\d-\\D\\D\\D\\D-\\d\\d\\d\\d\\d\\d-\\d\\d\\d\\d\\d$',
-							),
-						),
-					),
+					'conditional_logic' => 0,
 					'wrapper' => array(
 						'width' => '',
 						'class' => '',

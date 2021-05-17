@@ -35,6 +35,9 @@ class Assets {
 		// Enqueue extension styles.
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_styles' ) );
 
+		// Load Dashicons.
+		add_action( 'wp_enqueue_scripts', array( $this, 'load_dashicons_front_end' ) );
+
 	}
 
 	/**
@@ -84,6 +87,13 @@ class Assets {
 		wp_enqueue_style( 'cla-workstation-order-admin-styles' );
 		wp_enqueue_script( 'cla-workstation-order-admin-script' );
 
+	}
+
+	/**
+	 * Loads WordPress Dashicons library.
+	 */
+	public function load_dashicons_front_end() {
+	  wp_enqueue_style( 'dashicons' );
 	}
 
 }

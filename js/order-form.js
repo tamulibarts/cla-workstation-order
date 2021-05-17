@@ -1,6 +1,11 @@
 (function($){
 
-	$form = $('#cla_order_form');
+	var $form           = $('#cla_order_form');
+	var product_prices  = cla_product_prices;
+	var cost_allocation = cla_allocation;
+	var cost_threshold  = cla_threshold;
+	var is_order        = cla_is_order;
+	var post_status     = cla_status;
 
 	// Remove product from shopping cart.
 	var removeProduct = function(e){
@@ -33,7 +38,7 @@
 		var $this = $(this);
 		var productID = $this.attr('data-product-id');
 		var productName = $('#product-' + productID + ' .card-header').html();
-		var productPrice = formatDollars( cla_product_prices[productID] );
+		var productPrice = formatDollars( product_prices[productID] );
 		var $thumb = $('#product-'+productID+'.card .wp-post-image');
 
 		// Add product ID to form field.
@@ -98,7 +103,7 @@
 		var total = 0;
 		for ( var i=0; i < ids.length; i++ ) {
 			var id = ids[i];
-			var price = parseFloat( cla_product_prices[id] );
+			var price = parseFloat( product_prices[id] );
 			total = Number((total + price).toFixed(2));
 		}
 
@@ -128,9 +133,9 @@
 		};
 
 		// Determine if change in contribution needed.
-		if ( cla_threshold < total ) {
+		if ( cost_threshold < total ) {
 			returnVal.needsContribution = true;
-			returnVal.difference = Number((total - cla_allocation - contributionMade).toFixed(2));
+			returnVal.difference = Number((total - cost_allocation - contributionMade).toFixed(2));
 		} else {
 			returnVal.difference = 0 - contributionMade;
 		}
@@ -514,18 +519,32 @@
 				processData: false,
 	      data: form_data,
 	      success: function(data) {
-        	if ( 'wsorder' === cla_post_type ) {
-        		$form.find("#order-message").html('<div class="fade-out">Order updated.</div>');
-        		window.setTimeout(function(){
-        			$form.find('#order-message .fade-out').fadeOut();
-        		}, 3000);
-	      	} else if ( data.indexOf('Error') === -1 ) {
-	      		// Clear form.
-	      		$formParent = $form.parent();
-	      		$formParent.html('<div class="confirmation-message"><p>Your order was submitted successfully.</p><p>We will notify you via email when there are updates to your order.</p></div>');
+      		$form.find('#order-message').html('');
+	      	if ( data.indexOf('{') === 0 ) {
+						// Only JSON returned.
+	      		var response = JSON.parse(data);
+	      		if ( response.errors.length > 0 ) {
+	      			var list = '';
+	      			for ( var i = 0; i < response.errors.length; i++ ) {
+	      				list += '<li>' + response.errors[i] + '</li>';
+	      			}
+	      			if ( list !== '' ) {
+	      				list = '<ul>' + list + '</ul>';
+	      			}
+	      			$form.find('#order-message').append(list);
+	      		} else if ( is_order && 'returned' !== post_status ) {
+	        		$form.find('#order-message').append('<div class="fade-out">Order updated.</div>');
+	        		window.setTimeout(function(){
+	        			$form.find('#order-message .fade-out').fadeOut();
+	        		}, 3000);
+		      	} else {
+		      		// Clear form.
+		      		$formParent = $form.parent();
+		      		$formParent.html('<div class="confirmation-message"><p>Your order was submitted: <a href="' + response.order_url + '">' + response.order_url + '</a></p><p>We will notify you via email when there are updates to your order.</p></div>');
+		      	}
 	      	} else {
-	        	$form.find("#order-message").html(data);
-	        }
+	      		$form.find('#order-message').html('There was an error submitting the order: ' + data);
+	      	}
 	      },
 	      error: function( jqXHR, textStatus, errorThrown ) {
 	      	$form.find('#order-message').html('The application encountered an error while submitting your request (' + errorThrown + ').<br>' + jqXHR.responseText );

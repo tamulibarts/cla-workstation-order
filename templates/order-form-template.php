@@ -24,6 +24,18 @@ add_filter( 'edit_post_link', 'cla_empty_edit_link' );
 remove_action( 'genesis_entry_header', 'genesis_post_info', 12 );
 
 /**
+ * Modify post title.
+ */
+add_filter( 'the_title', function( $title ) {
+	$post_id = get_the_ID();
+	$post_type = get_post_type( $post_id );
+	if ( 'wsorder' === $post_type ) {
+		$title = 'Order ' . $title . ' Details';
+	}
+	return $title;
+});
+
+/**
  * Registers and enqueues template styles.
  *
  * @since 1.0.0
@@ -65,7 +77,11 @@ function cla_workstation_order_form_scripts() {
 	// Identify if the page is an order.
 	$post_id          = get_the_ID();
 	$post_type        = get_post_type( $post_id );
-	$script_variables = 'var cla_post_type = "' . $post_type . '";';
+	$is_order         = 'wsorder' === $post_type ? 'true' : 'false';
+	$script_variables = "var cla_is_order = $is_order;";
+	$script_variables .= "
+";
+	$script_variables .= 'var cla_status = "' . get_post_status( $post_id ) . '";';
 	$script_variables .= "
 ";
 	// Include admin ajax URL and nonce.
@@ -319,7 +335,15 @@ function cla_render_order_form( $content ) {
 		/**
 		 * Submit button.
 		 */
-		$submit_text = 'wsorder' === $post->post_type ? 'Update Order' : 'Place Order';
+		if ( 'wsorder' === $post->post_type ) {
+			if ( 'returned' === $post->post_status ) {
+				$submit_text = 'Update and Resubmit Order';
+			} else {
+				$submit_text = 'Update Order';
+			}
+		} else {
+			$submit_text = 'Place Order';
+		}
 		$submit_button = '<input type="submit" id="cla_submit" name="cla_submit" value="' . $submit_text . '">';
 
 		/**

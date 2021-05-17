@@ -59,7 +59,7 @@ class Dashboard {
 		}
 		foreach ( $returned_posts as $post_id ) {
 			$title                   = get_the_title( $post_id );
-			$link                    = get_edit_post_link( $post_id );
+			$link                    = get_permalink( $post_id );
 			// Output links.
 			$output .= "<div><a href=\"{$link}\">{$title} (click to edit)</a></div>";
 		}

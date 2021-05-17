@@ -142,7 +142,9 @@ class WSOrder_PostType {
 		global $post;
 
 		if ( 'wsorder' === get_query_var( 'post_type' ) ) {
-			if ( 'publish' !== $post->post_status ) {
+
+			$can_update = $this->can_current_user_update_order( $post->ID );
+			if ( 'publish' !== $post->post_status && true === $can_update ) {
 				$single_template = CLA_WORKSTATION_ORDER_TEMPLATE_PATH . '/order-form-template.php';
 			} else {
 				$single_template = CLA_WORKSTATION_ORDER_TEMPLATE_PATH . '/order-template.php';
@@ -630,6 +632,7 @@ class WSOrder_PostType {
 		$url       = wp_get_referer();
 		$post_id   = url_to_postid( $url );
 		$post_type = get_post_type( $post_id );
+		$json_out  = array( 'errors' => array() );
 
 		if ( 'wsorder' === $post_type && 'publish' === get_post_status( $post_id ) ) {
 			return;
@@ -695,13 +698,28 @@ class WSOrder_PostType {
 			$program_id     = get_field( 'program', $post_id );
 			$program_prefix = get_post_meta( $program_id, 'prefix', true );
 
+			if ( 'returned' === get_post_status( $post_id ) ) {
+				wp_update_post( array(
+						'ID' => $post_id,
+						'post_status' => 'action_required',
+				) );
+			}
+
 		}
+
+		$json_out['order_url'] = get_permalink( $post_id );
 
 		if ( 'wsorder' !== $post_type && is_wp_error( $post_id ) ) {
 
 			// Failed to generate a new post.
-			wp_mail( 'zwatkins2@tamu.edu', 'Failed to create order.', serialize($_POST), array( 'Content-Type: text/html; charset=UTF-8' ) );
-			return 0;
+			$message .= $post_id->get_error_messages;
+			$message .= "
+Here is the form data:
+";
+			$message = serialize($_POST);
+			wp_mail( 'zwatkins2@tamu.edu', 'Failed to create order.', $message, array( 'Content-Type: text/html; charset=UTF-8' ) );
+
+			$json_out['errors'][] = 'Failed to create the order. The webmaster has been notified.';
 
 		} else {
 
@@ -805,6 +823,8 @@ class WSOrder_PostType {
 							if ( ! is_wp_error( $attachment_id ) ) {
 								// Attach file.
 								$quote_fields[ $i ]['file'] = $attachment_id;
+							} else {
+								$json_out['errors'][] = $attachment_id->get_error_messages();
 							}
 						} else {
 							$quote_fields[ $i ]['file'] = get_post_meta( $post_id, "quotes_{$i}_file", true );
@@ -910,8 +930,10 @@ class WSOrder_PostType {
 				$it_rep_id = sanitize_text_field( wp_unslash( $_POST['cla_it_rep_id'] ) );
 				$this->send_confirmation_email( "{$program_prefix}-{$wsorder_id}", $user, $it_rep_id, $post_id, $_POST );
 			}
+
 		}
 
+		echo json_encode( $json_out );
 		die();
 
 	}
