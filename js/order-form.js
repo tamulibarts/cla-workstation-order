@@ -1,6 +1,7 @@
 (function($){
 
 	var $form           = $('#cla_order_form');
+	var admin_ajax      = WSOAjax;
 	var product_prices  = cla_product_prices;
 	var cost_allocation = cla_allocation;
 	var cost_threshold  = cla_threshold;
@@ -511,10 +512,10 @@
       	form_data.append(this.name, this.files[0]);
       });
       form_data.append('action', 'make_order');
-      form_data.append('_ajax_nonce', WSOAjax.nonce);
+      form_data.append('_ajax_nonce', admin_ajax.nonce);
 	    jQuery.ajax({
 	      type: "POST",
-	      url: WSOAjax.ajaxurl,
+	      url: admin_ajax.ajaxurl,
 				contentType: false,
 				processData: false,
 	      data: form_data,

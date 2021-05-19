@@ -76,10 +76,41 @@ dl.horizontal {
 	border-color: #343A40;
 }
 
+.btn-outline-green {
+	color: #28A745;
+	background-color: transparent;
+	background-image: none;
+	border-color: #28A745;
+}
+
+.btn-outline-red {
+	color: #FF0000;
+	background-color: transparent;
+	background-image: none;
+	border-color: #FF0000;
+}
+
 .btn-square {
 	padding: 6px 10px;
 
 	.dashicons {
 		line-height: 24px;
 	}
+}
+
+.outline-fields {
+	border: 1px solid #DEE2E6;
+	border-radius: .25rem;
+	padding: 1rem;
+	margin-bottom: 1rem;
+}
+
+.thead-light {
+	background-color: #E9ECEF;
+	color: #495057;
+	border-color: #DEE2E6;
+}
+
+.notice-red {
+	color: #FF0000;
 }

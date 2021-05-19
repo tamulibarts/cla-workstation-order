@@ -32,11 +32,33 @@ class Assets {
 		add_action( 'admin_enqueue_scripts', array( $this, 'register_admin_styles' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'register_admin_scripts' ) );
 
-		// Enqueue extension styles.
+		// Enqueue admin styles.
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_styles' ) );
+
+		// Enqueue styles.
+		add_action( 'wp_enqueue_scripts', array( $this, 'register_styles' ) );
+		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_styles' ) );
 
 		// Load Dashicons.
 		add_action( 'wp_enqueue_scripts', array( $this, 'load_dashicons_front_end' ) );
+
+	}
+
+	/**
+	 * Registers all styles used within the plugin
+	 *
+	 * @since 1.0.0
+	 * @return void
+	 */
+	public static function register_styles() {
+
+		wp_register_style(
+			'cla-workstation-order-styles',
+			CLA_WORKSTATION_ORDER_DIR_URL . 'css/styles.css',
+			false,
+			filemtime( CLA_WORKSTATION_ORDER_DIR_PATH . 'css/styles.css' ),
+			'screen'
+		);
 
 	}
 
@@ -73,6 +95,18 @@ class Assets {
 			filemtime( CLA_WORKSTATION_ORDER_DIR_PATH . 'js/admin-wsorder.js' ),
 			true
 		);
+
+	}
+
+	/**
+	 * Enqueues extension styles
+	 *
+	 * @since 1.0.0
+	 * @return void
+	 */
+	public static function enqueue_styles() {
+
+		wp_enqueue_style( 'cla-workstation-order-styles' );
 
 	}
 

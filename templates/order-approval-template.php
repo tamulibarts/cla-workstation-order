@@ -2,7 +2,7 @@
 /**
  * The file that renders the single page template
  *
- * @link       https://github.com/zachwatkins/cla-workstation-order/blob/master/templates/order-template.php
+ * @link       https://github.com/zachwatkins/cla-workstation-order/blob/master/templates/order-approval-template.php
  * @since      1.0.0
  * @package    cla-workstation-order
  * @subpackage cla-workstation-order/templates
@@ -28,6 +28,32 @@ function cla_workstation_order_styles() {
 
 }
 add_action( 'wp_enqueue_scripts', 'cla_workstation_order_styles', 1 );
+
+/**
+ * Registers and enqueues template scripts.
+ *
+ * @since 1.0.0
+ * @return void
+ */
+function cla_workstation_order_approval_scripts() {
+
+	wp_register_script(
+		'cla-workstation-order-approval-scripts',
+		CLA_WORKSTATION_ORDER_DIR_URL . 'js/order-approval.js',
+		false,
+		filemtime( CLA_WORKSTATION_ORDER_DIR_PATH . 'js/order-approval.js' ),
+		'screen'
+	);
+
+	wp_enqueue_script( 'jquery' );
+	wp_enqueue_script( 'cla-workstation-order-approval-scripts' );
+	// Include admin ajax URL and nonce.
+	$script_variables = 'var WSOAjax = {"ajaxurl":"'.admin_url('admin-ajax.php').'","nonce":"'.wp_create_nonce('confirm_order').'"};';
+
+	wp_add_inline_script( 'cla-workstation-order-approval-scripts', $script_variables, 'before' );
+
+}
+add_action( 'wp_enqueue_scripts', 'cla_workstation_order_approval_scripts', 1 );
 
 /**
  * Empty the edit link for this page.
@@ -72,90 +98,6 @@ add_filter( 'genesis_attr_entry-title', function( $attr ) {
 });
 
 /**
- * Add print button.
- */
-add_action( 'genesis_entry_header', function(){
-	global $post;
-	if ( 'publish' === get_post_status( $post ) ) {
-		$bare_url     = CLA_WORKSTATION_ORDER_DIR_URL . 'order-receipt.php?postid=' . $post->ID;
-		$complete_url = wp_nonce_url( $bare_url, 'auth-post_' . $post->ID, 'token' );
-		echo "<div class=\"cell shrink\"><a class=\"btn btn-square btn-outline-dark\" href=\"{$complete_url}\" target=\"_blank\"><span class=\"dashicons dashicons-printer\"></span></a></div>";
-	}
-});
-
-
-
-/**
- * Decide if user can update the order. Return true or the error message.
- *
- * @param int $post_id The post ID.
- *
- * @return true|string
- */
-function can_current_user_update_order_public( $post_id ) {
-
-  $can_update           = true;
-  $message              = '';
-  $post_status          = get_post_status( $post_id );
-  $current_user_id      = get_current_user_id();
-  $customer_id          = (int) get_post_meta( $post_id, 'order_author', true );
-  $affiliated_it_reps   = get_field( 'affiliated_it_reps', $post_id );
-  $affiliated_bus_staff = get_field( 'affiliated_business_staff', $post_id );
-	$bus_user             = (int) get_post_meta( $post_id, 'business_staff_status_business_staff', true );
-	$it_rep_confirmed     = (int) get_post_meta( $post_id, 'it_rep_status_confirmed', true );
-	$bus_user_confirmed   = (int) get_post_meta( $post_id, 'business_staff_status_confirmed', true );
-
-	if ( 'publish' === $post_status ) {
-		$can_update = false;
-		$message    = 'This order is already published and cannot be changed.';
-	} elseif (
-		$customer_id !== $current_user_id
-		&& 'returned' === $post_status
-	) {
-		$can_update = false;
-		$message    = 'This order is being corrected by the customer.';
-	} elseif (
-		$customer_id === $current_user_id
-		&& 'returned' !== $post_status
-	) {
-  	// The user who submitted the order.
-  	$can_update = false;
-  	$message    = 'You can only change the order when it is returned to you.';
-  } elseif ( in_array( $current_user_id, $affiliated_it_reps ) ) {
-		if ( 1 === $it_rep_confirmed ) {
-			// IT Rep already confirmed the order, so they cannot change it right now.
-			$can_update = false;
-			$message    = 'An IT representative has already confirmed the order.';
-		}
-  } elseif ( in_array( $current_user_id, $affiliated_bus_staff ) ) {
-		if ( 0 === $it_rep_confirmed ) {
-			$can_update = false;
-			$message    = 'The IT Rep has not confirmed the order yet.';
-		} elseif ( 1 === $bus_user_confirmed ) {
-			$can_update = false;
-			$message    = 'A business admin has already confirmed the order.';
-		} elseif ( 0 === $bus_user ) {
-			$can_update = false;
-			$message    = 'A business admin is not needed for this order.';
-		}
-  } elseif ( current_user_can( 'wso_logistics' ) ) {
-		if ( 0 === $it_rep_confirmed ) {
-			$can_update = false;
-			$message    = 'An IT Rep has not confirmed the order yet.';
-		} elseif ( 0 !== $bus_user && 0 === $bus_user_confirmed ) {
-			$can_update = false;
-			$message    = 'A business admin has not confirmed the order yet.';
-		}
-  }
-
-  if ( $can_update ) {
-    return true;
-  } else {
-  	return $message;
-  }
-}
-
-/**
  * Render the order form.
  *
  * @return void
@@ -172,13 +114,20 @@ function cla_render_order( $content ) {
 		 * Variables used to output work order info.
 		 */
 		global $post;
-		$post_id   = $post->ID;
-		$post_meta = get_post_meta( $post->ID );
-		$order_author_id = $post_meta['order_author'][0];
-		$order_author    = get_user_by( 'id', $order_author_id );
+		$post_id              = $post->ID;
+		$post_meta            = get_post_meta( $post->ID );
+		$current_user_id      = get_current_user_id();
+		$order_author_id      = $post_meta['order_author'][0];
+		$order_author         = get_user_by( 'id', $order_author_id );
 		preg_match( '/^([^\s]+)\s+(.*)/', $order_author->data->display_name, $order_author_name );
-		$first_name    = $order_author_name[1];
-		$last_name     = $order_author_name[2];
+		$first_name           = $order_author_name[1];
+		$last_name            = $order_author_name[2];
+		$affiliated_it_reps   = get_field( 'affiliated_it_reps', $post->ID );
+		$it_rep               = get_post_meta( $post->ID, 'it_rep_status_it_rep', true );
+		$is_it_rep            = in_array( $current_user_id, $affiliated_it_reps ) ? true : false;
+		$affiliated_bus_staff = get_field( 'affiliated_business_staff', $post->ID );
+		$is_business_staff    = in_array( $current_user_id, $affiliated_bus_staff ) ? true : false;
+		$business_admin       = (int) get_post_meta( $post->ID, 'business_staff_status_business_staff', true );
 		$department_id = $post_meta['author_department'][0];
 		$department    = get_post( $department_id );
 		$contribution  = $post_meta['contribution_amount'][0];
@@ -213,11 +162,8 @@ function cla_render_order( $content ) {
 		$department_comments = isset( $post_meta['business_staff_status_comments'] ) ? $post_meta['business_staff_status_comments'][0] : '';
 		$business_admin      = get_user_by( 'id', $post_meta['business_staff_status_business_staff'][0] );
 		$subtotal            = (float) 0;
-
-		if ( 'publish' !== $post->post_status ) {
-			$reason = can_current_user_update_order_public( $post_id );
-			$content .= "<div class=\"notice notice-red\"><em>You cannot edit the order right now. $reason</em></div>";
-		}
+		$permalink           = get_permalink();
+		$content             = '';
 
 		/**
 		 * User Details
@@ -246,7 +192,15 @@ function cla_render_order( $content ) {
 		/**
 		 * Processing.
 		 */
-		$content .= '<div class="cell small-12 medium-6"><h2>Processing</h2><dl class="row horizontal">';
+		$content .= '<div class="cell small-12 medium-6"><h2>Processing</h2>';
+		if ( $is_it_rep || $is_business_staff || current_user_can( 'wso_logistics' ) ) {
+			$label = $is_it_rep ? 'This order is pending confirmation by IT staff' : 'This order is pending confirmation by business staff';
+			if ( current_user_can( 'wso_logistics' ) ) {
+				$label = 'This order is pending confirmation by logistics';
+			}
+			$content .= "<div id=\"approval-fields\" class=\"outline-fields\"><form method=\"post\" enctype=\"multipart/form-data\" id=\"cla_order_approval_form\" action=\"{$permalink}\"><div id=\"ajax-response\"></div><div class=\"grid-x\"><div class=\"cell auto\"><label for=\"approval_comments\"><strong>$label</strong></label><div>Please look it over for any errors or ommissions then confirm or return.</div></div><div class=\"cell shrink\"><button class=\"button btn btn-outline-green\" type=\"button\" id=\"cla_confirm\">Confirm</button> <button class=\"button btn btn-outline-red\" type=\"button\" id=\"cla_return\">Return</button></div></div><textarea id=\"approval_comments\" name=\"approval_comments\" placeholder=\"Comment\"></textarea></form></div>";
+		}
+		$content .= '<dl class="row horizontal">';
 		$content .= "<dt>IT Staff ({$it_rep->data->display_name})</dt><dd>{$it_rep_date}</dd>";
 		if ( $business_admin ) {
 			$content .= "<dt>Business Staff ({$business_admin->data->display_name})</dt><dd>{$business_admin_date}</dd>";
@@ -325,7 +279,7 @@ function cla_render_order( $content ) {
 			$content .= "<tr><td colspan=\"6\" class=\"text-right\"><strong>Contributions from {$post_meta['contribution_account'][0]}</strong></td><td>{$contribution}</td></tr>";
 		}
 
-		$content .= '</tbody></table>';
+		$content .= '</tbody></table></form>';
 
 	}
 
