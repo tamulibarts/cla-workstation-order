@@ -26,11 +26,17 @@ class WSOrder_PostType_Emails {
 	 */
 	public function __construct() {
 
+		// Custom action hooks for triggering emails.
+		add_action( 'wsorder_it_rep_confirmed', array( $this, 'it_rep_confirmation_email' ) );
+		add_action( 'wsorder_business_staff_confirmed', array( $this, 'business_staff_confirmation_email' ) );
+		add_action( 'wsorder_logistics_confirmed', array( $this, 'logistics_confirmation_email' ) );
+		add_action( 'wsorder_returned', array( $this, 'order_returned_email' ) );
+		add_action( 'wsorder_submitted', array( $this, 'order_submitted_email' ) );
+
 		// Notify parties of changes to order status.
 		add_filter( 'acf/update_value/key=field_5fff6b71a22b0', array( $this, 'it_rep_confirmed' ), 12, 2 );
 		add_filter( 'acf/update_value/key=field_5fff6ec0e4385', array( $this, 'bus_staff_confirmed' ), 12, 2 );
 		add_filter( 'acf/update_value/key=field_5fff6f3cef757', array( $this, 'logistics_confirmed' ), 12, 2 );
-		add_action( 'transition_post_status', array( $this, 'handle_returned_order_emails' ), 12, 3 );
 
 	}
 
@@ -51,6 +57,66 @@ class WSOrder_PostType_Emails {
 	}
 
 	/**
+	 * Emails sent when an order is submitted.
+	 *
+	 * @param int $post_id The order post ID.
+	 *
+	 * @return void
+	 */
+	public function order_submitted_email( $post_id ) {
+
+		// Get user information.
+		$current_user       = wp_get_current_user();
+		$current_user_email = $current_user->user_email;
+
+		// Email settings.
+		$headers = array( 'Content-Type: text/html; charset=UTF-8' );
+
+		// Get current program meta.
+		$program_id   = get_field( 'program', $post_id );
+		$program_name = get_the_title( $program_id );
+
+		// Get order information.
+		$order_url = get_permalink( $post_id );
+
+		// Email end user.
+		$message = "<p>Howdy,</p>
+<p>Liberal Arts IT has received your order.</p>
+
+<p>Your {$program_name} order will be reviewed to ensure all necessary information and funding is in place.</p>
+<p>
+  Following review, your workstation request will be combined with others from your department to create a consolidated {$program_name} purchase. Consolidated orders are placed to maximize efficiency. Your order will be processed and received by IT Logistics in 4-6 weeks, depending on how early in the order cycle you make your selection. Once received, your workstation will be released to departmental IT staff who will then image your workstation, install software and prepare the device for delivery. These final steps generally take one to two days.
+</p>
+<p>You may view your order online at any time using this link: <a href=\"{$order_url}\">{$order_url}</a>.</p>
+
+<p>
+  Have a great day!
+  <em>-Liberal Arts IT</em>
+</p>
+<p><em>This email was sent from an unmonitored email address. Please do not reply to this email.</em></p>";
+		wp_mail( $current_user_email, 'Workstation Order Received', $message, $headers );
+
+		// Email IT Rep.
+		$it_rep_fields        = get_field( 'it_rep_status', $post_id );
+		$primary_it_rep_email = $it_rep_fields['it_rep']['user_email'];
+		$message              = "<p>
+  <strong>There is a new {$program_name} order that requires your attention.</strong>
+</p>
+<p>
+  Please review this order carefully for any errors or omissions, then confirm it to pass along in the ordering workflow, or return it to the customer with your feedback and ask that they correct the order.
+</p>
+<p>
+  You can view the order at this link: <a href=\"{$order_url}\">{$order_url}</a>.
+</p>
+<p>
+  Have a great day!
+  <em>-Liberal Arts IT</em>
+</p>
+<p><em>This email was sent from an unmonitored email address. Please do not reply to this email.</em></p>";
+		wp_mail( $primary_it_rep_email, 'Workstation Order Received', $message, $headers );
+	}
+
+	/**
 	 * Once IT Rep has confirmed, if business approval is needed then
 	 * send an email to the business admin.
 	 *
@@ -64,56 +130,68 @@ class WSOrder_PostType_Emails {
 
 		$old_value = (int) get_post_meta( $post_id, 'it_rep_status_confirmed', true );
 		if ( 1 === intval( $value ) && 0 === $old_value ) {
-			// IT Rep confirmed the order.
-			$post                    = get_post( $post_id );
-			$order_name              = get_the_title( $post_id );
-			$user_id                 = $post->post_author;
-			$end_user                = get_user_by( 'id', $user_id );
-			$end_user_name           = $end_user->display_name;
-			$user_department_post    = get_field( 'department', "user_{$user_id}" );
-			$department_abbreviation = get_field( 'abbreviation', $user_department_post->ID );
-			$to                      = '';
+			do_action( 'wsorder_it_rep_confirmed', $post_id );
+		}
+	}
 
-			// Check if business approval is needed.
-			$requires_bus_approval = $this->order_requires_business_approval( $post_id );
+	/**
+	 * IT Rep confirmed the order so now we email the next approver.
+	 *
+	 * @param int $post_id The order post ID.
+	 *
+	 * @return void
+	 */
+	public function it_rep_confirmation_email( $post_id ) {
 
-			if ( $requires_bus_approval ) {
+		// IT Rep confirmed the order.
+		$post                    = get_post( $post_id );
+		$order_name              = get_the_title( $post_id );
+		$user_id                 = $post->post_author;
+		$end_user                = get_user_by( 'id', $user_id );
+		$end_user_name           = $end_user->display_name;
+		$user_department_post    = get_field( 'department', "user_{$user_id}" );
+		$department_abbreviation = get_field( 'abbreviation', $user_department_post->ID );
+		$to                      = '';
+		error_log('it_rep_confirmation_email');
 
-				// Declare business admin variables.
-				$business_admins       = get_field( 'affiliated_business_staff', $post_id );
-				$business_admin_emails = array();
-				foreach ( $business_admins as $bus_user_id ) {
-					$user_data               = get_userdata( $bus_user_id );
-					$business_admin_emails[] = $user_data->user_email;
-				}
-				$business_admin_emails = implode( ',', $business_admin_emails );
-				// Send email.
-				$to      = $business_admin_emails;
-				$message = $this->email_body_it_rep_to_business( $post_id, $end_user_name );
+		// Check if business approval is needed.
+		$requires_bus_approval = $this->order_requires_business_approval( $post_id );
 
-			} else {
+		if ( $requires_bus_approval ) {
 
-				// Get logistics email setting.
-				$enable_logistics_email = (int) get_field( 'enable_emails_to_logistics', 'option' );
-				if ( 1 === $enable_logistics_email ) {
-
-					// Get logistics email.
-					$logistics_email = get_field( 'logistics_email', 'option' );
-
-					// Send email.
-					$to      = $logistics_email;
-					$message = $this->email_body_to_logistics( $post_id );
-
-				}
+			// Declare business admin variables.
+			$business_admins       = get_field( 'affiliated_business_staff', $post_id );
+			$business_admin_emails = array();
+			foreach ( $business_admins as $bus_user_id ) {
+				$user_data               = get_userdata( $bus_user_id );
+				$business_admin_emails[] = $user_data->user_email;
 			}
-
+			$business_admin_emails = implode( ',', $business_admin_emails );
 			// Send email.
-			if ( ! empty( $to ) ) {
-				$title   = "[{$order_name}] Workstation Order Approval - {$department_abbreviation} - {$end_user_name}";
-				$headers = array( 'Content-Type: text/html; charset=UTF-8' );
-				wp_mail( $to, $title, $message, $headers );
-			}
+			$to      = $business_admin_emails;
+			$message = $this->email_body_it_rep_to_business( $post_id, $end_user_name );
 
+		} else {
+
+			// Get logistics email setting.
+			$enable_logistics_email = (int) get_field( 'enable_emails_to_logistics', 'option' );
+			if ( 1 === $enable_logistics_email ) {
+
+				// Get logistics email.
+				$logistics_email = get_field( 'logistics_email', 'option' );
+
+				// Send email.
+				$to      = $logistics_email;
+				$message = $this->email_body_to_logistics( $post_id );
+
+			}
+		}
+
+		// Send email.
+		if ( ! empty( $to ) ) {
+			$title   = "[{$order_name}] Workstation Order Approval - {$department_abbreviation} - {$end_user_name}";
+			$headers = array( 'Content-Type: text/html; charset=UTF-8' );
+			wp_mail( $to, $title, $message, $headers );
 		}
 	}
 
@@ -131,31 +209,42 @@ class WSOrder_PostType_Emails {
 
 		$old_value = (int) get_post_meta( $post_id, 'business_staff_status_confirmed', true );
 		if ( 1 === intval( $value ) && 0 === $old_value ) {
+			do_action( 'wsorder_business_staff_confirmed', $post_id );
+		}
+	}
 
-			// Logistics email enabled.
-			$enable_logistics_email = (int) get_field( 'enable_emails_to_logistics', 'option' );
+	/**
+	 * Send email after business staff confirms the order.
+	 *
+	 * @param int $post_id The order post ID.
+	 *
+	 * @return void
+	 */
+	public function business_staff_confirmation_email( $post_id ) {
 
-			if ( 1 === $enable_logistics_email ) {
+		// Logistics email enabled.
+		$enable_logistics_email = (int) get_field( 'enable_emails_to_logistics', 'option' );
 
-				$post = get_post( $post_id );
-				// Get the order name.
-				$order_name = get_the_title( $post_id );
-				// Declare end user variables.
-				$user_id                 = $post->post_author;
-				$end_user                = get_user_by( 'id', $user_id );
-				$end_user_name           = $end_user->display_name;
-				$user_department_post    = get_field( 'department', "user_{$user_id}" );
-				$department_abbreviation = get_field( 'abbreviation', $user_department_post->ID );
-				// Get logistics email.
-				$logistics_email = get_field( 'logistics_email', 'option' );
-				// Send email.
-				$to      = $logistics_email;
-				$title   = "[{$order_name}] Workstation Order Approval - {$department_abbreviation} - {$end_user_name}";
-				$message = $this->email_body_to_logistics( $post_id );
-				$headers = array( 'Content-Type: text/html; charset=UTF-8' );
-				wp_mail( $to, $title, $message, $headers );
+		if ( 1 === $enable_logistics_email ) {
 
-			}
+			$post = get_post( $post_id );
+			// Get the order name.
+			$order_name = get_the_title( $post_id );
+			// Declare end user variables.
+			$user_id                 = $post->post_author;
+			$end_user                = get_user_by( 'id', $user_id );
+			$end_user_name           = $end_user->display_name;
+			$user_department_post    = get_field( 'department', "user_{$user_id}" );
+			$department_abbreviation = get_field( 'abbreviation', $user_department_post->ID );
+			// Get logistics email.
+			$logistics_email = get_field( 'logistics_email', 'option' );
+			// Send email.
+			$to      = $logistics_email;
+			$title   = "[{$order_name}] Workstation Order Approval - {$department_abbreviation} - {$end_user_name}";
+			$message = $this->email_body_to_logistics( $post_id );
+			$headers = array( 'Content-Type: text/html; charset=UTF-8' );
+			wp_mail( $to, $title, $message, $headers );
+
 		}
 	}
 
@@ -173,219 +262,66 @@ class WSOrder_PostType_Emails {
 
 		$old_value = (int) get_post_meta( $post_id, 'it_logistics_status_confirmed', true );
 		if ( 1 === intval( $value ) && 0 === $old_value ) {
-
-			$post = get_post( $post_id );
-			// Get the order name.
-			$order_name = get_the_title( $post_id );
-			// Declare end user variables.
-			$user_id                 = $post->post_author;
-			$end_user                = get_user_by( 'id', $user_id );
-			$end_user_email          = $end_user->user_email;
-			$end_user_name           = $end_user->display_name;
-			$user_department_post    = get_field( 'department', "user_{$user_id}" );
-			$department_abbreviation = get_field( 'abbreviation', $user_department_post->ID );
-			// Send email.
-			$to      = $end_user_email;
-			$title   = "[{$order_name}] Workstation Order Approval - {$department_abbreviation} - {$end_user_name}";
-			$message = $this->email_body_order_approved( $post_id );
-			$headers = array( 'Content-Type: text/html; charset=UTF-8' );
-			wp_mail( $to, $title, $message, $headers );
-
+			do_action( 'wsorder_logistics_confirmed', $post_id );
 		}
 	}
 
 	/**
-	 * Notify users based on their association to the wsorder post and the new status of the post.
+	 * Email end user after logistics confirms the order.
 	 *
-	 * @since 0.1.0
-	 * @param string  $new_status The post's new status.
-	 * @param string  $old_status The post's old status.
-	 * @param WP_Post $post       The post object.
+	 * @param int $post_id The order post ID.
+	 *
 	 * @return void
 	 */
-	public function handle_returned_order_emails( $new_status, $old_status, $post ) {
+	public function logistics_confirmation_email( $post_id ) {
 
-		if (
-			$old_status === $new_status
-			|| 'wsorder' !== $post->post_type
-			|| 'auto-draft' === $new_status
-		) {
-			return;
-		}
-
-		// Verify either nonce for admin or ajax updates.
-		if (
-			(
-				! isset( $_POST['_wpnonce'] )
-				|| false === wp_verify_nonce( sanitize_key( $_POST['_wpnonce'] ), 'update-post_' . $post->ID )
-			)
-			&& (
-				! isset( $_POST['_ajax_nonce'] )
-				|| false === wp_verify_nonce( sanitize_key( $_POST['_ajax_nonce'] ), 'confirm_order' )
-			)
-		) {
-			return;
-		}
-
-		// Get email headers.
-		$headers    = array( 'Content-Type: text/html; charset=UTF-8' );
-		$post_id    = $post->ID;
+		$post = get_post( $post_id );
+		// Get the order name.
 		$order_name = get_the_title( $post_id );
-		// Declare current user variables.
-		$current_user       = wp_get_current_user();
-		$current_user_id    = $current_user->ID;
-		$current_user_name  = $current_user->display_name;
-		$current_user_email = $current_user->user_email;
 		// Declare end user variables.
-		$user_id                   = $post->post_author;
-		$end_user                  = get_user_by( 'id', $user_id );
-		$end_user_email            = $end_user->user_email;
-		$end_user_name             = $end_user->display_name;
-		$primary_it_rep_user_id    = get_post_meta( $post_id, 'it_rep_status_it_rep', true );
-		$primary_it_rep_user       = get_user_by( 'id', $primary_it_rep_user_id );
-		$primary_it_rep_user_email = $primary_it_rep_user->user_email;
-		$user_department_post      = get_field( 'department', "user_{$user_id}" );
-		$user_department_post_id   = $user_department_post->ID;
-		$department_abbreviation   = get_field( 'abbreviation', $user_department_post_id );
-		// Declare IT Rep user variables.
-		$it_reps        = get_field( 'affiliated_it_reps', $post_id );
-		$it_rep_emails  = array();
-		foreach ( $it_reps as $rep_user_id ) {
-			$user_data       = get_userdata( $rep_user_id );
-			$it_rep_emails[] = $user_data->user_email;
-		}
-		$it_rep_emails = implode( ',', $it_rep_emails );
-		// Declare business approval variables.
-		$order_program_id           = get_field( 'program', $post_id );
-		$requires_business_approval = $this->order_requires_business_approval( $post_id );
-		$business_admin_emails      = '';
-		if ( $requires_business_approval ) {
-			$business_admins       = get_field( 'affiliated_business_staff', $post_id );
-			$business_admin_emails = array();
-			foreach ( $business_admins as $bus_user_id ) {
-				$user_data               = get_userdata( $bus_user_id );
-				$business_admin_emails[] = $user_data->user_email;
-			}
-			$business_admin_emails = implode( ',', $business_admin_emails );
-		}
-		// Get logistics email settings.
-		$logistics_email        = get_field( 'logistics_email', 'option' );
-		$enable_logistics_email = get_field( 'enable_emails_to_logistics', 'option' );
+		$user_id                 = $post->post_author;
+		$end_user                = get_user_by( 'id', $user_id );
+		$end_user_email          = $end_user->user_email;
+		$end_user_name           = $end_user->display_name;
+		$user_department_post    = get_field( 'department', "user_{$user_id}" );
+		$department_abbreviation = get_field( 'abbreviation', $user_department_post->ID );
+		// Send email.
+		$to      = $end_user_email;
+		$title   = "[{$order_name}] Workstation Order Approval - {$department_abbreviation} - {$end_user_name}";
+		$message = $this->email_body_order_approved( $post_id );
+		$headers = array( 'Content-Type: text/html; charset=UTF-8' );
+		wp_mail( $to, $title, $message, $headers );
+
+	}
+
+	public function order_returned_email( $post_id ) {
+
+		$headers                 = array( 'Content-Type: text/html; charset=UTF-8' );
+		$user_id                 = get_post_meta( $post_id, 'order_author', true );
+		$end_user                = get_user_by( 'id', $user_id );
+		$end_user_name           = $end_user->display_name;
+		$end_user_email          = $end_user->user_email;
+		$returning_user_id       = (int) get_post_meta( $post_id, 'returned_by', true );
+		$returning_user          = get_user_by( 'id', $returning_user_id );
+		$returning_user_email    = $returning_user->user_email;
+		$returned_comments       = get_post_meta( $post_id, 'returned_comments', true );
+		$order_name              = get_the_title( $post_id );
+		$user_department_post    = get_field( 'department', "user_{$user_id}" );
+		$department_abbreviation = get_field( 'abbreviation', $user_department_post->ID );
 
 		/**
-		 * Handle returned order emails.
+		 * If status changed to "Returned" ->
+		 * subject: [{$order_name}] Returned Workstation Order - {$department_abbreviation} - {$end_user_name}
+		 * to: end user
+		 * cc: whoever set it to return
+		 * body: email_body_return_to_user( $post->ID, $_POST['acf'] );
 		 */
-		if (
-			'returned' === $new_status
-			&& 'returned' !== $old_status
-		) {
-
-			// Store user ID who returned the order.
-			update_post_meta( $post_id, 'returned_by', $current_user_id );
-
-			// Find comment field updated by current user.
-			$affiliated_it_reps        = get_field( 'affiliated_it_reps', $post_id );
-			$affiliated_business_staff = get_field( 'affiliated_business_staff', $post_id );
-			$returned_comment          = '';
-			// Decide what kind of user this is.
-			if ( is_array( $affiliated_it_reps ) && in_array( $current_user_id, $affiliated_it_reps ) ) {
-				// Current user is an IT rep.
-				$fields = get_field( 'it_rep_status' );
-				$returned_comment = $fields['comments'];
-			} elseif ( is_array( $affiliated_business_staff ) && in_array( $current_user_id, $affiliated_business_staff ) ) {
-				// Current user is a business admin.
-				$fields = get_field( 'business_staff_status' );
-				$returned_comment = $fields['comments'];
-			} elseif ( current_user_can( 'wso_logistics' ) ) {
-				$fields = get_field( 'it_logistics_status' );
-				$returned_comment = $fields['comments'];
-			}
-
-			/**
-			 * If status changed to "Returned" ->
-			 * subject: [{$order_name}] Returned Workstation Order - {$department_abbreviation} - {$end_user_name}
-			 * to: end user
-			 * cc: whoever set it to return
-			 * body: email_body_return_to_user( $post->ID, $_POST['acf'] );
-			 */
-			$to      = $end_user_email;
-			$to_cc   = $current_user_email;
-			$title   = "[{$order_name}] Returned Workstation Order - {$department_abbreviation} - {$end_user_name}";
-			$message = $this->email_body_return_to_user( $post_id, $returned_comment );
-			array_push( $headers, 'CC:' . $to_cc );
-			wp_mail( $to, $title, $message, $headers );
-
-			/**
-			 * If status changed to "Returned" ->
-			 * subject: [{$order_name}] Returned Workstation Order - {$department_abbreviation} - {$order.user_name}
-			 * to: if it_rep is assigned and approved, email them; if business_admin is assigned, email them
-		   * body: email_body_return_to_user_forward( $post->ID, $_POST['acf'] );
-		   */
-			$to = array();
-			if ( ! empty( $it_rep_emails ) ) {
-				$to[] = $it_rep_emails;
-			}
-			if ( ! empty( $business_admin_emails ) ) {
-				$to[] = $business_admin_emails;
-			}
-			$to = implode( ',', $to );
-			// Remove the returning user from this email list.
-			$pattern = "/$current_user_email,?/";
-			$to      = preg_replace( $pattern, '', $to );
-			$to      = preg_replace( '/,$/', '', $to );
-			if ( ! empty( $to ) ) {
-				$title   = "[{$order_name}] Returned Workstation Order - {$department_abbreviation} - {$end_user_name}";
-				$message = $this->email_body_return_to_user_forward( $post_id, $returned_comment, $end_user_name );
-				wp_mail( $to, $title, $message, $headers );
-			}
-		}
-
-		/**
-		 * When end user addresses the work order after it was returned to them.
-		 */
-		if (
-			'returned' === $old_status
-			&& 'returned' !== $new_status
-		) {
-
-			// Notify the person who returned the request.
-			$returner_id          = get_post_meta( $post_id, 'returned_by', true );
-			$returner_data        = get_userdata( $returner_id );
-			$returner_roles       = $returner_data->roles;
-			$returner_email       = $returner_data->user_email;
-			$to                   = $returner_email;
-			// Figure out who returned it.
-			if ( in_array( 'wso_it_rep', $returner_roles, true ) ) {
-				// IT Rep returned it. Notify all IT reps.
-				$emails = explode( ',', $it_rep_emails );
-				if ( 1 < count( $emails ) ) {
-					// More than one IT rep.
-					$pattern      = "/$returner_email,?/";
-					$other_emails = preg_replace( $pattern, '', $emails );
-					$other_emails = preg_replace( '/,$/', '', $other_emails );
-					$headers[]    = 'CC:' . $other_emails;
-				}
-			} elseif ( in_array( 'wso_business_admin', $returner_roles, true ) ) {
-				// Business admin returned it. Notify all business admins.
-				$emails = explode( ',', $business_admin_emails );
-				if ( 1 < count( $emails ) ) {
-					// More than one IT rep.
-					$pattern      = "/$returner_email,?/";
-					$other_emails = preg_replace( $pattern, '', $emails );
-					$other_emails = preg_replace( '/,$/', '', $other_emails );
-					$headers[]    = 'CC:' . $other_emails;
-				}
-			}
-			$to              = $returner_email;
-			$title           = "[{$order_name}] Returned Workstation Order - {$department_abbreviation} - {$end_user_name}";
-			$admin_order_url = admin_url() . "post.php?post={$post_id}&action=edit";
-			$message         = "Please check on this work order as the end user has passed it on: $admin_order_url";
-			wp_mail( $to, $title, $message, $headers );
-
-			// Empty user ID who returned the order.
-			update_post_meta( $post_id, 'returned_by', '' );
-
-		}
+		$to      = $end_user_email;
+		$to_cc   = $returning_user_email;
+		$title   = "[{$order_name}] Returned Workstation Order - {$department_abbreviation} - {$end_user_name}";
+		$message = $this->email_body_return_to_user( $post_id, $returned_comments );
+		array_push( $headers, 'CC:' . $to_cc );
+		wp_mail( $to, $title, $message, $headers );
 
 	}
 

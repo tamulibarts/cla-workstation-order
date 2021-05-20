@@ -187,22 +187,22 @@ function cla_render_order( $content ) {
 		$creation_time = strtotime( $post->post_date_gmt.' UTC' );
 		$creation_date = date( 'M j, Y \a\t g:i a', $creation_time );
 		$it_rep_date = 'Not yet confirmed';
-		if ( isset( $post_meta['it_rep_status_date'] ) && ! empty( $post_meta['it_rep_status_date'] ) ) {
+		if ( isset( $post_meta['it_rep_status_date'] ) && is_array( $post_meta['it_rep_status_date'] ) && ! empty( $post_meta['it_rep_status_date'][0] ) ) {
 			$it_rep_time = strtotime( $post_meta['it_rep_status_date'][0].' UTC' );
 			$it_rep_date = '<span class=\"badge badge-success\">Confirmed</span> ' . date( 'M j, Y \a\t g:i a', $it_rep_time );
 		}
 		$business_admin_date = 'Not yet confirmed';
-		if ( isset( $post_meta['business_staff_status_date'] ) && ! empty( $post_meta['business_staff_status_date'] ) ) {
+		if ( isset( $post_meta['business_staff_status_date'] ) && is_array( $post_meta['business_staff_status_date'] ) && ! empty( $post_meta['business_staff_status_date'][0] ) ) {
 			$business_admin_time = strtotime( $post_meta['business_staff_status_date'][0].' UTC' );
 			$business_admin_date = '<span class=\"badge badge-success\">Confirmed</span> ' . date( 'M j, Y \a\t g:i a', $business_admin_time );
 		}
 		$logistics_date = 'Not yet confirmed';
-		if ( isset( $post_meta['it_logistics_status_date'] ) && ! empty( $post_meta['it_logistics_status_date'] ) ) {
+		if ( isset( $post_meta['it_logistics_status_date'] ) && is_array( $post_meta['it_logistics_status_date'] ) && ! empty( $post_meta['it_logistics_status_date'][0] ) ) {
 			$logistics_time      = strtotime( $post_meta['it_logistics_status_date'][0].' UTC' );
 			$logistics_date      = '<span class=\"badge badge-success\">Confirmed</span> ' . date( 'M j, Y \a\t g:i a', $logistics_time );
 		}
 		$logistics_ordered_date = 'Not yet ordered';
-		if ( isset( $post_meta['it_logistics_status_ordered_at'] ) && ! empty( $post_meta['it_logistics_status_ordered_at'] ) ) {
+		if ( isset( $post_meta['it_logistics_status_ordered_at'] ) && is_array( $post_meta['it_logistics_status_ordered_at'] ) && ! empty( $post_meta['it_logistics_status_ordered_at'][0] ) ) {
 			$logistics_ordered_time = strtotime( $post_meta['it_logistics_status_ordered_at'][0].' UTC' );
 			$logistics_ordered_date = '<span class=\"badge badge-success\">Ordered</span> ' . date( 'M j, Y \a\t g:i a', $logistics_ordered_time );
 		}

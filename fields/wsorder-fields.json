@@ -263,7 +263,7 @@
                         "key": "field_5ffdfd04baaa5",
                         "label": "Requisition Date",
                         "name": "requisition_date",
-                        "type": "date_picker",
+                        "type": "text",
                         "instructions": "",
                         "required": 0,
                         "conditional_logic": 0,
@@ -272,9 +272,11 @@
                             "class": "",
                             "id": ""
                         },
-                        "display_format": "d\/m\/Y",
-                        "return_format": "d\/m\/Y",
-                        "first_day": 1
+                        "default_value": "",
+                        "placeholder": "",
+                        "prepend": "",
+                        "append": "",
+                        "maxlength": ""
                     },
                     {
                         "key": "field_5ffdfd0ebaaa6",
@@ -460,7 +462,7 @@
                         "key": "field_609d99c5cc342",
                         "label": "Requisition Date",
                         "name": "requisition_date",
-                        "type": "date_picker",
+                        "type": "text",
                         "instructions": "",
                         "required": 0,
                         "conditional_logic": 0,
@@ -469,9 +471,11 @@
                             "class": "",
                             "id": ""
                         },
-                        "display_format": "d\/m\/Y",
-                        "return_format": "d\/m\/Y",
-                        "first_day": 1
+                        "default_value": "",
+                        "placeholder": "",
+                        "prepend": "",
+                        "append": "",
+                        "maxlength": ""
                     },
                     {
                         "key": "field_609d9a22cc343",

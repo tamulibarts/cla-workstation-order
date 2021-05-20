@@ -80,6 +80,7 @@ class WSOrder_PostType {
 		// Approve order posts from form.
 		add_action( 'wp_ajax_confirm_order', array( $this, 'confirm_order' ) );
 		add_action( 'wp_ajax_return_order', array( $this, 'return_order' ) );
+		add_action( 'wp_ajax_update_order_acquisitions', array( $this, 'update_order_acquisitions' ) );
 
 		// Add program dropdown filter to post list screen.
 		add_action( 'restrict_manage_posts', array( $this, 'add_admin_post_program_filter' ), 10 );
@@ -117,6 +118,10 @@ class WSOrder_PostType {
 		// When the Business Admin confirmation checkbox is checked, set the confirming business admin to the current user.
 		add_filter( 'acf/update_value/key=field_5fff6ec0e4385', array( $this, 'confirming_business_admin_as_current_user' ), 11, 2 );
 
+		// Custom returned order action.
+		add_action( 'transition_post_status', array( $this, 'do_action_wsorder_returned' ), 12, 3 );
+		add_action( 'wsorder_returned', array( $this, 'reset_approvals' ) );
+
 		// Handle "Returned" custom post status checkbox field.
 		add_filter( 'acf/update_value/key=field_608964b7880fe', array( $this, 'update_returned_order_field' ), 11, 2 );
 		add_action( 'transition_post_status', array( $this, 'handle_returned_post_meta' ), 11, 3 );
@@ -134,6 +139,61 @@ class WSOrder_PostType {
 		// Render single order view.
 		add_filter( 'single_template', array( $this, 'get_single_template' ) );
 
+	}
+
+	/**
+	 * Reset all approval fields for the order.
+	 *
+	 * @param int $post_id The order post ID.
+	 */
+	public function reset_approvals( $post_id ) {
+
+		// Reset IT rep approval.
+		update_post_meta( $post_id, 'it_rep_status_confirmed', 0 );
+		update_post_meta( $post_id, 'it_rep_status_date', '' );
+		update_post_meta( $post_id, 'it_rep_status_comments', '' );
+		// Reset business admin approval.
+		update_post_meta( $post_id, 'business_staff_status_confirmed', 0 );
+		update_post_meta( $post_id, 'business_staff_status_date', '' );
+		update_post_meta( $post_id, 'business_staff_status_comments', '' );
+		// Reset logistics approval.
+		update_post_meta( $post_id, 'it_logistics_status_confirmed', 0 );
+		update_post_meta( $post_id, 'it_logistics_status_date', '' );
+		update_post_meta( $post_id, 'it_logistics_status_comments', '' );
+
+	}
+
+	/**
+	 * Trigger a custom action when an order is returned.
+	 */
+	public function do_action_wsorder_returned( $new_status, $old_status, $post ) {
+
+		if ( 'wsorder' !== $post->post_type ) {
+			return;
+		}
+
+		// Verify either nonce for admin or ajax updates.
+		if (
+			(
+				! isset( $_POST['_wpnonce'] )
+				|| false === wp_verify_nonce( sanitize_key( $_POST['_wpnonce'] ), 'update-post_' . $post->ID )
+			)
+			&& (
+				! isset( $_POST['_ajax_nonce'] )
+				|| false === wp_verify_nonce( sanitize_key( $_POST['_ajax_nonce'] ), 'confirm_order' )
+			)
+			&& (
+			  ! isset( $_POST['_ajax_nonce'] )
+			  || false === wp_verify_nonce( sanitize_key( $_POST['_ajax_nonce'] ), 'make_order' )
+			)
+		) {
+			return;
+		}
+		if ( 'returned' === $new_status && 'returned' !== $old_status ) {
+			update_post_meta( $post->ID, 'returned_by', get_current_user_id() );
+			// Do custom action.
+			do_action( 'wsorder_returned', $post->ID );
+		}
 	}
 
 	public function confirm_order() {
@@ -154,7 +214,7 @@ class WSOrder_PostType {
 		$current_user_id           = get_current_user_id();
 		$affiliated_it_reps        = get_field( 'affiliated_it_reps', $post_id );
 		$affiliated_business_staff = get_field( 'affiliated_business_staff', $post_id );
-		$comments                  = sanitize_text_field( wp_unslash( $_POST['cla_comments'] ) );
+		$comments                  = sanitize_text_field( wp_unslash( $_POST['approval_comments'] ) );
 		$json_out['comments']      = $comments;
 
 		// Decide what kind of user this is.
@@ -223,13 +283,10 @@ class WSOrder_PostType {
 
 		// Decide what kind of user this is.
 		if ( is_array( $affiliated_it_reps ) && in_array( $current_user_id, $affiliated_it_reps ) ) {
-			// Current user is an IT rep.
-			$value = get_field( 'it_rep_status', $post_id );
-			// Update the comments, confirmation, and date fields
-			$value['it_rep']   = $current_user_id;
-			$value['comments'] = $comments;
-			// Save the update.
-			update_field( 'it_rep_status', $value, $post_id );
+			// Save the current IT rep ID.
+			update_post_meta( $post_id, 'it_rep_status_it_rep', $current_user_id );
+			// Store user ID who returned the order.
+			update_post_meta( $post_id, 'returned_comments', $comments );
 			// Save the post status.
 			$args = array(
 				'ID' => $post_id,
@@ -237,13 +294,10 @@ class WSOrder_PostType {
 			);
 			wp_update_post( $args );
 		} elseif ( is_array( $affiliated_business_staff ) && in_array( $current_user_id, $affiliated_business_staff ) ) {
-			// Current user is an IT rep.
-			$value = get_field( 'business_staff_status', $post_id );
-			// Update the comments, confirmation, and date fields
-			$value['business_staff'] = $current_user_id;
-			$value['comments']       = $comments;
-			// Save the update.
-			update_field( 'business_staff_status', $value, $post_id );
+			// Save the current IT rep ID.
+			update_post_meta( $post_id, 'business_staff_status_business_staff', $current_user_id );
+			// Store user ID who returned the order.
+			update_post_meta( $post_id, 'returned_comments', $comments );
 			// Save the post status.
 			$args = array(
 				'ID' => $post_id,
@@ -251,12 +305,8 @@ class WSOrder_PostType {
 			);
 			wp_update_post( $args );
 		} elseif ( current_user_can( 'wso_logistics' ) ) {
-			// Current user is an IT rep.
-			$value = get_field( 'it_logistics_status', $post_id );
-			// Update the comments, confirmation, and date fields
-			$value['comments'] = $comments;
-			// Save the update.
-			update_field( 'it_logistics_status', $value, $post_id );
+			// Store user ID who returned the order.
+			update_post_meta( $post_id, 'returned_comments', $comments );
 			// Save the post status.
 			$args = array(
 				'ID' => $post_id,
@@ -391,7 +441,6 @@ class WSOrder_PostType {
     	$can_update = false;
     	$message    = 'You can only change the order when it is returned to you.';
     } elseif ( in_array( $current_user_id, $affiliated_it_reps ) ) {
-    	error_log($it_rep_confirmed);
   		if ( 1 === $it_rep_confirmed ) {
   			// IT Rep already confirmed the order, so they cannot change it right now.
   			$can_update = false;
@@ -905,6 +954,12 @@ class WSOrder_PostType {
 			update_field( 'program', $program_id, $post_id );
 			update_post_meta( $post_id, 'it_rep_status_confirmed', '0' );
 			update_post_meta( $post_id, '_it_rep_status_confirmed', 'field_5fff6b71a22b0' );
+			update_post_meta( $post_id, 'it_rep_status_comments', '0' );
+			update_post_meta( $post_id, '_it_rep_status_comments', 'field_601d66373860d' );
+			update_post_meta( $post_id, 'business_staff_status_confirmed', '0' );
+			update_post_meta( $post_id, '_business_staff_status_confirmed', 'field_5fff6ec0e4385' );
+			update_post_meta( $post_id, 'business_staff_status_comments', '' );
+			update_post_meta( $post_id, '_business_staff_status_comments', 'field_601d646e59d65' );
 
 		} else {
 
@@ -1001,7 +1056,6 @@ Here is the form data:
 			// Save department IT Rep.
 			if ( isset( $_POST['cla_it_rep_id'] ) ) {
 				$value = get_field( 'it_rep_status', $post_id );
-				error_log(serialize($value));
 				$it_rep = sanitize_text_field( wp_unslash( $_POST['cla_it_rep_id'] ) );
 				$value['it_rep'] = $it_rep;
 				update_field( 'it_rep_status', $value, $post_id );
@@ -1153,12 +1207,67 @@ Here is the form data:
 				update_field( 'business_staff_status', $business_staff_status, $post_id );
 			}
 
-			// Send emails.
-			if ( 'wsorder' !== $post_type && isset( $_POST['cla_it_rep_id'] ) ) {
-				$it_rep_id = sanitize_text_field( wp_unslash( $_POST['cla_it_rep_id'] ) );
-				$this->send_confirmation_email( "{$program_prefix}-{$wsorder_id}", $user, $it_rep_id, $post_id, $_POST );
-			}
+			// Do custom action.
+			do_action( 'wsorder_submitted', $post_id );
 
+		}
+
+		echo json_encode( $json_out );
+		die();
+
+	}
+
+	public function update_order_acquisitions(){
+
+		// Ensure nonce is valid.
+		check_ajax_referer( 'confirm_order' );
+
+		// Get referring post properties.
+		$url       = wp_get_referer();
+		$post_id   = url_to_postid( $url );
+		$post_type = get_post_type( $post_id );
+		$json_out  = array();
+
+		if ( 'wsorder' !== $post_type ) {
+			return;
+		}
+
+		if ( current_user_can( 'wso_logistics' ) ) {
+			$products        = array();
+			$products_length = (int) sanitize_text_field( wp_unslash( $_POST[ "cla_item_count" ] ) );
+			$quotes          = array();
+			$quotes_length   = (int) sanitize_text_field( wp_unslash( $_POST[ "cla_quote_count" ] ) );
+			for ( $i=0; $i < $products_length; $i++ ) {
+				$req_number   = sanitize_text_field( wp_unslash( $_POST[ "cla_item_{$i}_req_number" ] ) );
+				$asset_number = sanitize_text_field( wp_unslash( $_POST[ "cla_item_{$i}_asset_number" ] ) );
+				$req_date     = sanitize_text_field( wp_unslash( $_POST[ "cla_item_{$i}_req_date" ] ) );
+				// if ( ! empty( $req_date ) ) {
+				// 	error_log($req_date);
+				// 	preg_match('/(\d+)-(\d+)-(\d+)/', $req_date, $matches);
+				// 	$year  = $matches[1];
+				// 	$month = $matches[2];
+				// 	$day   = $matches[3];
+				// 	$req_date = "{$month}-{$day}-{$year}";
+				// }
+				update_post_meta( $post_id, "order_items_{$i}_requisition_number", $req_number );
+				update_post_meta( $post_id, "order_items_{$i}_requisition_date", $req_date );
+				update_post_meta( $post_id, "order_items_{$i}_asset_number", $asset_number );
+			}
+			for ( $i=0; $i < $quotes_length; $i++ ) {
+				$req_number   = sanitize_text_field( wp_unslash( $_POST[ "cla_item_{$i}_req_number" ] ) );
+				$asset_number = sanitize_text_field( wp_unslash( $_POST[ "cla_item_{$i}_asset_number" ] ) );
+				$req_date     = sanitize_text_field( wp_unslash( $_POST[ "cla_item_{$i}_req_date" ] ) );
+				if ( ! empty( $req_date ) ) {
+					$req_time = strtotime( $req_date );
+					$req_date = date('Y-m-d H:i:s', $req_time);
+				}
+				update_post_meta( $post_id, "quotes_{$i}_requisition_number", $req_number );
+				update_post_meta( $post_id, "quotes_{$i}_requisition_date", $req_date );
+				update_post_meta( $post_id, "quotes_{$i}_asset_number", $asset_number );
+			}
+			$json_out['status'] = 'Order updated.';
+		} else {
+			$json_out['status'] = 'You do not have sufficient privileges.';
 		}
 
 		echo json_encode( $json_out );
@@ -1243,81 +1352,6 @@ Here is the form data:
 		}
 
 		return $value;
-
-	}
-
-	/**
-	 * Send the order form submission confirmation email to the end user and the IT rep.
-	 *
-	 * @param string $order_name   The order post's name.
-	 * @param object $current_user The current WP_User object.
-	 * @param int    $it_rep_id    The user ID of the IT rep.
-	 * @param int    $post_id      The post ID of the new wsorder post.
-	 * @param array  $data         The submission data.
-	 */
-	private function send_confirmation_email( $order_name, $current_user, $it_rep_id, $post_id, $data ) {
-
-		// Get user information.
-		$current_user_name  = $current_user->display_name;
-		$current_user_email = $current_user->user_email;
-
-		// Email settings.
-		$headers = array( 'Content-Type: text/html; charset=UTF-8' );
-
-		// Get current program meta.
-		$program_id   = get_field( 'program', $post_id );
-		$program_name = get_the_title( $program_id );
-
-		// Get order information.
-		$order_url = get_permalink( $post_id );
-
-		// Email end user.
-		$message = "<p>Howdy,</p>
-<p>Liberal Arts IT has received your order.</p>
-
-<p>Your {$program_name} order will be reviewed to ensure all necessary information and funding is in place.</p>
-<p>
-  Following review, your workstation request will be combined with others from your department to create a consolidated {$program_name} purchase. Consolidated orders are placed to maximize efficiency. Your order will be processed and received by IT Logistics in 4-6 weeks, depending on how early in the order cycle you make your selection. Once received, your workstation will be released to departmental IT staff who will then image your workstation, install software and prepare the device for delivery. These final steps generally take one to two days.
-</p>
-<p>You may view your order online at any time using this link: <a href=\"{$order_url}\">{$order_url}</a>.</p>
-
-<p>
-  Have a great day!
-  <em>-Liberal Arts IT</em>
-</p>
-<p><em>This email was sent from an unmonitored email address. Please do not reply to this email.</em></p>";
-		wp_mail( $current_user_email, 'Workstation Order Received', $message, $headers );
-
-		// Email IT Rep.
-		$it_rep_fields        = get_field( 'it_rep_status', $post_id );
-		$primary_it_rep_id    = $it_rep_fields['it_rep']['ID'];
-		$primary_it_rep_email = $it_rep_fields['it_rep']['user_email'];
-		$it_reps              = get_field( 'affiliated_it_reps', $post_id );
-		$other_it_rep_emails  = array();
-		foreach ( $it_reps as $rep_user_id ) {
-			if ( $primary_it_rep_id !== $rep_user_id ) {
-				$user_data             = get_userdata( $rep_user_id );
-				$other_it_rep_emails[] = $user_data->user_email;
-			}
-		}
-		$other_it_rep_emails = implode( ',', $other_it_rep_emails );
-		$headers[]           = 'Cc: ' . $other_it_rep_emails;
-		$admin_url           = admin_url() . "post.php?post={$post_id}&action=edit";
-		$message             = "<p>
-  <strong>There is a new {$program_name} order that requires your attention.</strong>
-</p>
-<p>
-  Please review this order carefully for any errors or omissions, then confirm it to pass along in the ordering workflow, or return it to the customer with your feedback and ask that they correct the order.
-</p>
-<p>
-  You can view the order at this link: {$admin_url}.
-</p>
-<p>
-  Have a great day!
-  <em>-Liberal Arts IT</em>
-</p>
-<p><em>This email was sent from an unmonitored email address. Please do not reply to this email.</em></p>";
-		wp_mail( $primary_it_rep_email, 'Workstation Order Received', $message, $headers );
 
 	}
 
