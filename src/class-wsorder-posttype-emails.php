@@ -132,6 +132,9 @@ class WSOrder_PostType_Emails {
 		if ( 1 === intval( $value ) && 0 === $old_value ) {
 			do_action( 'wsorder_it_rep_confirmed', $post_id );
 		}
+
+		return $value;
+
 	}
 
 	/**
@@ -211,6 +214,9 @@ class WSOrder_PostType_Emails {
 		if ( 1 === intval( $value ) && 0 === $old_value ) {
 			do_action( 'wsorder_business_staff_confirmed', $post_id );
 		}
+
+		return $value;
+
 	}
 
 	/**
@@ -264,6 +270,9 @@ class WSOrder_PostType_Emails {
 		if ( 1 === intval( $value ) && 0 === $old_value ) {
 			do_action( 'wsorder_logistics_confirmed', $post_id );
 		}
+
+		return $value;
+
 	}
 
 	/**

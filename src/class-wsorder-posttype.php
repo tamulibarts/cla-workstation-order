@@ -81,6 +81,7 @@ class WSOrder_PostType {
 		add_action( 'wp_ajax_confirm_order', array( $this, 'confirm_order' ) );
 		add_action( 'wp_ajax_return_order', array( $this, 'return_order' ) );
 		add_action( 'wp_ajax_update_order_acquisitions', array( $this, 'update_order_acquisitions' ) );
+		add_action( 'wp_ajax_publish_order', array( $this, 'publish_order' ) );
 
 		// Add program dropdown filter to post list screen.
 		add_action( 'restrict_manage_posts', array( $this, 'add_admin_post_program_filter' ), 10 );
@@ -156,6 +157,7 @@ class WSOrder_PostType {
 		update_post_meta( $post_id, 'business_staff_status_confirmed', 0 );
 		update_post_meta( $post_id, 'business_staff_status_date', '' );
 		update_post_meta( $post_id, 'business_staff_status_comments', '' );
+		update_post_meta( $post_id, 'business_staff_status_account_number', '' );
 		// Reset logistics approval.
 		update_post_meta( $post_id, 'it_logistics_status_confirmed', 0 );
 		update_post_meta( $post_id, 'it_logistics_status_date', '' );
@@ -196,6 +198,11 @@ class WSOrder_PostType {
 		}
 	}
 
+	/**
+	 * Confirm the order by this user.
+	 *
+	 * @return void
+	 */
 	public function confirm_order() {
 
 		// Ensure nonce is valid.
@@ -222,13 +229,13 @@ class WSOrder_PostType {
 			// Current user is an IT rep.
 			$value = get_field( 'it_rep_status', $post_id );
 			// Update the comments, confirmation, and date fields.
-			$value['it_rep']   = $current_user_id;
-			$value['comments'] = $comments;
+			$value['it_rep']    = $current_user_id;
+			$value['comments']  = $comments;
 			$value['confirmed'] = 1;
 			// Save the update.
 			update_field( 'it_rep_status', $value, $post_id );
 			// For some reason the confirmed status won't update via update_field.
-			update_post_meta( $post_id, 'it_rep_status_confirmed', 1 );
+			// update_post_meta( $post_id, 'it_rep_status_confirmed', 1 );
 			update_post_meta( $post_id, 'it_rep_status_date', date('Y-m-d H:i:s') );
 		} elseif ( is_array( $affiliated_business_staff ) && in_array( $current_user_id, $affiliated_business_staff ) ) {
 			// Current user is an IT rep.
@@ -236,11 +243,17 @@ class WSOrder_PostType {
 			// Update the comments, confirmation, and date fields.
 			$value['business_staff'] = $current_user_id;
 			$value['comments']       = $comments;
-			$value['confirmed'] = 1;
+			$value['confirmed']      = 1;
+			// Update the account number if provided.
+			if ( isset( $_POST['account_number'] ) ) {
+				$account_number = sanitize_text_field( wp_unslash( $_POST['account_number'] ) );
+				if ( ! empty( $account_number ) ) {
+					$value['account_number'] = $account_number;
+				}
+			}
 			// Save the update.
 			update_field( 'business_staff_status', $value, $post_id );
 			// For some reason the confirmed status won't update via update_field.
-			update_post_meta( $post_id, 'business_staff_status_confirmed', 1 );
 			update_post_meta( $post_id, 'business_staff_status_date', date('Y-m-d H:i:s') );
 		} elseif ( current_user_can( 'wso_logistics' ) ) {
 			// Current user is an IT rep.
@@ -251,8 +264,9 @@ class WSOrder_PostType {
 			// Save the update.
 			update_field( 'it_logistics_status', $value, $post_id );
 			// For some reason the confirmed status won't update via update_field.
-			update_post_meta( $post_id, 'it_logistics_status_confirmed', 1 );
 			update_post_meta( $post_id, 'it_logistics_status_date', date('Y-m-d H:i:s') );
+			// Instruct the page to refresh.
+			$json_out['refresh'] = true;
 		}
 
 		echo json_encode( $json_out );
@@ -289,7 +303,7 @@ class WSOrder_PostType {
 			update_post_meta( $post_id, 'returned_comments', $comments );
 			// Save the post status.
 			$args = array(
-				'ID' => $post_id,
+				'ID'          => $post_id,
 				'post_status' => 'returned',
 			);
 			wp_update_post( $args );
@@ -300,7 +314,7 @@ class WSOrder_PostType {
 			update_post_meta( $post_id, 'returned_comments', $comments );
 			// Save the post status.
 			$args = array(
-				'ID' => $post_id,
+				'ID'          => $post_id,
 				'post_status' => 'returned',
 			);
 			wp_update_post( $args );
@@ -309,10 +323,51 @@ class WSOrder_PostType {
 			update_post_meta( $post_id, 'returned_comments', $comments );
 			// Save the post status.
 			$args = array(
-				'ID' => $post_id,
+				'ID'          => $post_id,
 				'post_status' => 'returned',
 			);
 			wp_update_post( $args );
+		}
+
+		echo json_encode( $json_out );
+		die();
+
+	}
+
+	public function publish_order() {
+
+		// Ensure nonce is valid.
+		check_ajax_referer( 'confirm_order' );
+
+		// Get referring post properties.
+		$url       = wp_get_referer();
+		$post_id   = url_to_postid( $url );
+		$post_type = get_post_type( $post_id );
+
+		if ( 'wsorder' !== $post_type ) {
+			return;
+		}
+
+		$json_out = array();
+
+		// Decide what kind of user this is.
+		if ( current_user_can( 'wso_logistics' ) ) {
+			// Check the logistics ordered box.
+			$logistics = get_field( 'it_logistics_status', $post_id );
+			$logistics['ordered'] = 1;
+			update_field( 'it_logistics_status', $logistics, $post_id );
+			// Save the post status.
+			$args = array(
+				'ID'          => $post_id,
+				'post_status' => 'publish',
+			);
+			$published = wp_update_post( $args );
+
+			if ( is_wp_error( $published ) ) {
+				$json_out['errors'] = implode( ' ', $published->get_error_messages() );
+			} else {
+				$json_out['status'] = 'publish';
+			}
 		}
 
 		echo json_encode( $json_out );
@@ -449,7 +504,7 @@ class WSOrder_PostType {
     } elseif ( in_array( $current_user_id, $affiliated_bus_staff ) ) {
   		if ( 0 === $it_rep_confirmed ) {
   			$can_update = false;
-  			$message    = 'The IT Rep has not confirmed the order yet.';
+  			$message    = 'An IT Rep has not confirmed the order yet.';
   		} elseif ( 1 === $bus_user_confirmed ) {
   			$can_update = false;
   			$message    = 'A business admin has already confirmed the order.';
@@ -952,14 +1007,25 @@ class WSOrder_PostType {
 			update_field( 'affiliated_it_reps', $affiliated_it_reps, $post_id );
 			update_field( 'affiliated_business_staff', $affiliated_business_staff, $post_id );
 			update_field( 'program', $program_id, $post_id );
-			update_post_meta( $post_id, 'it_rep_status_confirmed', '0' );
-			update_post_meta( $post_id, '_it_rep_status_confirmed', 'field_5fff6b71a22b0' );
-			update_post_meta( $post_id, 'it_rep_status_comments', '0' );
-			update_post_meta( $post_id, '_it_rep_status_comments', 'field_601d66373860d' );
-			update_post_meta( $post_id, 'business_staff_status_confirmed', '0' );
-			update_post_meta( $post_id, '_business_staff_status_confirmed', 'field_5fff6ec0e4385' );
-			update_post_meta( $post_id, 'business_staff_status_comments', '' );
-			update_post_meta( $post_id, '_business_staff_status_comments', 'field_601d646e59d65' );
+			$it_rep_status = array(
+				'it_rep'    => 0,
+				'confirmed' => 0,
+				'comments'  => '',
+			);
+			update_field( 'it_rep_status', $it_rep_status, $post_id );
+			$business_staff_status = array(
+				'business_staff' => 0,
+				'confirmed'      => 0,
+				'comments'       => '',
+			);
+			update_field( 'business_staff_status', $business_staff_status, $post_id );
+			$logistics_status = array(
+				'comments'       => '',
+				'account_number' => '',
+				'confirmed'      => 0,
+				'ordered'        => 0,
+			);
+			update_field( 'it_logistics_status', $logistics_status, $post_id );
 
 		} else {
 
@@ -990,7 +1056,7 @@ class WSOrder_PostType {
 		if ( 'wsorder' !== $post_type && is_wp_error( $post_id ) ) {
 
 			// Failed to generate a new post.
-			$message .= $post_id->get_error_messages;
+			$message .= implode( ' ', $post_id->get_error_messages() );
 			$message .= "
 Here is the form data:
 ";
@@ -1055,8 +1121,8 @@ Here is the form data:
 
 			// Save department IT Rep.
 			if ( isset( $_POST['cla_it_rep_id'] ) ) {
-				$value = get_field( 'it_rep_status', $post_id );
-				$it_rep = sanitize_text_field( wp_unslash( $_POST['cla_it_rep_id'] ) );
+				$value           = get_field( 'it_rep_status', $post_id );
+				$it_rep          = sanitize_text_field( wp_unslash( $_POST['cla_it_rep_id'] ) );
 				$value['it_rep'] = $it_rep;
 				update_field( 'it_rep_status', $value, $post_id );
 			}
@@ -1104,7 +1170,7 @@ Here is the form data:
 								// Attach file.
 								$quote_fields[ $i ]['file'] = $attachment_id;
 							} else {
-								$json_out['errors'][] = $attachment_id->get_error_messages();
+								$json_out['errors'][] = implode( ' ', $attachment_id->get_error_messages() );
 							}
 						} else {
 							$quote_fields[ $i ]['file'] = get_post_meta( $post_id, "quotes_{$i}_file", true );
@@ -1233,38 +1299,26 @@ Here is the form data:
 		}
 
 		if ( current_user_can( 'wso_logistics' ) ) {
-			$products        = array();
-			$products_length = (int) sanitize_text_field( wp_unslash( $_POST[ "cla_item_count" ] ) );
-			$quotes          = array();
-			$quotes_length   = (int) sanitize_text_field( wp_unslash( $_POST[ "cla_quote_count" ] ) );
-			for ( $i=0; $i < $products_length; $i++ ) {
-				$req_number   = sanitize_text_field( wp_unslash( $_POST[ "cla_item_{$i}_req_number" ] ) );
-				$asset_number = sanitize_text_field( wp_unslash( $_POST[ "cla_item_{$i}_asset_number" ] ) );
-				$req_date     = sanitize_text_field( wp_unslash( $_POST[ "cla_item_{$i}_req_date" ] ) );
-				// if ( ! empty( $req_date ) ) {
-				// 	error_log($req_date);
-				// 	preg_match('/(\d+)-(\d+)-(\d+)/', $req_date, $matches);
-				// 	$year  = $matches[1];
-				// 	$month = $matches[2];
-				// 	$day   = $matches[3];
-				// 	$req_date = "{$month}-{$day}-{$year}";
-				// }
-				update_post_meta( $post_id, "order_items_{$i}_requisition_number", $req_number );
-				update_post_meta( $post_id, "order_items_{$i}_requisition_date", $req_date );
-				update_post_meta( $post_id, "order_items_{$i}_asset_number", $asset_number );
+			$products = get_field( 'order_items', $post_id );
+			$quotes   = get_field( 'quotes', $post_id );
+			foreach ($products as $key => $product) {
+				$req_number   = sanitize_text_field( wp_unslash( $_POST[ "cla_item_{$key}_req_number" ] ) );
+				$req_date     = sanitize_text_field( wp_unslash( $_POST[ "cla_item_{$key}_req_date" ] ) );
+				$asset_number = sanitize_text_field( wp_unslash( $_POST[ "cla_item_{$key}_asset_number" ] ) );
+				$products[$key]['requisition_number'] = $req_number;
+				$products[$key]['requisition_date'] = $req_date;
+				$products[$key]['asset_number'] = $asset_number;
 			}
-			for ( $i=0; $i < $quotes_length; $i++ ) {
-				$req_number   = sanitize_text_field( wp_unslash( $_POST[ "cla_item_{$i}_req_number" ] ) );
-				$asset_number = sanitize_text_field( wp_unslash( $_POST[ "cla_item_{$i}_asset_number" ] ) );
-				$req_date     = sanitize_text_field( wp_unslash( $_POST[ "cla_item_{$i}_req_date" ] ) );
-				if ( ! empty( $req_date ) ) {
-					$req_time = strtotime( $req_date );
-					$req_date = date('Y-m-d H:i:s', $req_time);
-				}
-				update_post_meta( $post_id, "quotes_{$i}_requisition_number", $req_number );
-				update_post_meta( $post_id, "quotes_{$i}_requisition_date", $req_date );
-				update_post_meta( $post_id, "quotes_{$i}_asset_number", $asset_number );
+			update_field( 'order_items', $products, $post_id );
+			foreach ($quotes as $key => $quote) {
+				$req_number   = sanitize_text_field( wp_unslash( $_POST[ "cla_quote_{$key}_req_number" ] ) );
+				$req_date     = sanitize_text_field( wp_unslash( $_POST[ "cla_quote_{$key}_req_date" ] ) );
+				$asset_number = sanitize_text_field( wp_unslash( $_POST[ "cla_quote_{$key}_asset_number" ] ) );
+				$quotes[$key]['requisition_number'] = $req_number;
+				$quotes[$key]['requisition_date'] = $req_date;
+				$quotes[$key]['asset_number'] = $asset_number;
 			}
+			update_field( 'quotes', $quotes, $post_id );
 			$json_out['status'] = 'Order updated.';
 		} else {
 			$json_out['status'] = 'You do not have sufficient privileges.';

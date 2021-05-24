@@ -162,6 +162,7 @@ function cla_render_order( $content ) {
 		$department_comments = isset( $post_meta['business_staff_status_comments'] ) ? $post_meta['business_staff_status_comments'][0] : '';
 		$business_admin      = get_user_by( 'id', $post_meta['business_staff_status_business_staff'][0] );
 		$subtotal            = (float) 0;
+		$logistics_confirmed = (int) get_post_meta( $post_id, 'it_logistics_status_confirmed', true );
 		$permalink           = get_permalink();
 		$content             = '';
 
@@ -174,8 +175,12 @@ function cla_render_order( $content ) {
 		$content .= "<dt>Email Address</dt><dd>{$order_author->data->user_email}</dd>";
 		$content .= "<dt>Department</dt><dd>{$department->post_title}</dd>";
 		if ( ! empty( $contribution ) ) {
-			$content .= "<dt>Contribution Amount</dt><dd>{$contribution}</dd>";
-			$content .= "<dt>Account Number</dt><dd>{$post_meta['contribution_account'][0]}</dd>";
+			$content        .= "<dt>Contribution Amount</dt><dd>{$contribution}</dd>";
+			$account_number = $post_meta['contribution_account'][0];
+			if ( isset( $post_meta['business_staff_status_account_number'] ) && ! empty( $post_meta['business_staff_status_account_number'][0] ) ) {
+				$account_number = $post_meta['business_staff_status_account_number'][0];
+			}
+			$content        .= "<dt>Account Number</dt><dd>{$account_number}</dd>";
 		}
 		$content .= "<dt>Office Location</dt><dd>{$post_meta['building'][0]} {$post_meta['office_location'][0]}</dd>";
 		if ( ! empty( $current_asset ) ) {
@@ -193,12 +198,16 @@ function cla_render_order( $content ) {
 		 * Processing.
 		 */
 		$content .= '<div class="cell small-12 medium-6"><h2>Processing</h2>';
-		if ( $is_it_rep || $is_business_staff || current_user_can( 'wso_logistics' ) ) {
+		if ( $is_it_rep || $is_business_staff || ( current_user_can( 'wso_logistics' ) && 0 === $logistics_confirmed ) ) {
 			$label = $is_it_rep ? 'This order is pending confirmation by IT staff' : 'This order is pending confirmation by business staff';
 			if ( current_user_can( 'wso_logistics' ) ) {
 				$label = 'This order is pending confirmation by logistics';
 			}
-			$content .= "<div id=\"approval-fields\" class=\"outline-fields\"><form method=\"post\" enctype=\"multipart/form-data\" id=\"cla_order_approval_form\" action=\"{$permalink}\"><div class=\"ajax-response\"></div><div class=\"grid-x\"><div class=\"cell auto\"><label for=\"approval_comments\"><strong>$label</strong></label><div>Please look it over for any errors or ommissions then confirm or return.</div></div><div class=\"cell shrink\"><button class=\"button btn btn-outline-green\" type=\"button\" id=\"cla_confirm\">Confirm</button> <button class=\"button btn btn-outline-red\" type=\"button\" id=\"cla_return\">Return</button></div></div><textarea id=\"approval_comments\" name=\"approval_comments\" placeholder=\"Comment\"></textarea></form></div>";
+			$content .= "<div id=\"approval-fields\" class=\"outline-fields\"><form method=\"post\" enctype=\"multipart/form-data\" id=\"cla_order_approval_form\" action=\"{$permalink}\"><div class=\"ajax-response\"></div><div class=\"grid-x\"><div class=\"cell auto\"><label for=\"approval_comments\"><strong>$label</strong></label><div>Please look it over for any errors or ommissions then confirm or return.</div></div><div class=\"cell shrink\"><button class=\"button btn btn-outline-green\" type=\"button\" id=\"cla_confirm\">Confirm</button> <button class=\"button btn btn-outline-red\" type=\"button\" id=\"cla_return\">Return</button></div></div>";
+			if ( $is_business_staff ) {
+				$content .= "<input type=\"text\" name=\"cla_account_number\" id=\"cla_account_number\" placeholder=\"Account Number\" />";
+			}
+			$content .= "<textarea id=\"approval_comments\" name=\"approval_comments\" placeholder=\"Comment\"></textarea></form></div>";
 		}
 		$content .= '<dl class="row horizontal">';
 		$content .= "<dt>IT Staff ({$it_rep->data->display_name})</dt><dd>{$it_rep_date}</dd>";
@@ -232,18 +241,21 @@ function cla_render_order( $content ) {
 			foreach ( $order_items as $key => $item ) {
 				$requisition_number = $item['requisition_number'];
 				$requisition_date   = $item['requisition_date'];
-				$asset_number = $item['asset_number'];
-				if ( current_user_can( 'wso_logistics' ) ) {
+				$asset_number       = $item['asset_number'];
+				if ( current_user_can( 'wso_logistics' ) && 1 === $logistics_confirmed ) {
 					$requisition_number = "<input type=\"text\" name=\"cla_item_{$key}_req_number\" value=\"{$requisition_number}\" />";
 					$requisition_date   = "<input type=\"date\" name=\"cla_item_{$key}_req_date\" value=\"{$requisition_date}\" />";
 					$asset_number       = "<input type=\"text\" name=\"cla_item_{$key}_asset_number\" value=\"{$asset_number}\" />";
+				} else if ( ! empty( $requisition_date ) ) {
+					preg_match( '/(\d+)-(\d+)-(\d+)/', $requisition_date, $matches );
+					$requisition_date = "{$matches[2]}/{$matches[3]}/{$matches[1]}";
 				}
 				$content .= "<tr class=\"cla-order-item\"><td>{$item['sku']}</td>";
 				$content .= "<td colspan=\"2\">{$item['item']}</td>";
 				$content .= "<td>{$requisition_number}</td>";
 				$content .= "<td>{$requisition_date}</td>";
 				$content .= "<td>{$asset_number}</td>";
-				$price = '$' . number_format( $item['price'], 2, '.', ',' );
+				$price   = '$' . number_format( $item['price'], 2, '.', ',' );
 				$content .= "<td>{$price}</td></tr>";
 				$subtotal = $subtotal + floatval( $item['price'] );
 			}
@@ -255,14 +267,17 @@ function cla_render_order( $content ) {
 			$content .= '<thead><tr><th colspan="7"><h3>External Items</h3></th></tr></thead>';
 			$content .= '<thead class="thead-light"><tr><th>Name</th><th>Description</th><th>Quote</th><th>Req #</th><th>Req Date</th><th>Asset #</th><th>Price</th></tr></thead><tbody>';
 			$quotes = get_field( 'quotes', $post_id );
-			foreach ( $quotes as $item ) {
+			foreach ( $quotes as $key => $item ) {
 				$requisition_number = $item['requisition_number'];
 				$requisition_date   = $item['requisition_date'];
-				$asset_number = $item['asset_number'];
-				if ( current_user_can( 'wso_logistics' ) ) {
+				$asset_number       = $item['asset_number'];
+				if ( current_user_can( 'wso_logistics' ) && 1 === $logistics_confirmed ) {
 					$requisition_number = "<input type=\"text\" name=\"cla_quote_{$key}_req_number\" value=\"{$requisition_number}\" />";
 					$requisition_date   = "<input type=\"date\" name=\"cla_quote_{$key}_req_date\" value=\"{$requisition_date}\" />";
 					$asset_number       = "<input type=\"text\" name=\"cla_quote_{$key}_asset_number\" value=\"{$asset_number}\" />";
+				} else if ( ! empty( $requisition_date ) ) {
+					preg_match( '/(\d+)-(\d+)-(\d+)/', $requisition_date, $matches );
+					$requisition_date = "{$matches[2]}/{$matches[3]}/{$matches[1]}";
 				}
 				$content .= "<tr class=\"cla-quote-item\"><td>{$item['name']}</td>";
 				$content .= "<td>{$item['description']}</td>";
@@ -290,7 +305,7 @@ function cla_render_order( $content ) {
 		}
 
 		if ( current_user_can( 'wso_logistics' ) ) {
-			$content .= "<tr><td colspan=\"6\" class=\"text-right\"><div class=\"ajax-response\"></div></td><td><input type=\"submit\" id=\"cla_submit\" value=\"Update\" /></td></tr>";
+			$content .= "<tr><td colspan=\"6\" class=\"text-right\"><div class=\"ajax-response\"></div></td><td class=\"logistics-approval-buttons\"><input type=\"submit\" id=\"cla_submit\" value=\"Update\" /><br><button type=\"button\" class=\"button button-submit button-green\" id=\"cla_publish\">Publish</button></td></tr>";
 		}
 
 		$content .= '</tbody></table>';

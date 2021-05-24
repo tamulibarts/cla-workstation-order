@@ -124,8 +124,45 @@ dl.horizontal {
 	font-size: 16px;
 	line-height: 24px;
 	width: auto;
+	cursor: pointer;
 }
 
-input#cla_submit[type="submit"] {
+%button-hover {
+	background-color: #0069D9;
+	border-color: #0062CC;
+}
+
+input#cla_submit[type="submit"],
+.button-submit {
 	@extend %button;
+
+	&:hover {
+		@extend %button-hover;
+	}
+}
+
+.button-submit {
+	margin-bottom: 0;
+}
+
+.button-green {
+	background-color: #28A745;
+
+	&:hover {
+		background-color: #218838;
+	}
+}
+
+.logistics-approval-buttons {
+	#cla_publish {
+		margin-top: .5rem;
+	}
+}
+
+.flagged {
+	color: #F00;
+}
+
+input.flagged {
+	border-color: #F00;
 }

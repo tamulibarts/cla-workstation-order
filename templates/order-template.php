@@ -229,7 +229,11 @@ function cla_render_order( $content ) {
 		$content .= "<dt>Department</dt><dd>{$department->post_title}</dd>";
 		if ( ! empty( $contribution ) ) {
 			$content .= "<dt>Contribution Amount</dt><dd>{$contribution}</dd>";
-			$content .= "<dt>Account Number</dt><dd>{$post_meta['contribution_account'][0]}</dd>";
+			$account_number = $post_meta['contribution_account'][0];
+			if ( isset( $post_meta['business_staff_status_account_number'] ) && ! empty( $post_meta['business_staff_status_account_number'][0] ) ) {
+				$account_number = $post_meta['business_staff_status_account_number'][0];
+			}
+			$content .= "<dt>Account Number</dt><dd>{$account_number}</dd>";
 		}
 		$content .= "<dt>Office Location</dt><dd>{$post_meta['building'][0]} {$post_meta['office_location'][0]}</dd>";
 		if ( ! empty( $current_asset ) ) {
@@ -294,7 +298,7 @@ function cla_render_order( $content ) {
 			$content .= '<thead class="thead-light"><tr><th>Name</th><th>Description</th><th>Quote</th><th>Req #</th><th>Req Date</th><th>Asset #</th><th>Price</th></tr></thead>';
 			$quotes = get_field( 'quotes', $post_id );
 			foreach ( $quotes as $item ) {
-				$content .= "<td>{$item['name']}</td>";
+				$content .= "<tr><td>{$item['name']}</td>";
 				$content .= "<td>{$item['description']}</td>";
 				$content .= "<td><a class=\"btn btn-outline-dark\" target=\"_blank\" href=\"{$item['file']['url']}\" title=\"{$item['file']['title']}\"><span class=\"dashicons dashicons-media-text\"></span></a></td>";
 				$content .= "<td>{$item['requisition_number']}</td>";
@@ -307,7 +311,7 @@ function cla_render_order( $content ) {
 				$content .= "<td>{$requisition_date}</td>";
 				$content .= "<td>{$item['asset_number']}</td>";
 				$price = '$' . number_format( $item['price'], 2, '.', ',' );
-				$content .= "<td>{$price}</td>";
+				$content .= "<td>{$price}</td></tr>";
 				$subtotal = $subtotal + floatval( $item['price'] );
 			}
 			$content .= '</tbody>';
