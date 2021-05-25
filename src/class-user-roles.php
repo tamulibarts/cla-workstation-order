@@ -354,6 +354,8 @@ class User_Roles {
 		$subscriber_role->remove_cap( 'edit_wsorders' );
 		$subscriber_role->remove_cap( 'create_wsorders' );
 		$subscriber_role->remove_cap( 'publish_wsorders' );
+		$subscriber_role->remove_cap( 'edit_published_wsorders' );
+		$subscriber_role->remove_cap( 'read_private_wsorders' );
 
 		remove_role( 'wso_admin' );
 		remove_role( 'wso_logistics' );

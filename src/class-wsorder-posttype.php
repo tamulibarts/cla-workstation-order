@@ -71,6 +71,8 @@ class WSOrder_PostType {
 
 		// Register page template for My Orders.
 		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-pagetemplate.php';
+		$orders = new \CLA_Workstation_Order\PageTemplate( CLA_WORKSTATION_ORDER_TEMPLATE_PATH, 'orders.php', 'Orders' );
+		$orders->register();
 		$my_orders = new \CLA_Workstation_Order\PageTemplate( CLA_WORKSTATION_ORDER_TEMPLATE_PATH, 'my-orders.php', 'My Orders' );
 		$my_orders->register();
 
@@ -82,6 +84,7 @@ class WSOrder_PostType {
 		add_action( 'wp_ajax_return_order', array( $this, 'return_order' ) );
 		add_action( 'wp_ajax_update_order_acquisitions', array( $this, 'update_order_acquisitions' ) );
 		add_action( 'wp_ajax_publish_order', array( $this, 'publish_order' ) );
+		add_action( 'wp_ajax_delete_order', array( $this, 'delete_order' ) );
 
 		// Add program dropdown filter to post list screen.
 		add_action( 'restrict_manage_posts', array( $this, 'add_admin_post_program_filter' ), 10 );
@@ -139,6 +142,15 @@ class WSOrder_PostType {
 
 		// Render single order view.
 		add_filter( 'single_template', array( $this, 'get_single_template' ) );
+
+		/**
+		 * Make changes to public list view.
+		 */
+		add_action( 'wp', function(){
+			if ( is_post_type_archive( 'wsorder' ) ) {
+				remove_action( 'genesis_entry_header', 'genesis_post_info', 12 );
+			}
+		});
 
 	}
 
@@ -376,6 +388,40 @@ class WSOrder_PostType {
 	}
 
 	/**
+	 * Delete order.
+	 *
+	 * @return void
+	 */
+	public function delete_order() {
+
+		// Ensure nonce is valid.
+		check_ajax_referer( 'delete_order' );
+
+		// Get referring post properties.
+		$url       = wp_get_referer();
+		$post_id   = url_to_postid( $url );
+		$post_type = get_post_type( $post_id );
+
+		if ( 'wsorder' !== $post_type ) {
+			return;
+		}
+
+		$json_out = array( 'status' => 'The post was not deleted due to an error.' );
+
+		// Decide what kind of user this is.
+		if ( current_user_can( 'wso_logistics' ) || current_user_can( 'wso_admin' ) ) {
+			$deleted = wp_delete_post( $post_id, true );
+			if ( is_object( $deleted ) ) {
+				$json_out['status'] = 'deleted';
+			}
+		}
+
+		echo json_encode( $json_out );
+		die();
+
+	}
+
+	/**
 	 * Shows which single template is needed
 	 *
 	 * @param  string $single_template The default single template.
@@ -538,6 +584,7 @@ class WSOrder_PostType {
 	 */
 	private function can_current_user_update_order( $post_id ) {
 
+		return 'Orders cannot be updated in the dashboard.';
     $post_status = get_post_status( $post_id );
     $can_update  = true;
     $message     = '';
@@ -911,8 +958,9 @@ class WSOrder_PostType {
 				'map_meta_cap'       => true,
 				'rewrite'            => array(
 					'with_front' => false,
-					'slug'       => 'order',
+					'slug'       => 'orders',
 				),
+				'has_archive'        => false,
 				// 'publicly_queryable' => false,
 			)
 		);
@@ -1292,36 +1340,38 @@ Here is the form data:
 		$url       = wp_get_referer();
 		$post_id   = url_to_postid( $url );
 		$post_type = get_post_type( $post_id );
-		$json_out  = array();
+		$json_out  = array( 'status' => 'You do not have sufficient privileges' );
 
 		if ( 'wsorder' !== $post_type ) {
 			return;
 		}
 
 		if ( current_user_can( 'wso_logistics' ) ) {
+			// Update products.
 			$products = get_field( 'order_items', $post_id );
-			$quotes   = get_field( 'quotes', $post_id );
 			foreach ($products as $key => $product) {
 				$req_number   = sanitize_text_field( wp_unslash( $_POST[ "cla_item_{$key}_req_number" ] ) );
 				$req_date     = sanitize_text_field( wp_unslash( $_POST[ "cla_item_{$key}_req_date" ] ) );
 				$asset_number = sanitize_text_field( wp_unslash( $_POST[ "cla_item_{$key}_asset_number" ] ) );
 				$products[$key]['requisition_number'] = $req_number;
-				$products[$key]['requisition_date'] = $req_date;
-				$products[$key]['asset_number'] = $asset_number;
+				$products[$key]['requisition_date']   = $req_date;
+				$products[$key]['asset_number']       = $asset_number;
 			}
 			update_field( 'order_items', $products, $post_id );
+			// Update quotes.
+			$quotes = get_field( 'quotes', $post_id );
 			foreach ($quotes as $key => $quote) {
 				$req_number   = sanitize_text_field( wp_unslash( $_POST[ "cla_quote_{$key}_req_number" ] ) );
 				$req_date     = sanitize_text_field( wp_unslash( $_POST[ "cla_quote_{$key}_req_date" ] ) );
 				$asset_number = sanitize_text_field( wp_unslash( $_POST[ "cla_quote_{$key}_asset_number" ] ) );
 				$quotes[$key]['requisition_number'] = $req_number;
-				$quotes[$key]['requisition_date'] = $req_date;
-				$quotes[$key]['asset_number'] = $asset_number;
+				$quotes[$key]['requisition_date']   = $req_date;
+				$quotes[$key]['asset_number']       = $asset_number;
 			}
 			update_field( 'quotes', $quotes, $post_id );
-			$json_out['status'] = 'Order updated.';
-		} else {
-			$json_out['status'] = 'You do not have sufficient privileges.';
+
+			$json_out['status'] = 'success';
+
 		}
 
 		echo json_encode( $json_out );
@@ -1875,10 +1925,8 @@ jQuery( 'select[name=\"post_status\"]' ).val('publish')";
 	 */
 	public function pre_get_posts( $query ) {
 		if ( 'wsorder' === $query->get( 'post_type' ) ) {
-			// if ( ! ( is_admin() && $query->is_main_query() ) ) {
-			// 	return;
-			// }
 			// Allow admins and logistics to see all orders.
+			// Do not limit views in admin.
 			if (
 				current_user_can( 'administrator' )
 				|| current_user_can( 'wso_admin' )
@@ -1886,6 +1934,14 @@ jQuery( 'select[name=\"post_status\"]' ).val('publish')";
 			) {
 				return;
 			}
+
+			// Exclude the last order ID query.
+			$posts_per_page = $query->get( 'posts_per_page' );
+			$meta_key       = $query->get( 'meta_key' );
+			if ( 1 === $posts_per_page && 'order_id' === $meta_key ) {
+				return;
+			}
+
 			// Everyone else must be restricted.
 			// Overwrite existing meta query.
 			$meta_query = $query->get( 'meta_query' );

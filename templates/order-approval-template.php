@@ -56,6 +56,36 @@ function cla_workstation_order_approval_scripts() {
 add_action( 'wp_enqueue_scripts', 'cla_workstation_order_approval_scripts', 1 );
 
 /**
+ * Registers and enqueues order deletion scripts.
+ *
+ * @since 1.0.0
+ * @return void
+ */
+function cla_workstation_order_delete_scripts() {
+
+	if ( current_user_can( 'wso_logistics' ) || current_user_can( 'wso_admin' ) ) {
+
+		wp_register_script(
+			'cla-workstation-order-delete-scripts',
+			CLA_WORKSTATION_ORDER_DIR_URL . 'js/order-delete.js',
+			array('jquery'),
+			filemtime( CLA_WORKSTATION_ORDER_DIR_PATH . 'js/order-delete.js' ),
+			'screen'
+		);
+
+		// wp_enqueue_script( 'jquery' );
+		wp_enqueue_script( 'cla-workstation-order-delete-scripts' );
+		// Include admin ajax URL and nonce.
+		$script_variables = 'var WSODeleteOrderAJAX = {"ajaxurl":"'.admin_url('admin-ajax.php').'","nonce":"'.wp_create_nonce('delete_order').'"};';
+
+		wp_add_inline_script( 'cla-workstation-order-delete-scripts', $script_variables, 'before' );
+
+	}
+
+}
+add_action( 'wp_enqueue_scripts', 'cla_workstation_order_delete_scripts', 1 );
+
+/**
  * Empty the edit link for this page.
  *
  * @return string
@@ -98,6 +128,21 @@ add_filter( 'genesis_attr_entry-title', function( $attr ) {
 });
 
 /**
+ * Add print and maybe delete button.
+ */
+add_action( 'genesis_entry_header', function(){
+	global $post;
+	$output = '';
+	if ( current_user_can( 'wso_logistics' ) || current_user_can( 'wso_admin' ) ) {
+		$output .= '<div class="cell shrink"><button class="btn btn-square btn-outline-red" type="button" title="Delete this order" id="cla_delete_order"><span class="dashicons dashicons-trash"></span></button></div>';
+	}
+	if ( ! empty( $output ) ) {
+		$output = "<div class=\"cell shrink\"><div class=\"grid-x\">{$output}</div></div>";
+		echo wp_kses_post( $output );
+	}
+});
+
+/**
  * Render the order form.
  *
  * @return void
@@ -128,6 +173,8 @@ function cla_render_order( $content ) {
 		$affiliated_bus_staff = get_field( 'affiliated_business_staff', $post->ID );
 		$is_business_staff    = in_array( $current_user_id, $affiliated_bus_staff ) ? true : false;
 		$business_admin       = (int) get_post_meta( $post->ID, 'business_staff_status_business_staff', true );
+		$order_items          = get_field( 'order_items', $post_id );
+		$quotes               = get_field( 'quotes', $post_id );
 		$department_id = $post_meta['author_department'][0];
 		$department    = get_post( $department_id );
 		$contribution  = $post_meta['contribution_amount'][0];
@@ -180,7 +227,7 @@ function cla_render_order( $content ) {
 			if ( isset( $post_meta['business_staff_status_account_number'] ) && ! empty( $post_meta['business_staff_status_account_number'][0] ) ) {
 				$account_number = $post_meta['business_staff_status_account_number'][0];
 			}
-			$content        .= "<dt>Account Number</dt><dd>{$account_number}</dd>";
+			$content .= "<dt>Account Number</dt><dd>{$account_number}</dd>";
 		}
 		$content .= "<dt>Office Location</dt><dd>{$post_meta['building'][0]} {$post_meta['office_location'][0]}</dd>";
 		if ( ! empty( $current_asset ) ) {
@@ -227,7 +274,7 @@ function cla_render_order( $content ) {
 		$content .= '<h2>Order Items</h2><p>Note: some items in the catalog are bundles, which are a collection of products. Any bundles that you selected will be expanded as their products below.</p>';
 
 		// Logistics user can edit product acquisition fields.
-		if ( current_user_can( 'wso_logistics' ) ) {
+		if ( current_user_can( 'wso_logistics' ) && 1 === $logistics_confirmed ) {
 			$content .= "<form method=\"post\" enctype=\"multipart/form-data\" id=\"cla_acquisition_form\" action=\"{$permalink}\">";
 		}
 
@@ -237,7 +284,6 @@ function cla_render_order( $content ) {
 		if ( array_key_exists( 'order_items', $post_meta ) && ! empty( $post_meta['order_items'][0] ) ) {
 			$content .= '<thead><tr><th colspan="7"><h3>Products</h3></th></tr></thead>';
 			$content .= '<thead class="thead-light"><tr><th>SKU</th><th colspan="2">Item</th><th>Req #</th><th>Req Date</th><th>Asset #</th><th>Price</th></tr></thead><tbody>';
-			$order_items = get_field( 'order_items', $post_id );
 			foreach ( $order_items as $key => $item ) {
 				$requisition_number = $item['requisition_number'];
 				$requisition_date   = $item['requisition_date'];
@@ -266,7 +312,6 @@ function cla_render_order( $content ) {
 		if ( array_key_exists( 'quotes', $post_meta ) && ! empty( $post_meta['quotes'][0] ) ) {
 			$content .= '<thead><tr><th colspan="7"><h3>External Items</h3></th></tr></thead>';
 			$content .= '<thead class="thead-light"><tr><th>Name</th><th>Description</th><th>Quote</th><th>Req #</th><th>Req Date</th><th>Asset #</th><th>Price</th></tr></thead><tbody>';
-			$quotes = get_field( 'quotes', $post_id );
 			foreach ( $quotes as $key => $item ) {
 				$requisition_number = $item['requisition_number'];
 				$requisition_date   = $item['requisition_date'];
@@ -301,16 +346,22 @@ function cla_render_order( $content ) {
 		// Contributions.
 		if ( array_key_exists( 'contribution_amount', $post_meta ) && ! empty( $post_meta['contribution_amount'][0] ) ) {
 			$contribution = '$' . number_format( $post_meta['contribution_amount'][0], 2, '.', ',' );
-			$content .= "<tr><td colspan=\"6\" class=\"text-right\"><strong>Contributions from {$post_meta['contribution_account'][0]}</strong></td><td>{$contribution}</td></tr>";
+			$account_number = $post_meta['contribution_account'][0];
+			if ( isset( $post_meta['business_staff_status_account_number'] ) && ! empty( $post_meta['business_staff_status_account_number'][0] ) ) {
+				$account_number = $post_meta['business_staff_status_account_number'][0];
+			}
+			$content .= "<tr><td colspan=\"6\" class=\"text-right\"><strong>Contributions from {$account_number}</strong></td><td>{$contribution}</td></tr>";
 		}
 
-		if ( current_user_can( 'wso_logistics' ) ) {
-			$content .= "<tr><td colspan=\"6\" class=\"text-right\"><div class=\"ajax-response\"></div></td><td class=\"logistics-approval-buttons\"><input type=\"submit\" id=\"cla_submit\" value=\"Update\" /><br><button type=\"button\" class=\"button button-submit button-green\" id=\"cla_publish\">Publish</button></td></tr>";
+		if ( current_user_can( 'wso_logistics' ) && 1 === $logistics_confirmed ) {
+			$content .= "<tr><td colspan=\"6\" class=\"text-right\"><div class=\"ajax-response\"></div></td><td class=\"logistics-approval-buttons\"><input type=\"submit\" id=\"cla_submit\" value=\"Update\" />";
+			$content .= "<br><button type=\"button\" class=\"button button-submit button-green\" id=\"cla_publish\">Publish</button>";
+			$content .= "</td></tr>";
 		}
 
 		$content .= '</tbody></table>';
 
-		if ( current_user_can( 'wso_logistics' ) ) {
+		if ( current_user_can( 'wso_logistics' ) && 1 === $logistics_confirmed ) {
 			$content .= "</form>";
 		}
 

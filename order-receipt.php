@@ -14,8 +14,8 @@ $post_id = $_GET['postid'];
 // Authenticate user-based access permission
 $current_user              = wp_get_current_user();
 $current_user_id           = (int) $current_user->ID;
-$affiliated_it_reps        = get_post_meta( $post_id, 'affiliated_it_reps', true );
-$affiliated_business_staff = get_post_meta( $post_id, 'affiliated_business_staff', true );
+$affiliated_it_reps        = get_field( 'affiliated_it_reps', $post_id );
+$affiliated_business_staff = get_field( 'affiliated_business_staff', $post_id );
 $author_id                 = (int) get_post_field( 'post_author', $post_id );
 
 if (
@@ -284,10 +284,11 @@ $pdf->MultiCell($column_2_width, 5, $meta['it_logistics_status_date'], 0, 'L');
  */
 $offsetY += 20;
 $full_width = 194;
-$column_1_width = 0.5 * $full_width;
+$column_gap = 4;
+$column_1_width = 0.48 * $full_width;
 $column_2_width = 0.18 * $full_width;
-$column_3_width = 0.08 * $full_width;
-$column_4_width = 0.14 * $full_width;
+$column_3_width = 0.12 * $full_width;
+$column_4_width = 0.12 * $full_width;
 $column_5_width = 0.1 * $full_width;
 $item_length = 0;
 if ( isset( $meta['order_items'] ) && ! empty( $meta['order_items'] ) ) {
@@ -297,6 +298,52 @@ $quote_item_length = 0;
 if ( isset( $meta['quotes'] ) && ! empty( $meta['quotes'] ) ) {
 	$quote_item_length = intval( $meta['quotes'] );
 }
+
+// Determine flexible column widths.
+$requisition_numbers = array();
+$item_names          = array();
+if ( $item_length > 0 ) {
+	for($inc=0; $inc < $item_length; $inc++) {
+		$item_names[]          = $meta['order_items_' . $inc . '_item'];
+		$requisition_numbers[] = $meta['order_items_' . $inc . '_requisition_number'];
+	}
+}
+if ( $quote_item_length > 0 ) {
+	for($inc=0; $inc < $quote_item_length; $inc++) {
+		$item_names[]          = $meta['quotes_' . $inc . '_name'];
+		$requisition_numbers[] = $meta['quotes_' . $inc . '_requisition_number'];
+	}
+}
+// Column 3.
+$pdf->SetFont('Arial','B',11);
+$req_num_width = $pdf->GetStringWidth( 'Req #' );
+$pdf->SetFont('Arial','',11);
+foreach ( $requisition_numbers as $key => $req_num ) {
+	$text_width = $pdf->GetStringWidth( $req_num );
+	if ( $text_width > $req_num_width ) {
+		$req_num_width = $text_width;
+	}
+}
+$column_3_width = $req_num_width + $column_gap;
+// Column 1.
+$pdf->SetFont('Arial','B',11);
+$item_name_width = $pdf->GetStringWidth( 'Advanced Teaching/Research Quote' );
+$pdf->SetFont('Arial','',11);
+foreach ( $item_names as $key => $name ) {
+	$text_width = $pdf->GetStringWidth( $name );
+	if ( $text_width > $item_name_width ) {
+		$item_name_width = $text_width;
+	}
+}
+$limit_column_1_width = $full_width - $column_2_width - $column_3_width - $column_4_width - $column_5_width;
+$column_1_width       = $item_name_width + $column_gap;
+if ( $column_1_width > $limit_column_1_width ) {
+	$column_1_width = $limit_column_1_width;
+} elseif ( $column_1_width < $limit_column_1_width ) {
+	$column_difference = $limit_column_1_width - $column_1_width;
+	$column_2_width = $column_2_width + $column_difference;
+}
+
 
 /**
  * Product Items for Purchase.
@@ -341,11 +388,10 @@ if ( $item_length > 0 ) {
 		$pdf->setXY($offsetX, $offsetY);
 		$pdf->MultiCell($column_5_width, 5, $meta['order_items_' . $inc . '_price'], 0, 'R');
 		// Figure out the maximum line count among all details of this item.
-		$lines = 1;
-		$line_count = 0;
+		$lines       = 1;
 		$meta_detail = $meta['order_items_' . $inc . '_item'];
-		$text_width = $pdf->GetStringWidth($meta_detail);
-		$col_width = $column_1_width;
+		$text_width  = $pdf->GetStringWidth($meta_detail);
+		$col_width   = $column_1_width;
 		if ( $text_width > $col_width ) {
 			$line_count = ceil( $text_width / $col_width );
 			if ( $line_count > $lines ) {
@@ -389,7 +435,7 @@ if ( $item_length > 0 ) {
 			}
 		}
 		// Take the max line count and point the next item's coordinates
-		$offsetY += ( 5 * $line_count ) + 5;
+		$offsetY += 5 * $lines;
 	}
 }
 
@@ -439,7 +485,6 @@ if ( $quote_item_length > 0 ) {
 		$pdf->MultiCell($column_5_width, 5, $meta['quotes_' . $inc . '_price'], 0, 'R');
 		// Figure out the maximum line count among all details of this item.
 		$lines = 1;
-		$line_count = 1;
 		$meta_detail = $meta['quotes_' . $inc . '_name'];
 		$text_width = $pdf->GetStringWidth($meta_detail);
 		$col_width = $column_1_width;
@@ -486,10 +531,10 @@ if ( $quote_item_length > 0 ) {
 			}
 		}
 		// Take the max line count and point the next item's coordinates
-		$offsetY += ( 5 * $line_count ) + 5;
+		$offsetY += 5 * $lines;
 	}
 }
-$offsetY -= 3;
+$offsetY += 2;
 $pdf->Line($left_margin_x, $offsetY, $right_margin_x, $offsetY);
 /**
  * Subtotal.

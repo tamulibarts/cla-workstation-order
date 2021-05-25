@@ -30,6 +30,13 @@ class Dashboard {
 
 		add_action( 'wp_dashboard_setup', array( $this, 'wpexplorer_add_dashboard_widgets' ) );
 
+		// Disable the admin bar.
+		add_action('after_setup_theme', function() {
+			if (!current_user_can('administrator') && !current_user_can('wso_admin') && !current_user_can('wso_logistics') && !current_user_can('wso_business_admin') && !is_admin()) {
+			  show_admin_bar(false);
+			}
+		});
+
 	}
 
 	/**
@@ -193,7 +200,7 @@ class Dashboard {
 		// Output links.
 		foreach ($todo_posts as $post_id) {
 			$title                   = get_the_title( $post_id );
-			$link                    = get_edit_post_link( $post_id );
+			$link                    = get_permalink( $post_id );
 			$author_id               = (int) get_post_field( 'post_author', $post_id );
 			$author                  = get_user_by( 'ID', $author_id );
 			$author_name             = $author->display_name;

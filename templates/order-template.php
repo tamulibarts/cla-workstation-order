@@ -30,6 +30,36 @@ function cla_workstation_order_styles() {
 add_action( 'wp_enqueue_scripts', 'cla_workstation_order_styles', 1 );
 
 /**
+ * Registers and enqueues order deletion scripts.
+ *
+ * @since 1.0.0
+ * @return void
+ */
+function cla_workstation_order_delete_scripts() {
+
+	if ( current_user_can( 'wso_logistics' ) || current_user_can( 'wso_admin' ) ) {
+
+		wp_register_script(
+			'cla-workstation-order-delete-scripts',
+			CLA_WORKSTATION_ORDER_DIR_URL . 'js/order-delete.js',
+			array('jquery'),
+			filemtime( CLA_WORKSTATION_ORDER_DIR_PATH . 'js/order-delete.js' ),
+			'screen'
+		);
+
+		// wp_enqueue_script( 'jquery' );
+		wp_enqueue_script( 'cla-workstation-order-delete-scripts' );
+		// Include admin ajax URL and nonce.
+		$script_variables = 'var WSODeleteOrderAJAX = {"ajaxurl":"'.admin_url('admin-ajax.php').'","nonce":"'.wp_create_nonce('delete_order').'"};';
+
+		wp_add_inline_script( 'cla-workstation-order-delete-scripts', $script_variables, 'before' );
+
+	}
+
+}
+add_action( 'wp_enqueue_scripts', 'cla_workstation_order_delete_scripts', 1 );
+
+/**
  * Empty the edit link for this page.
  *
  * @return string
@@ -72,14 +102,22 @@ add_filter( 'genesis_attr_entry-title', function( $attr ) {
 });
 
 /**
- * Add print button.
+ * Add print and maybe delete button.
  */
 add_action( 'genesis_entry_header', function(){
 	global $post;
+	$output = '';
+	if ( current_user_can( 'wso_logistics' ) || current_user_can( 'wso_admin' ) ) {
+		$output .= '<div class="cell shrink"><button class="btn btn-square btn-outline-red" type="button" title="Delete this order" id="cla_delete_order"><span class="dashicons dashicons-trash"></span></button></div>';
+	}
 	if ( 'publish' === get_post_status( $post ) ) {
 		$bare_url     = CLA_WORKSTATION_ORDER_DIR_URL . 'order-receipt.php?postid=' . $post->ID;
 		$complete_url = wp_nonce_url( $bare_url, 'auth-post_' . $post->ID, 'token' );
-		echo "<div class=\"cell shrink\"><a class=\"btn btn-square btn-outline-dark\" href=\"{$complete_url}\" target=\"_blank\"><span class=\"dashicons dashicons-printer\"></span></a></div>";
+		$output .= "<div class=\"cell shrink\"><a class=\"btn btn-square btn-outline-dark\" href=\"{$complete_url}\" target=\"_blank\"><span class=\"dashicons dashicons-printer\"></span></a></div>";
+	}
+	if ( ! empty( $output ) ) {
+		$output = "<div class=\"cell shrink\"><div class=\"grid-x\">{$output}</div></div>";
+		echo wp_kses_post( $output );
 	}
 });
 
@@ -189,22 +227,22 @@ function cla_render_order( $content ) {
 		$it_rep_date = 'Not yet confirmed';
 		if ( isset( $post_meta['it_rep_status_date'] ) && is_array( $post_meta['it_rep_status_date'] ) && ! empty( $post_meta['it_rep_status_date'][0] ) ) {
 			$it_rep_time = strtotime( $post_meta['it_rep_status_date'][0].' UTC' );
-			$it_rep_date = '<span class=\"badge badge-success\">Confirmed</span> ' . date( 'M j, Y \a\t g:i a', $it_rep_time );
+			$it_rep_date = '<span class="badge badge-success">Confirmed</span> ' . date( 'M j, Y \a\t g:i a', $it_rep_time );
 		}
 		$business_admin_date = 'Not yet confirmed';
 		if ( isset( $post_meta['business_staff_status_date'] ) && is_array( $post_meta['business_staff_status_date'] ) && ! empty( $post_meta['business_staff_status_date'][0] ) ) {
 			$business_admin_time = strtotime( $post_meta['business_staff_status_date'][0].' UTC' );
-			$business_admin_date = '<span class=\"badge badge-success\">Confirmed</span> ' . date( 'M j, Y \a\t g:i a', $business_admin_time );
+			$business_admin_date = '<span class="badge badge-success">Confirmed</span> ' . date( 'M j, Y \a\t g:i a', $business_admin_time );
 		}
 		$logistics_date = 'Not yet confirmed';
 		if ( isset( $post_meta['it_logistics_status_date'] ) && is_array( $post_meta['it_logistics_status_date'] ) && ! empty( $post_meta['it_logistics_status_date'][0] ) ) {
 			$logistics_time      = strtotime( $post_meta['it_logistics_status_date'][0].' UTC' );
-			$logistics_date      = '<span class=\"badge badge-success\">Confirmed</span> ' . date( 'M j, Y \a\t g:i a', $logistics_time );
+			$logistics_date      = '<span class="badge badge-success">Confirmed</span> ' . date( 'M j, Y \a\t g:i a', $logistics_time );
 		}
 		$logistics_ordered_date = 'Not yet ordered';
 		if ( isset( $post_meta['it_logistics_status_ordered_at'] ) && is_array( $post_meta['it_logistics_status_ordered_at'] ) && ! empty( $post_meta['it_logistics_status_ordered_at'][0] ) ) {
 			$logistics_ordered_time = strtotime( $post_meta['it_logistics_status_ordered_at'][0].' UTC' );
-			$logistics_ordered_date = '<span class=\"badge badge-success\">Ordered</span> ' . date( 'M j, Y \a\t g:i a', $logistics_ordered_time );
+			$logistics_ordered_date = '<span class="badge badge-success">Ordered</span> ' . date( 'M j, Y \a\t g:i a', $logistics_ordered_time );
 		}
 		$program             = get_post( $post_meta['program'][0] );
 		$program_fiscal_year = get_post_meta( $post_meta['program'][0], 'fiscal_year', true );
@@ -228,7 +266,7 @@ function cla_render_order( $content ) {
 		$content .= "<dt>Email Address</dt><dd>{$order_author->data->user_email}</dd>";
 		$content .= "<dt>Department</dt><dd>{$department->post_title}</dd>";
 		if ( ! empty( $contribution ) ) {
-			$content .= "<dt>Contribution Amount</dt><dd>{$contribution}</dd>";
+			$content        .= "<dt>Contribution Amount</dt><dd>{$contribution}</dd>";
 			$account_number = $post_meta['contribution_account'][0];
 			if ( isset( $post_meta['business_staff_status_account_number'] ) && ! empty( $post_meta['business_staff_status_account_number'][0] ) ) {
 				$account_number = $post_meta['business_staff_status_account_number'][0];
@@ -324,9 +362,13 @@ function cla_render_order( $content ) {
 		$content .= "<tr><td colspan=\"6\" class=\"text-right\"><strong>Products Total</strong></td><td>{$subtotal}</td></tr>";
 
 		// Contributions.
-		if ( array_key_exists( 'contribution_amount', $post_meta ) && ! empty( $post_meta['contribution_amount'][0] ) ) {
+		if ( array_key_exists( 'contribution_amount', $post_meta ) && ! empty( $post_meta['contribution_amount'][0] ) && intval( $post_meta['contribution_amount'][0] ) !== 0 ) {
 			$contribution = '$' . number_format( $post_meta['contribution_amount'][0], 2, '.', ',' );
-			$content .= "<tr><td colspan=\"6\" class=\"text-right\"><strong>Contributions from {$post_meta['contribution_account'][0]}</strong></td><td>{$contribution}</td></tr>";
+			$account_number = $post_meta['contribution_account'][0];
+			if ( isset( $post_meta['business_staff_status_account_number'] ) && ! empty( $post_meta['business_staff_status_account_number'][0] ) ) {
+				$account_number = $post_meta['business_staff_status_account_number'][0];
+			}
+			$content .= "<tr><td colspan=\"6\" class=\"text-right\"><strong>Contributions from {$account_number}</strong></td><td>{$contribution}</td></tr>";
 		}
 
 		$content .= '</tbody></table>';

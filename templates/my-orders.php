@@ -44,7 +44,7 @@ function cla_my_orders() {
 		$program_id   = get_field( 'program', $opost_id );
 		$program_year = get_field( 'fiscal_year', $program_id );
 		$order_title  = get_the_title( $opost_id );
-		$order_link   = get_edit_post_link( $opost_id );
+		$order_link   = get_permalink( $opost_id );
 		echo "<tr><td>$program_year</td><td><a href=\"$order_link\">$order_title</a></td></tr>";
 	}
 	echo '</tbody></table>';
@@ -80,7 +80,7 @@ function cla_my_orders() {
 	foreach ( $pending_orders_sorted as $fiscal_year => $year_orders ) {
 		foreach ( $year_orders as $opost_id ) {
 			$order_title  = get_the_title( $opost_id );
-			$order_link   = get_edit_post_link( $opost_id );
+			$order_link   = get_permalink( $opost_id );
 			echo "<tr><td>$fiscal_year</td><td><a href=\"$order_link\">$order_title</a></td></tr>";
 		}
 	}
@@ -104,7 +104,7 @@ function cla_my_orders() {
 		$program_id   = get_field( 'program', $opost_id );
 		$program_year = get_field( 'fiscal_year', $program_id );
 		$order_title  = get_the_title( $opost_id );
-		$order_link   = get_edit_post_link( $opost_id );
+		$order_link   = get_permalink( $opost_id );
 		echo "<tr><td>$program_year</td><td><a href=\"$order_link\">$order_title</a></td></tr>";
 	}
 	echo '</tbody></table>';

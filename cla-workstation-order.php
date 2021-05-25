@@ -51,7 +51,7 @@ register_activation_hook( CLA_WORKSTATION_ORDER_DIR_FILE, 'cla_workstation_activ
 function cla_workstation_activation() {
 
 	// Check for missing dependencies.
-	$acf_pro       = is_plugin_active( 'advanced-custom-fields-pro/acf.php' );
+	$acf_pro = is_plugin_active( 'advanced-custom-fields-pro/acf.php' );
 
 	if ( false === $acf_pro ) {
 

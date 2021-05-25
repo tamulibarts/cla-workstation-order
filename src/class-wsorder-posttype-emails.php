@@ -380,15 +380,15 @@ class WSOrder_PostType_Emails {
 	 */
 	private function email_body_to_logistics( $post_id ) {
 
-		$program_id      = get_field( 'program', $post_id );
-		$program_name    = get_the_title( $program_id );
-		$admin_order_url = admin_url() . "post.php?post={$post_id}&action=edit";
-		$message         = "<p><strong>There is a new {$program_name} order that requires your approval.</strong></p>
+		$program_id   = get_field( 'program', $post_id );
+		$program_name = get_the_title( $program_id );
+		$order_url    = get_permalink( $post_id );
+		$message      = "<p><strong>There is a new {$program_name} order that requires your approval.</strong></p>
 <p>
   Please review this order carefully for any errors or omissions, then approve order for purchasing.
 </p>
 <p>
-  You can view the order at this link: <a href=\"{$admin_order_url}\">{$admin_order_url}</a>.
+  You can view the order at this link: <a href=\"{$order_url}\">{$order_url}</a>.
 </p>
 <p>
   Have a great day!<br />

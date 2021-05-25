@@ -41,13 +41,13 @@
       			output += ' The page will refresh in 3 seconds.';
       			window.setTimeout(function(){location.reload();}, 3000);
       		}
-      		$approval_form.parent().html( output );
+      		$approval_form.parent().html( '<span class="notice-green">' + output + '</span>' );
       	} else {
-      		$approval_form.find('.ajax-response').html('There was an error confirming the order: ' + data);
+      		$approval_form.find('.ajax-response').html('<span class="notice-red">There was an error confirming the order: ' + data + '</span>');
       	}
       },
       error: function( jqXHR, textStatus, errorThrown ) {
-      	$approval_form.find('.ajax-response').html('The application encountered an error while submitting your request (' + errorThrown + ').<br>' + jqXHR.responseText );
+      	$approval_form.find('.ajax-response').html('<span class="notice-red">The application encountered an error while submitting your request (' + errorThrown + ').<br>' + jqXHR.responseText + '</span>');
       }
     });
   };
@@ -68,13 +68,13 @@
       	if ( data.indexOf('{') === 0 ) {
 					// Only JSON returned.
       		var response = JSON.parse(data);
-      		$approval_form.parent().html('You have returned the order to the end user.');
+      		$approval_form.parent().html('<span class="notice-red">You have returned the order to the end user.</span>');
       	} else {
-      		$approval_form.find('.ajax-response').html('There was an error returning the order: ' + data);
+      		$approval_form.find('.ajax-response').html('<span class="notice-red">There was an error returning the order: ' + data + '</span>');
       	}
       },
       error: function( jqXHR, textStatus, errorThrown ) {
-      	$approval_form.find('.ajax-response').html('The application encountered an error while submitting your request (' + errorThrown + ').<br>' + jqXHR.responseText );
+      	$approval_form.find('.ajax-response').html('<span class="notice-red">The application encountered an error while submitting your request (' + errorThrown + ').<br>' + jqXHR.responseText + '</span>');
       }
     });
   };
@@ -98,14 +98,18 @@
       	if ( data.indexOf('{') === 0 ) {
 					// Only JSON returned.
       		var response = JSON.parse(data);
-      		$acquisition_form.find('.ajax-response').html('<div class="fade-out">You have updated the order.</div>');
-      		window.setTimeout(function(){$acquisition_form.find('.ajax-response .fade-out').fadeOut();}, 3000);
+          if ( 'success' === response.status ) {
+            $acquisition_form.find('.ajax-response').html('<div class="fade-out notice-green">You have updated the order.</div>');
+            window.setTimeout(function(){$acquisition_form.find('.ajax-response .fade-out').fadeOut();}, 3000);
+          } else {
+            $acquisition_form.find('.ajax-response').html('<div class="notice-red">' + response.status + '</div>');
+          }
       	} else {
-      		$acquisition_form.find('.ajax-response').html('There was an error updating the order: ' + data);
+      		$acquisition_form.find('.ajax-response').html('<span class="notice-red">There was an error updating the order: ' + data + '</span>');
       	}
       },
       error: function( jqXHR, textStatus, errorThrown ) {
-      	$acquisition_form.find('.ajax-response').html('The application encountered an error while submitting your request (' + errorThrown + ').<br>' + jqXHR.responseText );
+      	$acquisition_form.find('.ajax-response').html('<span class="notice-red">The application encountered an error while submitting your request (' + errorThrown + ').<br>' + jqXHR.responseText + '</span>');
       }
     });
   };
@@ -137,17 +141,17 @@
 	      				}
 	      				output += errors[i];
 	      			}
-	      			$acquisition_form.find('.ajax-response').html(output);
+	      			$acquisition_form.find('.ajax-response').html('<span class="notice-red">' + output + '</span>');
 	      		} else {
-		      		$acquisition_form.find('.ajax-response').html('You have published the order. The page will refresh in 3 seconds.');
+		      		$acquisition_form.find('.ajax-response').html('<span class="notice-green">You have published the order. The page will refresh in 3 seconds.</span>');
 		      		window.setTimeout(function(){location.reload();}, 3000);
 	      		}
 	      	} else {
-	      		$acquisition_form.find('.ajax-response').html('There was an error publishing the order: ' + data);
+	      		$acquisition_form.find('.ajax-response').html('<span class="notice-red">There was an error publishing the order: ' + data + '</span>');
 	      	}
 	      },
 	      error: function( jqXHR, textStatus, errorThrown ) {
-	      	$acquisition_form.find('.ajax-response').html('The application encountered an error while submitting your request (' + errorThrown + ').<br>' + jqXHR.responseText );
+	      	$acquisition_form.find('.ajax-response').html('<span class="notice-red">The application encountered an error while submitting your request (' + errorThrown + ').<br>' + jqXHR.responseText + '</span>');
 	      }
 	    });
   	} else {
