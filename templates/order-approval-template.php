@@ -42,7 +42,7 @@ function cla_workstation_order_approval_scripts() {
 		CLA_WORKSTATION_ORDER_DIR_URL . 'js/order-approval.js',
 		false,
 		filemtime( CLA_WORKSTATION_ORDER_DIR_PATH . 'js/order-approval.js' ),
-		'screen'
+		true
 	);
 
 	wp_enqueue_script( 'jquery' );
@@ -90,8 +90,11 @@ add_action( 'wp_enqueue_scripts', 'cla_workstation_order_delete_scripts', 1 );
  *
  * @return string
  */
-function cla_empty_edit_link() {
-	return '';
+function cla_empty_edit_link( $link ) {
+	if ( ! current_user_can( 'wso_admin' ) ) {
+		$link = '';
+	}
+	return $link;
 }
 add_filter( 'edit_post_link', 'cla_empty_edit_link' );
 
@@ -134,7 +137,7 @@ add_action( 'genesis_entry_header', function(){
 	global $post;
 	$output = '';
 	if ( current_user_can( 'wso_logistics' ) || current_user_can( 'wso_admin' ) ) {
-		$output .= '<div class="cell shrink"><button class="btn btn-square btn-outline-red" type="button" title="Delete this order" id="cla_delete_order"><span class="dashicons dashicons-trash"></span></button></div>';
+		$output .= '<div class="cell shrink"><button class="cla-delete-order btn btn-square btn-outline-red" type="button" title="Delete this order"><span class="dashicons dashicons-trash"></span></button></div>';
 	}
 	if ( ! empty( $output ) ) {
 		$output = "<div class=\"cell shrink\"><div class=\"grid-x\">{$output}</div></div>";

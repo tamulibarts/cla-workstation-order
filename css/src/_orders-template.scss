@@ -1,0 +1,85 @@
+.order-sidebar {
+	.btn {
+		width: 100%;
+	}
+
+	.card-body {
+		padding: {
+			top: 7px;
+			bottom: 7px;
+		}
+	}
+
+	.card .cell {
+		margin: 3.5px 7px;
+	}
+
+	.status-color-key {
+		width: 30px;
+		height: 30px;
+		display: block;
+	}
+
+	.align-middle {
+		text-align: left;
+	}
+
+	#reset-button {
+		border-radius: 0 0 6px 6px;
+	}
+
+	#search-program {
+		border-radius: 6px 6px 0 0;
+	}
+
+	#order-search-filters {
+		margin-top: 1rem;
+		text-align: center;
+	}
+
+	.search-filter-wrap {
+		position: relative;
+
+		&::after {
+			content: "";
+			display: block;
+			width: 0;
+			height: 0;
+			border: 6px solid #FFF;
+			border-bottom-color: transparent;
+			border-left-color: transparent;
+			border-right-color: transparent;
+			position: absolute;
+			top: 50%;
+			right: 6px;
+			margin-top: -3px;
+			pointer-events: none;
+		}
+	}
+
+	select.btn-secondary {
+		padding: .5rem;
+		text-align: center;
+		text-align-last: center;
+		transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+
+		&:active,
+		&:focus {
+			outline: 1;
+		}
+	}
+}
+
+.order-search-results {
+	.btn + .btn {
+		margin-left: 0;
+	}
+
+	.btn-outline-yellow {
+		border-radius: 0.2rem 0 0 0.2rem;
+	}
+
+	.btn-outline-red {
+		border-radius: 0 0.2rem 0.2rem 0;
+	}
+}

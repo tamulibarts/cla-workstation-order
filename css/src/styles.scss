@@ -2,6 +2,7 @@
 
 @import "foundation";
 @import "settings";
+@import "orders-template";
 
 dl.horizontal {
 	display: flex;
@@ -74,9 +75,22 @@ dl.horizontal {
 	}
 
 	.dashicons,
+	.dashicons:before,
 	.dashicons-before:before {
 		transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 	}
+}
+
+.btn-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  border-radius: 0.2rem;
+
+  .dashicons {
+  	width: 16px;
+  	height: 16px;
+  }
 }
 
 .btn-outline-dark {
@@ -95,11 +109,32 @@ dl.horizontal {
 	margin: 0 .5rem;
 }
 
-.btn-outline-green {
+.btn-outline-green,
+.btn-outline-success {
 	color: #28A745;
 	background-color: transparent;
 	background-image: none;
 	border-color: #28A745;
+
+	&:hover {
+    color: #FFF;
+    background-color: #28A745;
+    border-color: #28A745;
+	}
+}
+
+.btn-outline-warning,
+.btn-outline-yellow {
+  color: #FFC107;
+  background-color: transparent;
+  background-image: none;
+  border-color: #FFC107;
+
+  &:hover {
+    color: #212529;
+    background-color: #FFC107;
+    border-color: #FFC107;
+  }
 }
 
 .btn-outline-red {
@@ -161,12 +196,27 @@ dl.horizontal {
 }
 
 input#cla_submit[type="submit"],
-.button-submit {
+.button-submit,
+.btn-primary {
 	@extend %button;
 
 	&:hover {
 		@extend %button-hover;
 	}
+}
+
+.btn-secondary {
+	color: #FFF;
+	background-color: #6C757D;
+	border-color: #6C757D;
+
+	&:focus,
+	&:active,
+	&:hover {
+    color: #FFF;
+    background-color: #5A6268;
+    border-color: #545B62;
+  }
 }
 
 .button-submit {
@@ -205,7 +255,10 @@ input.flagged {
 	width: 40px;
 	height: 40px;
 	display: inline-block;
+}
 
+.status-color-key,
+.status-indicator {
 	&.action_required {
 		background-color: #FFC107;
 	}
@@ -221,5 +274,36 @@ input.flagged {
 
 	&.awaiting_another {
 		background-color: #D6D8DB;
+	}
+}
+
+.grid-x.align-middle {
+	align-items: center;
+}
+
+.card {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	font-size: 16px;
+	min-width: 0;
+	word-wrap: break-word;
+	background-color: #FFF;
+	background-clip: border-box;
+	border: 1px solid rgba(0, 0, 0, 0.125);
+	border-radius: 0.25rem;
+	margin: {
+		top: 0.9375rem;
+		bottom: 0.9375rem;
+	}
+}
+
+.card-body {
+	flex: 1 1 auto;
+	padding: 1.25rem;
+	text-align: center;
+
+	p {
+		margin-bottom: 0;
 	}
 }

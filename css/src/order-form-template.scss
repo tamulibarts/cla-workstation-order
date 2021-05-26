@@ -222,23 +222,6 @@
 		}
 	}
 
-	.card {
-		position: relative;
-		display: flex;
-		flex-direction: column;
-		font-size: 16px;
-		min-width: 0;
-		word-wrap: break-word;
-		background-color: #FFF;
-		background-clip: border-box;
-		border: 1px solid rgba(0, 0, 0, 0.125);
-		border-radius: 0.25rem;
-		margin: {
-			top: 0.9375rem;
-			bottom: 0.9375rem;
-		}
-	}
-
 	.card-header,
 	.card-footer {
 		margin-bottom: 0;
@@ -267,16 +250,6 @@
 		border-top: 1px solid rgba(0, 0, 0, 0.125);
 		border-radius: 0 0 calc(0.25rem - 1px) calc(0.25rem - 1px);
 		padding: .75rem 0;
-	}
-
-	.card-body {
-		flex: 1 1 auto;
-		padding: 1.25rem;
-		text-align: center;
-
-		p {
-			margin-bottom: 0;
-		}
 	}
 
 	a.add-product {

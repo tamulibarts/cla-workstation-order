@@ -3,13 +3,31 @@
 	var admin_ajax      = WSODeleteOrderAJAX;
   var ajaxDeleteOrder = function(e){
   	e.preventDefault();
-    $(this).prev('.ajax-delete-message').remove();
+    var $button = $(this);
+    var clear_container = $button.attr('data-clear-container');
+    var post_id = $button.attr('data-post-id');
+    var container_selector = '.entry.wsorder';
+    if ( post_id !== undefined ) {
+      post_id = parseInt( post_id );
+      if ( false === Number.isNaN( post_id ) ) {
+        container_selector += '.post-' + post_id;
+      }
+    }
+    var $container = $(container_selector);
+    $container.find('.ajax-delete-message').remove();
     var confirmed = confirm('Are you sure you want to delete the order? This cannot be undone.');
     if ( true === confirmed ) {
-      var $button   = $(this);
       var form_data = new FormData();
-      $button.before('<span class="ajax-delete-message notice-red"></span>');
-      var $message = $button.prev('.ajax-delete-message');
+      var message_html = '<span class="ajax-delete-message notice-red"></span>';
+      if ( 'true' !== clear_container ) {
+        $button.before(message_html);
+      } else {
+        $button.after(message_html);
+      }
+      var $message = $container.find('.ajax-delete-message');
+      if ( false === Number.isNaN( post_id ) ) {
+        form_data.append('order_post_id', post_id);
+      }
       form_data.append('action', 'delete_order');
       form_data.append('_ajax_nonce', admin_ajax.nonce);
       jQuery.ajax({
@@ -26,7 +44,11 @@
               $message.html(response.status);
             } else {
               $message.html('You have deleted the order.');
-              $button.remove();
+              if ( 'true' !== clear_container ) {
+                $button.remove();
+              } else {
+                $container.fadeOut();
+              }
             }
           } else {
             $message.html('There was an error deleting the order: ' + data);
@@ -39,6 +61,6 @@
     }
   };
 
-	$('#cla_delete_order').on('click', ajaxDeleteOrder);
+	$('.cla-delete-order').on('click', ajaxDeleteOrder);
 
 })(jQuery);

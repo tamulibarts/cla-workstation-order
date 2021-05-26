@@ -44,7 +44,7 @@ function cla_workstation_order_delete_scripts() {
 			CLA_WORKSTATION_ORDER_DIR_URL . 'js/order-delete.js',
 			array('jquery'),
 			filemtime( CLA_WORKSTATION_ORDER_DIR_PATH . 'js/order-delete.js' ),
-			'screen'
+			true
 		);
 
 		// wp_enqueue_script( 'jquery' );
@@ -64,8 +64,11 @@ add_action( 'wp_enqueue_scripts', 'cla_workstation_order_delete_scripts', 1 );
  *
  * @return string
  */
-function cla_empty_edit_link() {
-	return '';
+function cla_empty_edit_link( $link ) {
+	if ( ! current_user_can( 'wso_admin' ) ) {
+		$link = '';
+	}
+	return $link;
 }
 add_filter( 'edit_post_link', 'cla_empty_edit_link' );
 

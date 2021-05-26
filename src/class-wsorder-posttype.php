@@ -33,6 +33,7 @@ class WSOrder_PostType {
 		add_action( 'admin_init', array( $this, 'redirect_to_current_program_orders' ) );
 		// Register custom fields.
 		add_action( 'acf/init', array( $this, 'register_custom_fields' ) );
+
 		// Add custom post status elements to dropdown box.
 		add_action( 'post_submitbox_misc_actions', array( $this, 'post_status_add_to_dropdown' ) );
 		// Return readable custom post status title.
@@ -85,6 +86,7 @@ class WSOrder_PostType {
 		add_action( 'wp_ajax_update_order_acquisitions', array( $this, 'update_order_acquisitions' ) );
 		add_action( 'wp_ajax_publish_order', array( $this, 'publish_order' ) );
 		add_action( 'wp_ajax_delete_order', array( $this, 'delete_order' ) );
+		add_action( 'wp_ajax_search_order', array( $this, 'search_order' ) );
 
 		// Add program dropdown filter to post list screen.
 		add_action( 'restrict_manage_posts', array( $this, 'add_admin_post_program_filter' ), 10 );
@@ -142,15 +144,6 @@ class WSOrder_PostType {
 
 		// Render single order view.
 		add_filter( 'single_template', array( $this, 'get_single_template' ) );
-
-		/**
-		 * Make changes to public list view.
-		 */
-		add_action( 'wp', function(){
-			if ( is_post_type_archive( 'wsorder' ) ) {
-				remove_action( 'genesis_entry_header', 'genesis_post_info', 12 );
-			}
-		});
 
 	}
 
@@ -397,9 +390,13 @@ class WSOrder_PostType {
 		// Ensure nonce is valid.
 		check_ajax_referer( 'delete_order' );
 
-		// Get referring post properties.
-		$url       = wp_get_referer();
-		$post_id   = url_to_postid( $url );
+		if ( isset( $_REQUEST['order_post_id'] ) ) {
+			$post_id = (int) $_REQUEST['order_post_id'];
+		} else {
+			// Get referring post properties.
+			$url     = wp_get_referer();
+			$post_id = url_to_postid( $url );
+		}
 		$post_type = get_post_type( $post_id );
 
 		if ( 'wsorder' !== $post_type ) {
@@ -414,11 +411,139 @@ class WSOrder_PostType {
 			if ( is_object( $deleted ) ) {
 				$json_out['status'] = 'deleted';
 			}
+		} else {
+			$json_out['status'] = 'You do not have permission.';
 		}
 
 		echo json_encode( $json_out );
 		die();
 
+	}
+
+	/**
+	 * Confirm the order by this user.
+	 *
+	 * @return void
+	 */
+	public function search_order() {
+
+		// Ensure nonce is valid.
+		check_ajax_referer( 'search_order' );
+
+		$json_out     = array( 'status' => 'No orders found.' );
+		$program_id   = (int) $_POST['program_id'];
+		$status       = $_POST['order_status'];
+		$args         = array(
+			'post_type'      => 'wsorder',
+			'post_status'    => array( 'publish', 'returned', 'action_required' ),
+			'fields'         => 'ids',
+			'posts_per_page' => -1,
+		);
+
+		if ( 'action_required' === $status ) {
+			$args['post_status'] = 'action_required';
+		} elseif ( 'returned' === $status ) {
+			$args['post_status'] = 'returned';
+		} elseif ( 'publish' === $status ) {
+			$args['post_status'] = 'publish';
+		}
+
+		if ( 0 !== $program_id ) {
+			$args['meta_key']   = 'program';
+			$args['meta_value'] = $program_id;
+		}
+
+		$order_posts = get_posts( $args );
+		if ( ! empty( $order_posts ) ) {
+			$json_out['status']         = 'success';
+			$json_out['program_prefix'] = get_post_meta( $program_id, 'prefix', true );
+			if ( empty( $json_out['program_prefix'] ) ) {
+				$json_out['program_prefix'] = get_the_title( $program_id );
+			}
+			$output                     = '';
+			foreach ( $order_posts as $key => $order_id ) {
+				$output .= $this->get_order_output( $order_id );
+			}
+			$json_out['output'] = $output;
+		}
+
+		echo json_encode( $json_out );
+		die();
+
+	}
+
+	/**
+	 * Get order output for search page, identical to orders page template function.
+	 *
+	 * @param int $post_id The post ID.
+	 *
+	 * @return string
+	 */
+	private function get_order_output( $post_id ) {
+		$post = get_post( $post_id );
+		date_default_timezone_set('America/Chicago');
+		$creation_time         = strtotime( $post->post_date_gmt.' UTC' );
+		$creation_date         = date( 'M j, Y \a\t g:i a', $creation_time );
+		$status                = get_post_status( $post_id );
+		$permalink             = get_permalink( $post_id );
+		$author_id             = (int) get_post_field( 'post_author', $post_id );
+		$author                = get_user_by( 'ID', $author_id );
+		$author_name           = $author->display_name;
+		$author_dept           = get_the_author_meta( 'department', $author_id );
+		$dept_name             = get_the_title( $author_dept );
+		$subtotal              = get_field( 'products_subtotal', $post_id );
+		$subtotal              = '$' . number_format( $subtotal, 2, '.', ',' );
+		$it_rep_fields         = get_field( 'it_rep_status', $post_id );
+		$it_rep_name           = $it_rep_fields['it_rep']['display_name'];
+		$business_admin_fields = get_field( 'business_staff_status', $post_id );
+		$business_admin_name   = empty( $business_admin_fields['business_staff'] ) ? '' : $business_admin_fields['business_staff']['display_name'];
+		$logistics_fields      = get_field( 'it_logistics_status', $post_id );
+		$output                = '';
+
+		// Combined output.
+		$output .= "<tr class=\"post-{$post_id} wsorder entry status-{$status}\">";
+		$output .= "<td class=\"status-indicator {$status}\"></td>";
+		$output .= "<td><a href=\"{$permalink}\">{$author_name}</a><br>{$dept_name}</td>";
+		$output .= "<td>{$creation_date}</td>";
+		$output .= "<td>{$subtotal}</td>";
+		$output .= "<td>";
+		if ( $it_rep_fields['confirmed'] === true ) {
+			$output .= "<span class=\"badge badge-success\">Confirmed</span>";
+		} else {
+			$output .= "<span class=\"badge badge-light\">Not yet confirmed</span>";
+		}
+		$output .= "<br><small>{$it_rep_name}</small></td>";
+		$output .= "<td>";
+		if ( empty ( $business_admin_fields['business_staff'] ) ) {
+			$output .= "<span class=\"badge badge-light\">Not required</span>";
+		} else if ( $business_admin_fields['confirmed'] === true ) {
+			$output .= "<span class=\"badge badge-success\">Confirmed</span>";
+		} else {
+			$output .= "<span class=\"badge badge-light\">Not yet confirmed</span>";
+		}
+		$output .= "<br><small>{$business_admin_name}</small></td>";
+		$output .= "<td>";
+		if ( $logistics_fields['confirmed'] === true ) {
+			$output .= "<span class=\"badge badge-success\">Confirmed</span>";
+		} else {
+			$output .= "<span class=\"badge badge-light\">Not yet confirmed</span>";
+		}
+		if ( $logistics_fields['ordered'] === true ) {
+			$output .= " <span class=\"badge badge-success\">Ordered</span>";
+		} else {
+			$output .= " <span class=\"badge badge-light\">Not yet ordered</span>";
+		}
+		$output .= "</td>";
+		$output .= "<td>";
+		if ( current_user_can( 'administrator' ) || current_user_can( 'wso_admin' ) || current_user_can( 'wso_logistics' ) ) {
+			if ( 'publish' !== $status ) {
+				$output .= '<a class="btn btn-sm btn-outline-yellow" title="Edit this order" href="' . $permalink . '"><span class="dashicons dashicons-welcome-write-blog"></span></a>';
+			}
+			$output .= '<button class="cla-delete-order btn btn-sm btn-outline-red" data-post-id="' . $post_id . '" data-clear-container="true" type="button" title="Delete this order"><span class="dashicons dashicons-trash"></span></button>';
+		}
+		$output .= "</td>";
+		$output .= "</tr>";
+		return $output;
 	}
 
 	/**
@@ -1924,6 +2049,7 @@ jQuery( 'select[name=\"post_status\"]' ).val('publish')";
 	 * @return void
 	 */
 	public function pre_get_posts( $query ) {
+
 		if ( 'wsorder' === $query->get( 'post_type' ) ) {
 			// Allow admins and logistics to see all orders.
 			// Do not limit views in admin.
