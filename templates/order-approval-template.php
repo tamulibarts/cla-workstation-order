@@ -134,12 +134,8 @@ add_filter( 'genesis_attr_entry-title', function( $attr ) {
  * Add print and maybe delete button.
  */
 add_action( 'genesis_entry_header', function(){
-	global $post;
-	$output = '';
 	if ( current_user_can( 'wso_logistics' ) || current_user_can( 'wso_admin' ) ) {
-		$output .= '<div class="cell shrink"><button class="cla-delete-order btn btn-square btn-outline-red" type="button" title="Delete this order"><span class="dashicons dashicons-trash"></span></button></div>';
-	}
-	if ( ! empty( $output ) ) {
+		$output = '<div class="cell shrink"><button class="cla-delete-order btn btn-square btn-outline-red" type="button" title="Delete this order"><span class="dashicons dashicons-trash"></span></button></div>';
 		$output = "<div class=\"cell shrink\"><div class=\"grid-x\">{$output}</div></div>";
 		echo wp_kses_post( $output );
 	}
@@ -162,26 +158,28 @@ function cla_render_order( $content ) {
 		 * Variables used to output work order info.
 		 */
 		global $post;
-		$post_id              = $post->ID;
-		$post_meta            = get_post_meta( $post->ID );
-		$current_user_id      = get_current_user_id();
-		$order_author_id      = $post_meta['order_author'][0];
-		$order_author         = get_user_by( 'id', $order_author_id );
+		$post_id         = $post->ID;
+		$post_meta       = get_post_meta( $post->ID );
+		$current_user_id = get_current_user_id();
+		$order_author_id = $post_meta['order_author'][0];
+		$order_author    = get_user_by( 'id', $order_author_id );
 		preg_match( '/^([^\s]+)\s+(.*)/', $order_author->data->display_name, $order_author_name );
-		$first_name           = $order_author_name[1];
-		$last_name            = $order_author_name[2];
-		$affiliated_it_reps   = get_field( 'affiliated_it_reps', $post->ID );
-		$it_rep               = get_post_meta( $post->ID, 'it_rep_status_it_rep', true );
-		$is_it_rep            = in_array( $current_user_id, $affiliated_it_reps ) ? true : false;
-		$affiliated_bus_staff = get_field( 'affiliated_business_staff', $post->ID );
-		$is_business_staff    = in_array( $current_user_id, $affiliated_bus_staff ) ? true : false;
-		$business_admin       = (int) get_post_meta( $post->ID, 'business_staff_status_business_staff', true );
-		$order_items          = get_field( 'order_items', $post_id );
-		$quotes               = get_field( 'quotes', $post_id );
-		$department_id = $post_meta['author_department'][0];
-		$department    = get_post( $department_id );
-		$contribution  = $post_meta['contribution_amount'][0];
-		$current_asset = $post_meta['current_asset'][0];
+		$first_name              = $order_author_name[1];
+		$last_name               = $order_author_name[2];
+		$affiliated_it_reps      = get_field( 'affiliated_it_reps', $post->ID );
+		$it_rep_id               = (int) get_post_meta( $post->ID, 'it_rep_status_it_rep', true );
+		$is_aff_it_rep           = in_array( $current_user_id, $affiliated_it_reps ) ? true : false;
+		$it_rep_approved         = (int) get_post_meta( $post->ID, 'it_rep_status_confirmed', true );
+		$affiliated_bus_staff    = get_field( 'affiliated_business_staff', $post->ID );
+		$is_aff_business_staff   = in_array( $current_user_id, $affiliated_bus_staff ) ? true : false;
+		$business_admin_id       = (int) get_post_meta( $post->ID, 'business_staff_status_business_staff', true );
+		$business_admin_approved = (int) get_post_meta( $post->ID, 'business_staff_status_confirmed', true );
+		$order_items             = get_field( 'order_items', $post_id );
+		$quotes                  = get_field( 'quotes', $post_id );
+		$department_id           = $post_meta['author_department'][0];
+		$department              = get_post( $department_id );
+		$contribution            = $post_meta['contribution_amount'][0];
+		$current_asset           = $post_meta['current_asset'][0];
 		date_default_timezone_set('America/Chicago');
 		$creation_time = strtotime( $post->post_date_gmt.' UTC' );
 		$creation_date = date( 'M j, Y \a\t g:i a', $creation_time );
@@ -248,16 +246,25 @@ function cla_render_order( $content ) {
 		 * Processing.
 		 */
 		$content .= '<div class="cell small-12 medium-6"><h2>Processing</h2>';
-		if ( $is_it_rep || $is_business_staff || ( current_user_can( 'wso_logistics' ) && 0 === $logistics_confirmed ) ) {
-			$label = $is_it_rep ? 'This order is pending confirmation by IT staff' : 'This order is pending confirmation by business staff';
-			if ( current_user_can( 'wso_logistics' ) ) {
-				$label = 'This order is pending confirmation by logistics';
+		if ( $current_user_id === $it_rep_id || $current_user_id === $business_admin || current_user_can( 'wso_logistics' ) ) {
+			$show_approval_form = false;
+			$extra_fields = '';
+			if ( $current_user_id === $it_rep_id && 1 !== $it_rep_approved ) {
+				$show_approval_form = true;
+				$label = 'IT staff';
+			} elseif ( $current_user_id === $business_admin_id && 1 !== $business_admin_approved ) {
+				$show_approval_form = true;
+				$label = 'business staff';
+				$extra_fields = "<input type=\"text\" name=\"cla_account_number\" id=\"cla_account_number\" placeholder=\"Account Number\" />";
+			} elseif ( current_user_can( 'wso_logistics' ) && 1 !== $logistics_confirmed ) {
+				$show_approval_form = true;
+				$label = 'logistics';
 			}
-			$content .= "<div id=\"approval-fields\" class=\"outline-fields\"><form method=\"post\" enctype=\"multipart/form-data\" id=\"cla_order_approval_form\" action=\"{$permalink}\"><div class=\"ajax-response\"></div><div class=\"grid-x\"><div class=\"cell auto\"><label for=\"approval_comments\"><strong>$label</strong></label><div>Please look it over for any errors or ommissions then confirm or return.</div></div><div class=\"cell shrink\"><button class=\"button btn btn-outline-green\" type=\"button\" id=\"cla_confirm\">Confirm</button> <button class=\"button btn btn-outline-red\" type=\"button\" id=\"cla_return\">Return</button></div></div>";
-			if ( $is_business_staff ) {
-				$content .= "<input type=\"text\" name=\"cla_account_number\" id=\"cla_account_number\" placeholder=\"Account Number\" />";
+			if ( true === $show_approval_form ) {
+				$content .= "<div id=\"approval-fields\" class=\"outline-fields\"><form method=\"post\" enctype=\"multipart/form-data\" id=\"cla_order_approval_form\" action=\"{$permalink}\"><div class=\"ajax-response\"></div><div class=\"grid-x\"><div class=\"cell auto\"><label for=\"approval_comments\"><strong>This order is pending confirmation by {$label}</strong></label><div>Please look it over for any errors or ommissions then confirm or return.</div></div><div class=\"cell shrink\"><button class=\"button btn btn-outline-green\" type=\"button\" id=\"cla_confirm\">Confirm</button> <button class=\"button btn btn-outline-red\" type=\"button\" id=\"cla_return\">Return</button></div></div>{$extra_fields}<textarea id=\"approval_comments\" name=\"approval_comments\" placeholder=\"Comment\"></textarea></form></div>";
 			}
-			$content .= "<textarea id=\"approval_comments\" name=\"approval_comments\" placeholder=\"Comment\"></textarea></form></div>";
+		} elseif ( true === $is_aff_it_rep || true === $is_aff_business_staff ) {
+			$content .= "<div id=\"approval-fields\" class=\"p\"><form method=\"post\" enctype=\"multipart/form-data\" id=\"cla_order_reassign_form\" action=\"{$permalink}\"><h4>This order was not sent to you, but can be reassigned if necessary.</h4><button class=\"btn btn-warning\" type=\"button\" id=\"cla_reassign\">Reassign to me</button><div class=\"ajax-response\"></div></form></div>";
 		}
 		$content .= '<dl class="row horizontal">';
 		$content .= "<dt>IT Staff ({$it_rep->data->display_name})</dt><dd>{$it_rep_date}</dd>";

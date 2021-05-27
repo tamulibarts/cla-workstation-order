@@ -127,7 +127,7 @@ add_action( 'genesis_entry_header', function(){
 
 
 /**
- * Decide if user can update the order. Return true or the error message.
+ * Decide if user can update the order. Return true or the error message. Copied from class-wsorder-posttype.php
  *
  * @param int $post_id The post ID.
  *
@@ -135,14 +135,14 @@ add_action( 'genesis_entry_header', function(){
  */
 function can_current_user_update_order_public( $post_id ) {
 
+  $post_status          = get_post_status( $post_id );
   $can_update           = true;
   $message              = '';
-  $post_status          = get_post_status( $post_id );
   $current_user_id      = get_current_user_id();
   $customer_id          = (int) get_post_meta( $post_id, 'order_author', true );
   $affiliated_it_reps   = get_field( 'affiliated_it_reps', $post_id );
   $affiliated_bus_staff = get_field( 'affiliated_business_staff', $post_id );
-	$bus_user             = (int) get_post_meta( $post_id, 'business_staff_status_business_staff', true );
+	$bus_user_id          = (int) get_post_meta( $post_id, 'business_staff_status_business_staff', true );
 	$it_rep_confirmed     = (int) get_post_meta( $post_id, 'it_rep_status_confirmed', true );
 	$bus_user_confirmed   = (int) get_post_meta( $post_id, 'business_staff_status_confirmed', true );
 
@@ -162,30 +162,43 @@ function can_current_user_update_order_public( $post_id ) {
   	// The user who submitted the order.
   	$can_update = false;
   	$message    = 'You can only change the order when it is returned to you.';
+  	// Handle when the order is for the logistics user.
+  	if ( current_user_can( 'wso_logistics' ) ) {
+  		if ( 1 !== $it_rep_confirmed ) {
+				$can_update = false;
+				$message    = 'An IT Rep has not confirmed the order yet.';
+  		} elseif ( 0 !== $bus_user_id && $current_user_id !== $bus_user_id ) {
+				$can_update = false;
+				$message    = 'A business admin has not confirmed the order yet.';
+  		} else {
+  			$can_update = true;
+  		}
+  	}
   } elseif ( in_array( $current_user_id, $affiliated_it_reps ) ) {
 		if ( 1 === $it_rep_confirmed ) {
 			// IT Rep already confirmed the order, so they cannot change it right now.
 			$can_update = false;
 			$message    = 'An IT representative has already confirmed the order.';
 		}
-  } elseif ( in_array( $current_user_id, $affiliated_bus_staff ) ) {
-		if ( 0 === $it_rep_confirmed ) {
+	} elseif ( current_user_can( 'wso_logistics' ) ) {
+		// Sometimes the logistics user can be a business admin too.
+		if ( 0 === $it_rep_confirmed && 'returned' !== $post_status ) {
 			$can_update = false;
-			$message    = 'The IT Rep has not confirmed the order yet.';
-		} elseif ( 1 === $bus_user_confirmed ) {
+			$message    = 'An IT Rep has not confirmed the order yet.';
+		} elseif ( 0 !== $bus_user_id && 0 === $bus_user_confirmed && $current_user_id !== $bus_user_id ) {
 			$can_update = false;
-			$message    = 'A business admin has already confirmed the order.';
-		} elseif ( 0 === $bus_user ) {
-			$can_update = false;
-			$message    = 'A business admin is not needed for this order.';
+			$message    = 'A business admin has not confirmed the order yet.';
 		}
-  } elseif ( current_user_can( 'wso_logistics' ) ) {
+	} elseif ( in_array( $current_user_id, $affiliated_bus_staff ) ) {
 		if ( 0 === $it_rep_confirmed ) {
 			$can_update = false;
 			$message    = 'An IT Rep has not confirmed the order yet.';
-		} elseif ( 0 !== $bus_user && 0 === $bus_user_confirmed ) {
+		} elseif ( 1 === $bus_user_confirmed ) {
 			$can_update = false;
-			$message    = 'A business admin has not confirmed the order yet.';
+			$message    = 'A business admin has already confirmed the order.';
+		} elseif ( 0 === $bus_user_id ) {
+			$can_update = false;
+			$message    = 'A business admin is not needed for this order.';
 		}
   }
 

@@ -3,12 +3,12 @@
 	var admin_ajax        = WSOAjax;
 	var $approval_form    = jQuery('#cla_order_approval_form');
 	var $acquisition_form = jQuery('#cla_acquisition_form');
+	var $reassign_form    = jQuery('#cla_order_reassign_form');
 
 	var validateLogisticsFields = function(){
 		var valid = true;
 		$acquisition_form.find('.flagged').removeClass('flagged');
-
-		$acquisition_form.find('input').each(function(){
+		$acquisition_form.find('input[name*="req_number"],input[name*="req_date"]').each(function(){
 			if ( this.value === '' ) {
 				valid = false;
 				jQuery(this).addClass('flagged');
@@ -26,6 +26,9 @@
     form_data.append('approval_comments', $approval_form.find('#approval_comments').val());
     form_data.append('action', 'confirm_order');
     form_data.append('_ajax_nonce', admin_ajax.nonce);
+    var $response = $approval_form.find('.ajax-response');
+    console.log($response);
+    $response.html('');
     jQuery.ajax({
       type: "POST",
       url: admin_ajax.ajaxurl,
@@ -36,18 +39,22 @@
       	if ( data.indexOf('{') === 0 ) {
 					// Only JSON returned.
       		var response = JSON.parse(data);
-      		output = 'You have confirmed the order.';
-      		if ( response.hasOwnProperty('refresh') && true === response.refresh ) {
-      			output += ' The page will refresh in 3 seconds.';
-      			window.setTimeout(function(){location.reload();}, 3000);
+      		if ( 'success' === response.status ) {
+	      		output = 'You have confirmed the order.';
+	      		if ( response.hasOwnProperty('refresh') && true === response.refresh ) {
+	      			output += ' The page will refresh in 3 seconds.';
+	      			window.setTimeout(function(){location.reload();}, 3000);
+	      		}
+	      		$approval_form.parent().html( '<span class="notice-green">' + output + '</span>' );
+      		} else {
+      			$response.html('<span class="notice-red">' + response.status + '</span>');
       		}
-      		$approval_form.parent().html( '<span class="notice-green">' + output + '</span>' );
       	} else {
-      		$approval_form.find('.ajax-response').html('<span class="notice-red">There was an error confirming the order: ' + data + '</span>');
+      		$response.html('<span class="notice-red">There was an error confirming the order: ' + data + '</span>');
       	}
       },
       error: function( jqXHR, textStatus, errorThrown ) {
-      	$approval_form.find('.ajax-response').html('<span class="notice-red">The application encountered an error while submitting your request (' + errorThrown + ').<br>' + jqXHR.responseText + '</span>');
+      	$response.html('<span class="notice-red">The application encountered an error while submitting your request (' + errorThrown + ').<br>' + jqXHR.responseText + '</span>');
       }
     });
   };
@@ -79,7 +86,7 @@
     });
   };
 
-  var ajaxLogistics = function(e){
+  var ajaxLogistics = function(e, success_callback){
   	e.preventDefault();
 		$acquisition_form.find('.ajax-response').html('');
     var form_data = new FormData();
@@ -101,6 +108,9 @@
           if ( 'success' === response.status ) {
             $acquisition_form.find('.ajax-response').html('<div class="fade-out notice-green">You have updated the order.</div>');
             window.setTimeout(function(){$acquisition_form.find('.ajax-response .fade-out').fadeOut();}, 3000);
+            if ( typeof success_callback === 'function' ) {
+            	success_callback(e);
+            }
           } else {
             $acquisition_form.find('.ajax-response').html('<div class="notice-red">' + response.status + '</div>');
           }
@@ -159,9 +169,49 @@
   	}
   };
 
+  var ajaxLogisticsPublish = function(e){
+  	ajaxLogistics(e, ajaxPublish);
+  };
+
+  var ajaxReassign = function(e){
+  	e.preventDefault();
+  	var $response = $reassign_form.find('.ajax-response');
+    var form_data = new FormData();
+    var $button   = $(this);
+    form_data.append('action', 'reassign_order');
+    form_data.append('_ajax_nonce', admin_ajax.nonce);
+  	$response.html('');
+    jQuery.ajax({
+      type: "POST",
+      url: admin_ajax.ajaxurl,
+			contentType: false,
+			processData: false,
+      data: form_data,
+      success: function(data) {
+      	if ( data.indexOf('{') === 0 ) {
+					// Only JSON returned.
+      		var response = JSON.parse(data);
+      		if ( 'success' === response.status ) {
+	      		$response.html('<span class="notice-green">You have reassigned the order to yourself. The page will refresh in 3 seconds.</span>');
+	      		$button.remove();
+	      		window.setTimeout(function(){location.reload();}, 3000);
+      		} else {
+      			$response.html('<span class="notice-red">' + response.status + '</span>');
+      		}
+      	} else {
+      		$response.html('<span class="notice-red">There was an error reassigning the order: ' + data + '</span>');
+      	}
+      },
+      error: function( jqXHR, textStatus, errorThrown ) {
+      	$response.html('<span class="notice-red">The application encountered an error while submitting your request (' + errorThrown + ').<br>' + jqXHR.responseText + '</span>');
+      }
+    });
+  };
+
 	$approval_form.find('#cla_confirm').on('click', ajaxConfirm);
 	$approval_form.find('#cla_return').on('click', ajaxReturn);
 	$acquisition_form.submit(ajaxLogistics);
-	$acquisition_form.find('#cla_publish').on('click', ajaxPublish);
+	$acquisition_form.find('#cla_publish').on('click', ajaxLogisticsPublish);
+	$reassign_form.find('#cla_reassign').on('click', ajaxReassign);
 
 })(jQuery);

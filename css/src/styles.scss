@@ -68,7 +68,10 @@ dl.horizontal {
 	line-height: 1.5;
 	border-radius: 0.25rem;
 	transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-	cursor: pointer;
+
+	&:not(:disabled):not(.disabled) {
+    cursor: pointer;
+	}
 
 	+ .btn {
 		margin-left: .5rem;
@@ -91,6 +94,13 @@ dl.horizontal {
   	width: 16px;
   	height: 16px;
   }
+}
+
+.btn-yellow,
+.btn-warning {
+  color: #212529;
+  background-color: #FFC107;
+  border-color: #FFC107;
 }
 
 .btn-outline-dark {
@@ -306,4 +316,8 @@ input.flagged {
 	p {
 		margin-bottom: 0;
 	}
+}
+
+#approval-fields {
+	margin-bottom: 1rem;
 }

@@ -85,6 +85,7 @@ class WSOrder_PostType {
 		add_action( 'wp_ajax_return_order', array( $this, 'return_order' ) );
 		add_action( 'wp_ajax_update_order_acquisitions', array( $this, 'update_order_acquisitions' ) );
 		add_action( 'wp_ajax_publish_order', array( $this, 'publish_order' ) );
+		add_action( 'wp_ajax_reassign_order', array( $this, 'reassign_order' ) );
 		add_action( 'wp_ajax_delete_order', array( $this, 'delete_order' ) );
 		add_action( 'wp_ajax_search_order', array( $this, 'search_order' ) );
 
@@ -204,6 +205,54 @@ class WSOrder_PostType {
 	}
 
 	/**
+	 * Publish order.
+	 */
+	public function reassign_order() {
+
+		// Ensure nonce is valid.
+		check_ajax_referer( 'confirm_order' );
+
+		// Get referring post properties.
+		$url       = wp_get_referer();
+		$post_id   = url_to_postid( $url );
+		$post_type = get_post_type( $post_id );
+
+		if ( 'wsorder' !== $post_type ) {
+			return;
+		}
+
+		$json_out                  = array( 'status' => 'The order could not be reassigned.' );
+		$current_user_id           = get_current_user_id();
+		$affiliated_it_reps        = get_field( 'affiliated_it_reps', $post_id );
+		$affiliated_business_staff = get_field( 'affiliated_business_staff', $post_id );
+		if ( ! is_array( $affiliated_it_reps ) ) {
+			$affiliated_it_reps = array();
+		}
+		if ( ! is_array( $affiliated_business_staff ) ) {
+			$affiliated_business_staff = array();
+		}
+		$is_aff_it_rep         = in_array( $current_user_id, $affiliated_it_reps );
+		$is_aff_business_staff = in_array( $current_user_id, $affiliated_business_staff );
+
+		// Decide what kind of user this is.
+		if ( $is_aff_it_rep && current_user_can( 'wso_it_rep' ) ) {
+			$update = update_post_meta( $post_id, 'it_rep_status_it_rep', $current_user_id );
+		} elseif ( $is_aff_business_staff && current_user_can( 'wso_business_admin' ) ) {
+			$update = update_post_meta( $post_id, 'business_staff_status_business_staff', $current_user_id );
+		}
+
+		if ( false === $update ) {
+			$json_out['status'] = 'The order could not be reassigned to you.';
+		} else {
+			$json_out['status'] = 'success';
+		}
+
+		echo json_encode( $json_out );
+		die();
+
+	}
+
+	/**
 	 * Confirm the order by this user.
 	 *
 	 * @return void
@@ -222,56 +271,78 @@ class WSOrder_PostType {
 			return;
 		}
 
-		$json_out                  = array();
-		$current_user_id           = get_current_user_id();
-		$affiliated_it_reps        = get_field( 'affiliated_it_reps', $post_id );
-		$affiliated_business_staff = get_field( 'affiliated_business_staff', $post_id );
-		$comments                  = sanitize_text_field( wp_unslash( $_POST['approval_comments'] ) );
-		$json_out['comments']      = $comments;
+		$json_out              = array( 'status' => 'The order could not be confirmed.' );
+		$current_user_id       = get_current_user_id();
+		$it_rep_status         = get_field( 'it_rep_status', $post_id );
+		$business_staff_status = get_field( 'business_staff_status', $post_id );
+		$it_logistics_status   = get_field( 'it_logistics_status', $post_id );
+		$comments              = sanitize_text_field( wp_unslash( $_POST['approval_comments'] ) );
+		$json_out['comments']  = $comments;
 
 		// Decide what kind of user this is.
-		if ( is_array( $affiliated_it_reps ) && in_array( $current_user_id, $affiliated_it_reps ) ) {
-			// Current user is an IT rep.
-			$value = get_field( 'it_rep_status', $post_id );
-			// Update the comments, confirmation, and date fields.
-			$value['it_rep']    = $current_user_id;
-			$value['comments']  = $comments;
-			$value['confirmed'] = 1;
-			// Save the update.
-			update_field( 'it_rep_status', $value, $post_id );
-			// For some reason the confirmed status won't update via update_field.
-			// update_post_meta( $post_id, 'it_rep_status_confirmed', 1 );
-			update_post_meta( $post_id, 'it_rep_status_date', date('Y-m-d H:i:s') );
-		} elseif ( is_array( $affiliated_business_staff ) && in_array( $current_user_id, $affiliated_business_staff ) ) {
-			// Current user is an IT rep.
-			$value = get_field( 'business_staff_status', $post_id );
-			// Update the comments, confirmation, and date fields.
-			$value['business_staff'] = $current_user_id;
-			$value['comments']       = $comments;
-			$value['confirmed']      = 1;
-			// Update the account number if provided.
-			if ( isset( $_POST['account_number'] ) ) {
-				$account_number = sanitize_text_field( wp_unslash( $_POST['account_number'] ) );
-				if ( ! empty( $account_number ) ) {
-					$value['account_number'] = $account_number;
-				}
+		if ( current_user_can( 'wso_it_rep' ) ) {
+		 	if (
+		 		is_array( $it_rep_status )
+		 		&& $current_user_id === $it_rep_status['it_rep']['ID']
+		 		&& false === $it_rep_status['confirmed']
+		 	) {
+				// Current user is an IT rep.
+				// Update the comments, confirmation, and date fields.
+				$it_rep_status['comments']  = $comments;
+				$it_rep_status['confirmed'] = true;
+				// Save the update.
+				update_field( 'it_rep_status', $it_rep_status, $post_id );
+				update_post_meta( $post_id, 'it_rep_status_date', date('Y-m-d H:i:s') );
+				$json_out['status'] = 'success';
 			}
-			// Save the update.
-			update_field( 'business_staff_status', $value, $post_id );
-			// For some reason the confirmed status won't update via update_field.
-			update_post_meta( $post_id, 'business_staff_status_date', date('Y-m-d H:i:s') );
+		} elseif (
+			current_user_can( 'wso_business_admin' )
+			|| (
+				current_user_can( 'wso_logistics' )
+				&& is_array( $business_staff_status )
+		 		&& is_array( $business_staff_status['business_staff'] )
+		 		&& array_key_exists( 'ID', $business_staff_status['business_staff'] )
+		 		&& $current_user_id === $business_staff_status['business_staff']['ID']
+		 		&& false === $business_staff_status['confirmed']
+			)
+		) {
+		 	if (
+		 		is_array( $business_staff_status )
+		 		&& is_array( $business_staff_status['business_staff'] )
+		 		&& array_key_exists( 'ID', $business_staff_status['business_staff'] )
+		 		&& $current_user_id === $business_staff_status['business_staff']['ID']
+		 		&& false === $business_staff_status['confirmed']
+		 	) {
+				// Update the comments, confirmation, and date fields.
+				$business_staff_status['comments']  = $comments;
+				$business_staff_status['confirmed'] = true;
+				// Update the account number if provided.
+				if ( isset( $_POST['account_number'] ) ) {
+					$account_number = sanitize_text_field( wp_unslash( $_POST['account_number'] ) );
+					if ( ! empty( $account_number ) ) {
+						$business_staff_status['account_number'] = $account_number;
+					}
+				}
+				// Save the update.
+				update_field( 'business_staff_status', $business_staff_status, $post_id );
+				update_post_meta( $post_id, 'business_staff_status_date', date('Y-m-d H:i:s') );
+				$json_out['status'] = 'success';
+			}
 		} elseif ( current_user_can( 'wso_logistics' ) ) {
-			// Current user is an IT rep.
-			$value = get_field( 'it_logistics_status', $post_id );
-			// Update the comments, confirmation, and date fields.
-			$value['comments']  = $comments;
-			$value['confirmed'] = 1;
-			// Save the update.
-			update_field( 'it_logistics_status', $value, $post_id );
-			// For some reason the confirmed status won't update via update_field.
-			update_post_meta( $post_id, 'it_logistics_status_date', date('Y-m-d H:i:s') );
-			// Instruct the page to refresh.
-			$json_out['refresh'] = true;
+		 	if (
+		 		is_array( $it_logistics_status )
+		 		&& false === $it_logistics_status['confirmed']
+		 	) {
+				// Update the comments, confirmation, and date fields.
+				$it_logistics_status['comments']  = $comments;
+				$it_logistics_status['confirmed'] = true;
+				// Save the update.
+				update_field( 'it_logistics_status', $it_logistics_status, $post_id );
+				update_post_meta( $post_id, 'it_logistics_status_date', date('Y-m-d H:i:s') );
+				$json_out['status'] = 'success';
+				// Instruct the page to refresh.
+				$json_out['refresh'] = true;
+			}
 		}
 
 		echo json_encode( $json_out );
@@ -293,17 +364,19 @@ class WSOrder_PostType {
 			return;
 		}
 
-		$json_out                  = array();
-		$current_user_id           = get_current_user_id();
-		$affiliated_it_reps        = get_field( 'affiliated_it_reps', $post_id );
-		$affiliated_business_staff = get_field( 'affiliated_business_staff', $post_id );
-		$comments                  = sanitize_text_field( wp_unslash( $_POST['approval_comments'] ) );
-		$json_out['comments']      = $comments;
+		$json_out             = array();
+		$current_user_id      = get_current_user_id();
+		$it_rep_id            = (int) get_post_meta( $post_id, 'it_rep_status_it_rep', true );
+		$business_staff_id    = (int) get_post_meta( $post_id, 'business_staff_status_business_staff', true );
+		$comments             = sanitize_text_field( wp_unslash( $_POST['approval_comments'] ) );
+		$json_out['comments'] = $comments;
 
 		// Decide what kind of user this is.
-		if ( is_array( $affiliated_it_reps ) && in_array( $current_user_id, $affiliated_it_reps ) ) {
-			// Save the current IT rep ID.
-			update_post_meta( $post_id, 'it_rep_status_it_rep', $current_user_id );
+		if (
+			$current_user_id === $it_rep_id
+			|| $current_user_id === $business_staff_id
+			|| current_user_can( 'wso_logistics' )
+		) {
 			// Store user ID who returned the order.
 			update_post_meta( $post_id, 'returned_comments', $comments );
 			// Save the post status.
@@ -311,27 +384,13 @@ class WSOrder_PostType {
 				'ID'          => $post_id,
 				'post_status' => 'returned',
 			);
-			wp_update_post( $args );
-		} elseif ( is_array( $affiliated_business_staff ) && in_array( $current_user_id, $affiliated_business_staff ) ) {
-			// Save the current IT rep ID.
-			update_post_meta( $post_id, 'business_staff_status_business_staff', $current_user_id );
-			// Store user ID who returned the order.
-			update_post_meta( $post_id, 'returned_comments', $comments );
-			// Save the post status.
-			$args = array(
-				'ID'          => $post_id,
-				'post_status' => 'returned',
-			);
-			wp_update_post( $args );
-		} elseif ( current_user_can( 'wso_logistics' ) ) {
-			// Store user ID who returned the order.
-			update_post_meta( $post_id, 'returned_comments', $comments );
-			// Save the post status.
-			$args = array(
-				'ID'          => $post_id,
-				'post_status' => 'returned',
-			);
-			wp_update_post( $args );
+			$updated = wp_update_post( $args );
+
+			if ( 0 === $updated || is_wp_error( $updated ) ) {
+				$json_out['status'] = 'The order could not be returned.';
+			} else {
+				$json_out['status'] = 'success';
+			}
 		}
 
 		echo json_encode( $json_out );
@@ -339,6 +398,9 @@ class WSOrder_PostType {
 
 	}
 
+	/**
+	 * Publish order.
+	 */
 	public function publish_order() {
 
 		// Ensure nonce is valid.
@@ -359,7 +421,7 @@ class WSOrder_PostType {
 		if ( current_user_can( 'wso_logistics' ) ) {
 			// Check the logistics ordered box.
 			$logistics = get_field( 'it_logistics_status', $post_id );
-			$logistics['ordered'] = 1;
+			$logistics['ordered'] = true;
 			update_field( 'it_logistics_status', $logistics, $post_id );
 			// Save the post status.
 			$args = array(
@@ -569,7 +631,7 @@ class WSOrder_PostType {
 		    $current_user_id = get_current_user_id();
 		    $customer_id     = (int) get_post_meta( $post->ID, 'order_author', true );
 
-		    if ( $customer_id === $current_user_id ) {
+		    if ( $customer_id === $current_user_id && 'returned' === get_post_status( $post->ID ) ) {
 					$single_template = CLA_WORKSTATION_ORDER_TEMPLATE_PATH . '/order-form-template.php';
 		    } else {
 					$single_template = CLA_WORKSTATION_ORDER_TEMPLATE_PATH . '/order-approval-template.php';
@@ -639,65 +701,78 @@ class WSOrder_PostType {
 	 */
 	private function can_current_user_update_order_public( $post_id ) {
 
-    $post_status          = get_post_status( $post_id );
-    $can_update           = true;
-    $message              = '';
-    $current_user_id      = get_current_user_id();
-    $customer_id          = (int) get_post_meta( $post_id, 'order_author', true );
-    $affiliated_it_reps   = get_field( 'affiliated_it_reps', $post_id );
-    $affiliated_bus_staff = get_field( 'affiliated_business_staff', $post_id );
-		$bus_user             = (int) get_post_meta( $post_id, 'business_staff_status_business_staff', true );
+	  $post_status          = get_post_status( $post_id );
+	  $can_update           = true;
+	  $message              = '';
+	  $current_user_id      = get_current_user_id();
+	  $customer_id          = (int) get_post_meta( $post_id, 'order_author', true );
+	  $affiliated_it_reps   = get_field( 'affiliated_it_reps', $post_id );
+	  $affiliated_bus_staff = get_field( 'affiliated_business_staff', $post_id );
+		$bus_user_id          = (int) get_post_meta( $post_id, 'business_staff_status_business_staff', true );
 		$it_rep_confirmed     = (int) get_post_meta( $post_id, 'it_rep_status_confirmed', true );
 		$bus_user_confirmed   = (int) get_post_meta( $post_id, 'business_staff_status_confirmed', true );
 
-  	if ( 'publish' === $post_status ) {
-  		$can_update = false;
-  		$message    = 'This order is already published and cannot be changed.';
-  	} elseif (
-  		$customer_id !== $current_user_id
-  		&& 'returned' === $post_status
-  	) {
-  		$can_update = false;
-  		$message    = 'This order is being corrected by the customer.';
-  	} elseif (
-  		$customer_id === $current_user_id
-  		&& 'returned' !== $post_status
-  	) {
-    	// The user who submitted the order.
-    	$can_update = false;
-    	$message    = 'You can only change the order when it is returned to you.';
-    } elseif ( in_array( $current_user_id, $affiliated_it_reps ) ) {
-  		if ( 1 === $it_rep_confirmed ) {
-  			// IT Rep already confirmed the order, so they cannot change it right now.
-  			$can_update = false;
-  			$message    = 'An IT representative has already confirmed the order.';
-  		}
-    } elseif ( in_array( $current_user_id, $affiliated_bus_staff ) ) {
-  		if ( 0 === $it_rep_confirmed ) {
-  			$can_update = false;
-  			$message    = 'An IT Rep has not confirmed the order yet.';
-  		} elseif ( 1 === $bus_user_confirmed ) {
-  			$can_update = false;
-  			$message    = 'A business admin has already confirmed the order.';
-  		} elseif ( 0 === $bus_user ) {
-  			$can_update = false;
-  			$message    = 'A business admin is not needed for this order.';
-  		}
-    } elseif ( current_user_can( 'wso_logistics' ) ) {
-  		if ( 0 === $it_rep_confirmed ) {
-  			$can_update = false;
-  			$message    = 'An IT Rep has not confirmed the order yet.';
-  		} elseif ( 0 !== $bus_user && 0 === $bus_user_confirmed ) {
-  			$can_update = false;
-  			$message    = 'A business admin has not confirmed the order yet.';
-  		}
-    }
+		if ( 'publish' === $post_status ) {
+			$can_update = false;
+			$message    = 'This order is already published and cannot be changed.';
+		} elseif (
+			$customer_id !== $current_user_id
+			&& 'returned' === $post_status
+		) {
+			$can_update = false;
+			$message    = 'This order is being corrected by the customer.';
+		} elseif (
+			$customer_id === $current_user_id
+			&& 'returned' !== $post_status
+		) {
+	  	// The user who submitted the order.
+	  	$can_update = false;
+	  	$message    = 'You can only change the order when it is returned to you.';
+	  	// Handle when the order is for the logistics user.
+	  	if ( current_user_can( 'wso_logistics' ) ) {
+	  		if ( 1 !== $it_rep_confirmed ) {
+					$can_update = false;
+					$message    = 'An IT Rep has not confirmed the order yet.';
+	  		} elseif ( 0 !== $bus_user_id && $current_user_id !== $bus_user_id ) {
+					$can_update = false;
+					$message    = 'A business admin has not confirmed the order yet.';
+	  		} else {
+	  			$can_update = true;
+	  		}
+	  	}
+	  } elseif ( in_array( $current_user_id, $affiliated_it_reps ) ) {
+			if ( 1 === $it_rep_confirmed ) {
+				// IT Rep already confirmed the order, so they cannot change it right now.
+				$can_update = false;
+				$message    = 'An IT representative has already confirmed the order.';
+			}
+		} elseif ( current_user_can( 'wso_logistics' ) ) {
+			// Sometimes the logistics user can be a business admin too.
+			if ( 0 === $it_rep_confirmed && 'returned' !== $post_status ) {
+				$can_update = false;
+				$message    = 'An IT Rep has not confirmed the order yet.';
+			} elseif ( 0 !== $bus_user_id && 0 === $bus_user_confirmed && $current_user_id !== $bus_user_id ) {
+				$can_update = false;
+				$message    = 'A business admin has not confirmed the order yet.';
+			}
+		} elseif ( in_array( $current_user_id, $affiliated_bus_staff ) ) {
+			if ( 0 === $it_rep_confirmed ) {
+				$can_update = false;
+				$message    = 'An IT Rep has not confirmed the order yet.';
+			} elseif ( 1 === $bus_user_confirmed ) {
+				$can_update = false;
+				$message    = 'A business admin has already confirmed the order.';
+			} elseif ( 0 === $bus_user_id ) {
+				$can_update = false;
+				$message    = 'A business admin is not needed for this order.';
+			}
+	  }
 
-    if ( $can_update ) {
-      return true;
-    } else {
-    	return $message;
-    }
+	  if ( $can_update ) {
+	    return true;
+	  } else {
+	  	return $message;
+	  }
 	}
 
 	/**
@@ -1182,21 +1257,21 @@ class WSOrder_PostType {
 			update_field( 'program', $program_id, $post_id );
 			$it_rep_status = array(
 				'it_rep'    => 0,
-				'confirmed' => 0,
+				'confirmed' => false,
 				'comments'  => '',
 			);
 			update_field( 'it_rep_status', $it_rep_status, $post_id );
 			$business_staff_status = array(
 				'business_staff' => 0,
-				'confirmed'      => 0,
+				'confirmed'      => false,
 				'comments'       => '',
 			);
 			update_field( 'business_staff_status', $business_staff_status, $post_id );
 			$logistics_status = array(
 				'comments'       => '',
 				'account_number' => '',
-				'confirmed'      => 0,
-				'ordered'        => 0,
+				'confirmed'      => false,
+				'ordered'        => false,
 			);
 			update_field( 'it_logistics_status', $logistics_status, $post_id );
 

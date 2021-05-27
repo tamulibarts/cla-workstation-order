@@ -32,7 +32,7 @@ class Dashboard {
 
 		// Disable the admin bar.
 		add_action('after_setup_theme', function() {
-			if (!current_user_can('administrator') && !current_user_can('wso_admin') && !current_user_can('wso_logistics') && !current_user_can('wso_business_admin') && !is_admin()) {
+			if (!current_user_can('administrator') && !current_user_can('wso_admin') && !current_user_can('wso_logistics') && !is_admin()) {
 			  show_admin_bar(false);
 			}
 		});
