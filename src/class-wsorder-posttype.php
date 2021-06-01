@@ -740,6 +740,18 @@ class WSOrder_PostType {
 	  			$can_update = true;
 	  		}
 	  	}
+  	// Handle when the order is for the business admin.
+  	if ( current_user_can( 'wso_business_admin' ) ) {
+  		if ( 1 !== $it_rep_confirmed ) {
+				$can_update = false;
+				$message    = 'An IT Rep has not confirmed the order yet.';
+  		} elseif ( 1 === $bus_user_confirmed ) {
+  			$can_update = false;
+  			$message    = 'You have already confirmed the order.';
+  		} else {
+  			$can_update = true;
+  		}
+  	}
 	  } elseif ( in_array( $current_user_id, $affiliated_it_reps ) ) {
 			if ( 1 === $it_rep_confirmed ) {
 				// IT Rep already confirmed the order, so they cannot change it right now.

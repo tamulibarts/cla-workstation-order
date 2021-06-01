@@ -208,7 +208,7 @@ function cla_render_order( $content ) {
 		$it_rep              = get_user_by( 'id', $post_meta['it_rep_status_it_rep'][0] );
 		$it_rep_comments     = isset( $post_meta['it_rep_status_comments'] ) ? $post_meta['it_rep_status_comments'][0] : '';
 		$department_comments = isset( $post_meta['business_staff_status_comments'] ) ? $post_meta['business_staff_status_comments'][0] : '';
-		$business_admin      = get_user_by( 'id', $post_meta['business_staff_status_business_staff'][0] );
+		$business_admin      = get_user_by( 'id', $business_admin_id );
 		$subtotal            = (float) 0;
 		$logistics_confirmed = (int) get_post_meta( $post_id, 'it_logistics_status_confirmed', true );
 		$permalink           = get_permalink();
@@ -246,7 +246,7 @@ function cla_render_order( $content ) {
 		 * Processing.
 		 */
 		$content .= '<div class="cell small-12 medium-6"><h2>Processing</h2>';
-		if ( $current_user_id === $it_rep_id || $current_user_id === $business_admin || current_user_can( 'wso_logistics' ) ) {
+		if ( $current_user_id === $it_rep_id || $current_user_id === $business_admin_id || current_user_can( 'wso_logistics' ) ) {
 			$show_approval_form = false;
 			$extra_fields = '';
 			if ( $current_user_id === $it_rep_id && 1 !== $it_rep_approved ) {

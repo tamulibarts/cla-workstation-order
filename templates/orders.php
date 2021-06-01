@@ -301,7 +301,7 @@ function get_order_output( $post_id ) {
 		$output .= " <span class=\"badge badge-light\">Not yet ordered</span>";
 	}
 	$output .= "</td>";
-	$output .= "<td>";
+	$output .= "<td class=\"text-right\">";
 	if ( current_user_can( 'administrator' ) || current_user_can( 'wso_admin' ) || current_user_can( 'wso_logistics' ) ) {
 		if ( 'publish' !== $status ) {
 			$output .= '<a class="btn btn-sm btn-outline-yellow" title="Edit this order" href="' . $permalink . '"><span class="dashicons dashicons-welcome-write-blog"></span></a>';

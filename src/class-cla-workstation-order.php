@@ -68,6 +68,8 @@ class CLA_Workstation_Order {
 		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-pagetemplate.php';
 		$order_form = new \CLA_Workstation_Order\PageTemplate( CLA_WORKSTATION_ORDER_TEMPLATE_PATH, 'order-form-template.php', 'Order Form' );
 		$order_form->register();
+		$my_account = new \CLA_Workstation_Order\PageTemplate( CLA_WORKSTATION_ORDER_TEMPLATE_PATH, 'my-account.php', 'My Account' );
+		$my_account->register();
 
 		// Register settings page.
 		add_action( 'acf/init', array( $this, 'register_custom_fields' ) );

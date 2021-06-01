@@ -185,11 +185,13 @@ class WSOrder_PostType_Emails {
 			$primary_business_admin_name  = $primary_business_admin->display_name;
 			if ( is_array( $business_admins ) ) {
 				foreach ( $business_admins as $abus_user_id ) {
-					$abus_user = get_user_by( 'ID', $abus_user_id );
-					if ( $abus_user ) {
-						$abus_name  = $abus_user->display_name;
-						$abus_email = $abus_user->user_email;
-						$headers[]  = "Cc: {$abus_name} <{$abus_email}>";
+					if ( $abus_user_id !== $primary_business_admin_id ) {
+						$abus_user = get_user_by( 'ID', $abus_user_id );
+						if ( $abus_user ) {
+							$abus_name  = $abus_user->display_name;
+							$abus_email = $abus_user->user_email;
+							$headers[]  = "Cc: {$abus_name} <{$abus_email}>";
+						}
 					}
 				}
 			}
@@ -351,7 +353,7 @@ class WSOrder_PostType_Emails {
 		$to      = "{$end_user_name} <{$end_user_email}>";
 		$title   = "[{$order_name}] Returned Workstation Order - {$department_abbreviation} - {$end_user_name}";
 		$message = $this->email_body_return_to_user( $post_id, $returned_comments );
-		$headers[] = "Cc: {$returning_user_name} <{$returning_user_email}>"
+		$headers[] = "Cc: {$returning_user_name} <{$returning_user_email}>";
 		wp_mail( $to, $title, $message, $headers );
 
 	}

@@ -37,6 +37,33 @@ class Dashboard {
 			}
 		});
 
+		add_action( 'wp_ajax_update_acount', array( $this, 'update_acount' ) );
+
+	}
+
+	public function update_acount() {
+
+		// Ensure nonce is valid.
+		check_ajax_referer( 'update_account' );
+
+		// Get referring post properties.
+		$url = wp_get_referer();
+		if ( false === strpos( $url, '/my-account/' ) ) {
+			return;
+		}
+
+		$post_id   = url_to_postid( $url );
+		$post_type = get_post_type( $post_id );
+
+		if ( 'page' !== $post_type ) {
+			return;
+		}
+
+		$json_out        = array( 'status' => 'Your account could not be updated.', 'referer' => $url );
+		$current_user_id = get_current_user_id();
+
+		echo json_encode( $json_out );
+		die();
 	}
 
 	/**
