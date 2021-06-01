@@ -67,6 +67,7 @@ class WSOrder_PostType_Emails {
 
 		// Get user information.
 		$current_user       = wp_get_current_user();
+		$current_user_name  = $current_user->display_name;
 		$current_user_email = $current_user->user_email;
 
 		// Email settings.
@@ -94,12 +95,27 @@ class WSOrder_PostType_Emails {
   <em>-Liberal Arts IT</em>
 </p>
 <p><em>This email was sent from an unmonitored email address. Please do not reply to this email.</em></p>";
-		wp_mail( $current_user_email, 'Workstation Order Received', $message, $headers );
+		wp_mail( "{$current_user_name} <{$current_user_email}>", 'Workstation Order Received', $message, $headers );
 
 		// Email IT Rep.
 		$it_rep_fields        = get_field( 'it_rep_status', $post_id );
+		$primary_it_rep_id    = $it_rep_fields['it_rep']['ID'];
+		$primary_it_rep_name  = $it_rep_fields['it_rep']['display_name'];
 		$primary_it_rep_email = $it_rep_fields['it_rep']['user_email'];
-		$message              = "<p>
+		$affiliated_it_reps   = get_field( 'affiliated_it_reps', $post_id );
+		if ( is_array( $affiliated_it_reps ) ) {
+			foreach ( $affiliated_it_reps as $key => $it_rep_id ) {
+				if ( $it_rep_id !== $primary_it_rep_id ) {
+					$af_it_rep = get_user_by( 'ID', $it_rep_id );
+					if ( false !== $af_it_rep ) {
+						$arep_name  = $af_it_rep->display_name;
+						$arep_email = $af_it_rep->user_email;
+						$headers[]  = "Cc: {$arep_name} <{$arep_email}>";
+					}
+				}
+			}
+		}
+		$message = "<p>
   <strong>There is a new {$program_name} order that requires your attention.</strong>
 </p>
 <p>
@@ -113,7 +129,7 @@ class WSOrder_PostType_Emails {
   <em>-Liberal Arts IT</em>
 </p>
 <p><em>This email was sent from an unmonitored email address. Please do not reply to this email.</em></p>";
-		wp_mail( $primary_it_rep_email, 'Workstation Order Received', $message, $headers );
+		wp_mail( "{$primary_it_rep_name} <{$primary_it_rep_email}>}", 'Workstation Order Received', $message, $headers );
 	}
 
 	/**
@@ -155,23 +171,30 @@ class WSOrder_PostType_Emails {
 		$user_department_post    = get_field( 'department', "user_{$user_id}" );
 		$department_abbreviation = get_field( 'abbreviation', $user_department_post->ID );
 		$to                      = '';
-		error_log('it_rep_confirmation_email');
+		$headers                 = array( 'Content-Type: text/html; charset=UTF-8' );
 
 		// Check if business approval is needed.
 		$requires_bus_approval = $this->order_requires_business_approval( $post_id );
 
 		if ( $requires_bus_approval ) {
 
-			// Declare business admin variables.
-			$business_admins       = get_field( 'affiliated_business_staff', $post_id );
-			$business_admin_emails = array();
-			foreach ( $business_admins as $bus_user_id ) {
-				$user_data               = get_userdata( $bus_user_id );
-				$business_admin_emails[] = $user_data->user_email;
+			$business_admins              = get_field( 'affiliated_business_staff', $post_id );
+			$primary_business_admin_id    = (int) get_post_meta( $post_id, 'business_staff_status_business_staff', true );
+			$primary_business_admin       = get_user_by( 'ID', $primary_business_admin_id );
+			$primary_business_admin_email = $primary_business_admin->user_email;
+			$primary_business_admin_name  = $primary_business_admin->display_name;
+			if ( is_array( $business_admins ) ) {
+				foreach ( $business_admins as $abus_user_id ) {
+					$abus_user = get_user_by( 'ID', $abus_user_id );
+					if ( $abus_user ) {
+						$abus_name  = $abus_user->display_name;
+						$abus_email = $abus_user->user_email;
+						$headers[]  = "Cc: {$abus_name} <{$abus_email}>";
+					}
+				}
 			}
-			$business_admin_emails = implode( ',', $business_admin_emails );
 			// Send email.
-			$to      = $business_admin_emails;
+			$to      = "{$primary_business_admin_name} <{$primary_business_admin_email}>";
 			$message = $this->email_body_it_rep_to_business( $post_id, $end_user_name );
 
 		} else {
@@ -193,7 +216,6 @@ class WSOrder_PostType_Emails {
 		// Send email.
 		if ( ! empty( $to ) ) {
 			$title   = "[{$order_name}] Workstation Order Approval - {$department_abbreviation} - {$end_user_name}";
-			$headers = array( 'Content-Type: text/html; charset=UTF-8' );
 			wp_mail( $to, $title, $message, $headers );
 		}
 	}
@@ -312,6 +334,7 @@ class WSOrder_PostType_Emails {
 		$end_user_email          = $end_user->user_email;
 		$returning_user_id       = (int) get_post_meta( $post_id, 'returned_by', true );
 		$returning_user          = get_user_by( 'id', $returning_user_id );
+		$returning_user_name     = $returning_user->display_name;
 		$returning_user_email    = $returning_user->user_email;
 		$returned_comments       = get_post_meta( $post_id, 'returned_comments', true );
 		$order_name              = get_the_title( $post_id );
@@ -325,11 +348,10 @@ class WSOrder_PostType_Emails {
 		 * cc: whoever set it to return
 		 * body: email_body_return_to_user( $post->ID, $_POST['acf'] );
 		 */
-		$to      = $end_user_email;
-		$to_cc   = $returning_user_email;
+		$to      = "{$end_user_name} <{$end_user_email}>";
 		$title   = "[{$order_name}] Returned Workstation Order - {$department_abbreviation} - {$end_user_name}";
 		$message = $this->email_body_return_to_user( $post_id, $returned_comments );
-		array_push( $headers, 'CC:' . $to_cc );
+		$headers[] = "Cc: {$returning_user_name} <{$returning_user_email}>"
 		wp_mail( $to, $title, $message, $headers );
 
 	}
