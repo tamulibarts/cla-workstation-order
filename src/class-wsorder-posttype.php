@@ -1452,7 +1452,7 @@ Here is the form data:
 								'price'       => sanitize_text_field( wp_unslash( $_POST[ "cla_quote_{$i}_price" ] ) ),
 								'description' => sanitize_textarea_field( wp_unslash( $_POST[ "cla_quote_{$i}_description" ] ) ),
 							);
-							$product_subtotal += floatval( $_POST[ "cla_quote_{$i}_price" ] );
+							$product_subtotal += floatval( sanitize_text_field( wp_unslash( $_POST[ "cla_quote_{$i}_price" ] ) ) );
 						}
 
 						// Handle uploading quote file.
