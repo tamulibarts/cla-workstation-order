@@ -3,6 +3,7 @@
 @import "foundation";
 @import "settings";
 @import "orders-template";
+@import "my-account-template";
 
 dl.horizontal {
 	display: flex;
@@ -324,12 +325,6 @@ input.flagged {
 
 .p {
 	margin-bottom: $paragraph-margin-bottom;
-}
-
-.page-template-my-account {
-	.grid-x.p {
-		margin-bottom: $paragraph-margin-bottom / 2;
-	}
 }
 
 .container {

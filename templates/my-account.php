@@ -53,8 +53,7 @@ function get_department_dropdown() {
 	);
 	$departments             = get_posts( $dept_params );
 	$user_id                 = get_current_user_id();
-	$user_department_post    = get_field( 'department', "user_{$user_id}" );
-	$user_department_post_id = $user_department_post->ID;
+	$user_department_post_id = (int) get_user_meta( $user_id, 'department', true );
 	if ( is_array( $departments ) ) {
 		$output .= '<select id="cla_department" name="cla_department"><option value="0">None</option>';
 		foreach ( $departments as $dept_id ) {
@@ -81,13 +80,13 @@ function cla_my_account() {
 	$lastname      = $user_meta['last_name'][0];
 	$email         = $user->user_email;
 	$department_dd = get_department_dropdown();
-	$output        .= "<div class=\"grid-x p align-middle grid-margin-x\"><div class=\"cell small-2\"><label>Username</label></div><div class=\"cell small-10\"><input type=\"text\" disabled value=\"$username\" /></div></div>";
+	$output        .= "<div class=\"grid-x p align-middle grid-margin-x\"><div class=\"cell small-2\"><span>Username</span></div><div class=\"cell small-10\"><span class=\"text-input\">$username</span></div></div>";
 	$output        .= "<div class=\"grid-x p align-middle grid-margin-x\"><div class=\"cell small-2\"><label for=\"cla_first_name\">First Name</label></div><div class=\"cell small-10\"><input type=\"text\" value=\"$firstname\" name=\"cla_first_name\" id=\"cla_first_name\" /></div></div>";
 	$output        .= "<div class=\"grid-x p align-middle grid-margin-x\"><div class=\"cell small-2\"><label for=\"cla_last_name\">Last Name</label></div><div class=\"cell small-10\"><input type=\"text\" value=\"$lastname\" name=\"cla_last_name\" id=\"cla_last_name\" /></div></div>";
 	$output        .= "<div class=\"grid-x p align-middle grid-margin-x\"><div class=\"cell small-2\"><label for=\"cla_email\">Email</label></div><div class=\"cell small-10\"><input type=\"text\" value=\"$email\" name=\"cla_email\" id=\"cla_email\" /></div></div>";
 	$output        .= "<div class=\"grid-x p align-middle grid-margin-x\"><div class=\"cell small-2\"><label for=\"cla_department\">Department</label></div><div class=\"cell small-10\">$department_dd</div></div>";
 	$output        .= "<hr />";
-	$output        .= "<div class=\"grid-x align-middle grid-margin-x\"><div class=\"cell auto\"><div class=\"ajax-response\"></div></div><div class=\"cell shrink\"><button type=\"button\" name=\"cla_update_account\" id=\"cla_update_account\" class=\"btn btn-primary\">Looks Good <span class=\"dashicons dashicons-thumbs-up\"></span></button></div></div>";
+	$output        .= "<div class=\"grid-x align-middle grid-margin-x\"><div class=\"cell auto text-right\"><div class=\"ajax-response\"></div></div><div class=\"cell shrink\"><button type=\"button\" name=\"cla_update_account\" id=\"cla_update_account\" class=\"btn btn-primary\">Looks Good <span class=\"dashicons dashicons-thumbs-up\"></span></button></div></div>";
 	$output        .= "</form>";
 	echo $output;
 }

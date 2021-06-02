@@ -1,0 +1,13 @@
+.page-template-my-account {
+	.grid-x.p {
+		margin-bottom: $paragraph-margin-bottom / 2;
+	}
+
+	.text-input {
+    @include form-element;
+    margin-bottom: 0;
+    border-color: transparent;
+    appearance: none;
+    box-shadow: none;
+	}
+}

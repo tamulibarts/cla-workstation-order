@@ -59,11 +59,105 @@ class Dashboard {
 			return;
 		}
 
-		$json_out        = array( 'status' => 'Your account could not be updated.', 'referer' => $url );
-		$current_user_id = get_current_user_id();
+		$json_out           = array(
+			'status' => 'Your account could not be updated.',
+			'errors' => array(),
+		);
+		$current_user       = wp_get_current_user();
+		$current_user_id    = get_current_user_id();
+		$current_user_meta  = get_user_meta( $current_user_id );
+		$current_department = (int) get_user_meta( $current_user_id, 'department', true );
+		$first_name         = false;
+		$last_name          = false;
+		$email              = false;
+		$department         = false;
+
+		// Validate input.
+		if ( isset( $_POST['first_name'] ) ) {
+			$maybe_firstname = sanitize_text_field( wp_unslash( $_POST['first_name'] ) );
+			if ( ! empty( $maybe_firstname ) ) {
+				if ( $maybe_firstname !== $current_user_meta['first_name'][0] ) {
+					$first_name = $maybe_firstname;
+				}
+			} else {
+				$json_out['errors']['first_name'] = 'The first name you provided is not valid.';
+			}
+		}
+		if ( isset( $_POST['last_name'] ) ) {
+			$maybe_lastname = sanitize_text_field( wp_unslash( $_POST['last_name'] ) );
+			if ( ! empty( $maybe_lastname ) ) {
+				if ( $maybe_lastname !== $current_user_meta['last_name'][0] ) {
+					$last_name = $maybe_lastname;
+				}
+			} else {
+				$json_out['errors']['last_name'] = 'The last name you provided is not valid.';
+			}
+		}
+		if ( isset( $_POST['email'] ) ) {
+			$maybe_email = sanitize_text_field( wp_unslash( $_POST['email'] ) );
+			if ( ! empty( $maybe_email ) && is_email( $maybe_email ) ) {
+				if ( $maybe_email !== $current_user->user_email ) {
+					$email = $maybe_email;
+				}
+			} else {
+				$json_out['errors']['email'] = 'The email address you provided is not valid.';
+			}
+		}
+		if ( isset( $_POST['department'] ) ) {
+			$maybe_department = sanitize_text_field( wp_unslash( $_POST['department'] ) );
+			$maybe_department = intval( $maybe_department );
+			if ( 0 !== $maybe_department ) {
+				$maybe_post = get_post( $maybe_department );
+				if ( 'department' === $maybe_post->post_type && 'publish' === $maybe_post->post_status ) {
+					if ( $maybe_department !== $current_department ) {
+						$department = $maybe_department;
+					}
+				} else {
+					$json_out['errors']['department'] = 'This is not a valid department choice.';
+				}
+			}
+		}
+
+		// Apply changes.
+		if ( $first_name || $last_name || $email || $department ) {
+			// Update user data.
+			if ( $first_name || $last_name || $email ) {
+				$user_data_params = array(
+					'ID' => $current_user_id
+				);
+				if ( $first_name ) {
+					$user_data_params['first_name'] = $first_name;
+				}
+				if ( $last_name ) {
+					$user_data_params['last_name'] = $last_name;
+				}
+				if ( $email ) {
+					$user_data_params['user_email'] = $email;
+				}
+				$user_data = wp_update_user( $user_data_params );
+				if ( is_wp_error( $user_data ) ) {
+					$json_out['errors']['user_data'] = 'The first name, last name, and/or email address could not be updated.';
+				} else {
+					$json_out['status'] = 'success';
+				}
+			}
+			// Update user meta.
+			if ( $department ) {
+				$user_meta = update_user_meta( $current_user_id, 'department', $department );
+				if ( false === $user_meta ) {
+					$json_out['errors']['department'] = 'The department could not be updated.';
+				} else {
+					$json_out['status'] = 'success';
+				}
+			}
+		} else {
+			$json_out['status'] = 'No changes were made.';
+			$json_out['errors'][] = 'No changes were made.';
+		}
 
 		echo json_encode( $json_out );
 		die();
+
 	}
 
 	/**
