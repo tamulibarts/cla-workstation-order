@@ -90,7 +90,23 @@
   	e.preventDefault();
 		$acquisition_form.find('.ajax-response').html('');
     var form_data = new FormData();
-    $acquisition_form.find('input').each(function(){
+    var field_selector = [];
+    if ( admin_ajax.item_count > 0 ) {
+    	for ( var i=0; i < admin_ajax.item_count; i++ ) {
+    		field_selector.push('input[name="cla_item_' + i + '_req_number"]');
+    		field_selector.push('input[name="cla_item_' + i + '_req_date"]');
+    		field_selector.push('input[name="cla_item_' + i + '_asset_number"]');
+    	}
+    }
+    if ( admin_ajax.quote_count > 0 ) {
+    	for ( var i=0; i < admin_ajax.item_count; i++ ) {
+    		field_selector.push('input[name="cla_quote_' + i + '_req_number"]');
+    		field_selector.push('input[name="cla_quote_' + i + '_req_date"]');
+    		field_selector.push('input[name="cla_quote_' + i + '_asset_number"]');
+    	}
+    }
+    field_selector = field_selector.join(',');
+    $acquisition_form.find(field_selector).each(function(){
     	form_data.append(this.name, this.value);
     });
     form_data.append('action', 'update_order_acquisitions');

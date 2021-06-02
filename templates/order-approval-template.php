@@ -48,7 +48,10 @@ function cla_workstation_order_approval_scripts() {
 	wp_enqueue_script( 'jquery' );
 	wp_enqueue_script( 'cla-workstation-order-approval-scripts' );
 	// Include admin ajax URL and nonce.
-	$script_variables = 'var WSOAjax = {"ajaxurl":"'.admin_url('admin-ajax.php').'","nonce":"'.wp_create_nonce('confirm_order').'"};';
+	global $post;
+	$item_count  = (int) get_post_meta( $post->ID, 'order_items', true );
+	$quote_count = (int) get_post_meta( $post->ID, 'quotes', true );
+	$script_variables = 'var WSOAjax = {"ajaxurl":"'.admin_url('admin-ajax.php').'","nonce":"'.wp_create_nonce('confirm_order').'","item_count":'.$item_count.',"quote_count":'.$quote_count.'};';
 
 	wp_add_inline_script( 'cla-workstation-order-approval-scripts', $script_variables, 'before' );
 
