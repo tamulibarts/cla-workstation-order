@@ -319,7 +319,23 @@ function cla_render_order( $content ) {
 		$content .= '<div class="cell small-12 medium-6"><h2>Processing</h2><dl class="row horizontal">';
 		$content .= "<dt>IT Staff ({$it_rep->data->display_name})</dt><dd>{$it_rep_date}</dd>";
 		if ( $business_admin ) {
-			$content .= "<dt>Business Staff ({$business_admin->data->display_name})</dt><dd>{$business_admin_date}</dd>";
+			$tt_wrap_open         = '';
+			$tt_wrap_close        = '';
+			$tt_content           = '';
+			$affiliated_bus_staff = get_field( 'affiliated_business_staff', $post_id );
+			if ( is_array( $affiliated_bus_staff ) && count( $affiliated_bus_staff ) > 1 ) {
+				$tt_wrap_open  = '<a href="#" class="tooltip tooltip-up">';
+				$tt_wrap_close = '</a>';
+				$tt_content    = '<span class="tooltip-content">Business admins for this department are: ';
+				$admins        = array();
+				foreach ( $affiliated_bus_staff as $bus_staff_id ) {
+					$first_name = get_user_meta( $bus_staff_id, 'first_name', true );
+					$last_name  = get_user_meta( $bus_staff_id, 'last_name', true );
+					$admins[]   = "$first_name $last_name";
+				}
+				$tt_content .= implode( ', ', $admins ) . '</span>';
+			}
+			$content .= "<dt>{$tt_wrap_open}Business Staff{$tt_content}{$tt_wrap_close} ({$business_admin->data->display_name})</dt><dd>{$business_admin_date}</dd>";
 		} else {
 			$content .= '<dt>Business Staff</dt><dd>Not required</dd>';
 		}

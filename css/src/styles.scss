@@ -354,3 +354,51 @@ input.flagged {
     max-width: 1140px;
 	}
 }
+
+.tooltip {
+	position: relative;
+
+	.tooltip-content {
+		pointer-events: none;
+		padding: 0.4rem;
+		width: 200px;
+		z-index: 1070;
+		font-size: 0.875rem;
+		word-wrap: break-word;
+		opacity: 0;
+		transition: opacity 0.15s linear;
+		position: absolute;
+		background-color: #000;
+		left: 50%;
+		transform: translateX(-50%);
+		color: #FFF;
+		text-align: center;
+
+		&:after {
+			content: "";
+			display: block;
+			background-color: #000;
+			width: 16px;
+			height: 16px;
+			transform: rotate(45deg);
+			position: absolute;
+			top: 100%;
+			margin-top: -8px;
+			left: 50%;
+			margin-left: -8px;
+		}
+
+		a {
+			color: $anchor-color;
+		}
+	}
+
+	&.tooltip-up .tooltip-content {
+		bottom: 100%;
+		margin-bottom: 8px;
+	}
+
+	&:hover .tooltip-content {
+		opacity: 1;
+	}
+}

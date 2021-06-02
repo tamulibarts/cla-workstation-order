@@ -113,16 +113,33 @@ class Dashboard {
 				$user_data_params = array(
 					'ID' => $current_user_id
 				);
+				// Add first name.
 				if ( $first_name ) {
 					$user_data_params['first_name'] = $first_name;
 				}
+				// Add last name.
 				if ( $last_name ) {
 					$user_data_params['last_name'] = $last_name;
 				}
+				// Add display name as first_name last_name.
+				if ( $first_name || $last_name ) {
+					$new_display_name = $current_user->display_name;
+					if ( $first_name && $last_name ) {
+						$new_display_name = "$first_name $last_name";
+					} elseif ( $first_name ) {
+						$new_display_name = $first_name . ' ' . $current_user_meta['last_name'][0];
+					} elseif ( $last_name ) {
+						$new_display_name = $current_user_meta['first_name'][0] . ' ' . $last_name;
+					}
+					$user_data_params['display_name'] = $new_display_name;
+				}
+				// Add email.
 				if ( $email ) {
 					$user_data_params['user_email'] = $email;
 				}
+				// Update the user data.
 				$user_data = wp_update_user( $user_data_params );
+				// Validate results.
 				if ( is_wp_error( $user_data ) ) {
 					$json_out['errors']['user_data'] = 'The first name, last name, and/or email address could not be updated.';
 				} else {
