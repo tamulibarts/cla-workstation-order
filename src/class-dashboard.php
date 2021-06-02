@@ -22,18 +22,9 @@ class Dashboard {
 		// Remove widgets from dashboard welcome page.
 		add_action( 'admin_init', array( $this, 'remove_dashboard_meta' ) );
 		remove_action('welcome_panel', 'wp_welcome_panel');
-
 		add_action( 'wp_dashboard_setup', array( $this, 'wpexplorer_add_dashboard_widgets' ) );
 
-		// Disable the admin bar.
-		add_action('after_setup_theme', function() {
-			if (!current_user_can('administrator') && !current_user_can('wso_admin') && !current_user_can('wso_logistics') && !is_admin()) {
-			  show_admin_bar(false);
-			} else {
-				show_admin_bar(true);
-			}
-		});
-
+		// Update account information via ajax action hook.
 		add_action( 'wp_ajax_update_acount', array( $this, 'update_acount' ) );
 
 	}
