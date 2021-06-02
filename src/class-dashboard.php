@@ -22,11 +22,6 @@ class Dashboard {
 		// Remove widgets from dashboard welcome page.
 		add_action( 'admin_init', array( $this, 'remove_dashboard_meta' ) );
 		remove_action('welcome_panel', 'wp_welcome_panel');
-		// Remove content from user profile page.
-		remove_action( 'admin_color_scheme_picker', 'admin_color_scheme_picker' );
-		add_action( 'admin_head', array( $this, 'remove_profile_sections_start' ) );
-    add_action( 'admin_footer', array( $this, 'remove_profile_sections_end' ) );
-		add_action('admin_head', array( $this, 'remove_help_tabs' ) );
 
 		add_action( 'wp_dashboard_setup', array( $this, 'wpexplorer_add_dashboard_widgets' ) );
 
@@ -392,53 +387,4 @@ class Dashboard {
 		// Remove WP Engine dashboard widget.
 		remove_meta_box( 'wpe_dify_news_feed', 'dashboard', 'normal');
 	}
-
-	/**
-	 * Remove help tabs from top of screen.
-	 *
-	 * @return void
-	 */
-	public function remove_help_tabs () {
-
-    $screen = get_current_screen();
-
-    //checking whether we are on dashboard main page or not
-    if ( ! in_array( $screen->id, array('dashboard','profile') ) )
-      return;
-
-    //Adding tab with an id overview it gets replaced if tab is already available with same id
-    $screen->remove_help_tabs();
-
-	}
-
-	/**
-	 * Remove sections from the user profile page - start.
-	 *
-	 * @return void
-	 */
-	public function remove_profile_sections_start() {
-		if ( ! current_user_can( 'administrator' ) ) {
-			ob_start( function( $subject ) {
-				$subject = preg_replace( '#<h[0-9]>'.__("Personal Options").'</h[0-9]>.+?/table>#s', '', $subject, 1 );
-				$subject = preg_replace( '#<h[0-9]>'.__("About Yourself").'</h[0-9]>.+?/table>#s', '', $subject, 1 );
-				$subject = preg_replace( '#<h[0-9]>'.__("Application Passwords").'</h[0-9]>.+?/table>#s', '', $subject, 1 );
-
-				return $subject;
-			});
-		}
-
-  }
-
-	/**
-	 * Remove sections from the user profile page - end.
-	 *
-	 * @return void
-	 */
-  public function remove_profile_sections_end () {
-
-		if ( ! current_user_can( 'administrator' ) ) {
-			ob_end_flush();
-		}
-
-  }
 }
