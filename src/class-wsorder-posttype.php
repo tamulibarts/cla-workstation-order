@@ -875,6 +875,10 @@ class WSOrder_PostType {
     }
 
     $post_id    = $_POST['post_ID'];
+    $post_type  = get_post_type( $post_id );
+    if ( 'wsorder' !== $post_type ) {
+    	return;
+    }
     $can_update = $this->can_current_user_update_order( $post_id );
     if ( true !== $can_update ) {
       acf_add_validation_error( false, $can_update );
