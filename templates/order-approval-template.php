@@ -186,25 +186,29 @@ function cla_render_order( $content ) {
 		date_default_timezone_set('America/Chicago');
 		$creation_time = strtotime( $post->post_date_gmt.' UTC' );
 		$creation_date = date( 'M j, Y \a\t g:i a', $creation_time );
-		$it_rep_date = 'Not yet confirmed';
+		$it_rep_date = '<span class="badge badge-light">Not yet confirmed</span>';
 		if ( isset( $post_meta['it_rep_status_date'] ) && is_array( $post_meta['it_rep_status_date'] ) && ! empty( $post_meta['it_rep_status_date'][0] ) ) {
 			$it_rep_time = strtotime( $post_meta['it_rep_status_date'][0].' UTC' );
-			$it_rep_date = '<span class=\"badge badge-success\">Confirmed</span> ' . date( 'M j, Y \a\t g:i a', $it_rep_time );
+			$it_rep_date = '<span class="badge badge-success">Confirmed</span> ' . date( 'M j, Y \a\t g:i a', $it_rep_time );
 		}
-		$business_admin_date = 'Not yet confirmed';
-		if ( isset( $post_meta['business_staff_status_date'] ) && is_array( $post_meta['business_staff_status_date'] ) && ! empty( $post_meta['business_staff_status_date'][0] ) ) {
-			$business_admin_time = strtotime( $post_meta['business_staff_status_date'][0].' UTC' );
-			$business_admin_date = '<span class=\"badge badge-success\">Confirmed</span> ' . date( 'M j, Y \a\t g:i a', $business_admin_time );
+		$business_admin_date = '<span class="badge badge-light">Not required</span>';
+		if ( 0 !== $business_admin_id ) {
+			$business_admin_date = '<span class="badge badge-light">Not yet confirmed</span>';
+			if ( isset( $post_meta['business_staff_status_date'] ) && is_array( $post_meta['business_staff_status_date'] ) && ! empty( $post_meta['business_staff_status_date'][0] ) ) {
+				$business_admin_time = strtotime( $post_meta['business_staff_status_date'][0].' UTC' );
+				$business_admin_date = '<span class="badge badge-success">Confirmed</span> ' . date( 'M j, Y \a\t g:i a', $business_admin_time );
+			}
 		}
-		$logistics_date = 'Not yet confirmed';
+		$logistics_date         = '<span class="badge badge-light">Not yet confirmed</span>';
+		$logistics_ordered_date = '<span class="badge badge-light">Not yet ordered</span>';
 		if ( isset( $post_meta['it_logistics_status_date'] ) && is_array( $post_meta['it_logistics_status_date'] ) && ! empty( $post_meta['it_logistics_status_date'][0] ) ) {
-			$logistics_time      = strtotime( $post_meta['it_logistics_status_date'][0].' UTC' );
-			$logistics_date      = '<span class=\"badge badge-success\">Confirmed</span> ' . date( 'M j, Y \a\t g:i a', $logistics_time );
+			$logistics_time         = strtotime( $post_meta['it_logistics_status_date'][0].' UTC' );
+			$logistics_date         = '<span class="badge badge-success">Confirmed</span> ' . date( 'M j, Y \a\t g:i a', $logistics_time );
+			$logistics_ordered_date = '<span class="badge badge-error">Not fully ordered</span>';
 		}
-		$logistics_ordered_date = 'Not yet ordered';
 		if ( isset( $post_meta['it_logistics_status_ordered_at'] ) && is_array( $post_meta['it_logistics_status_ordered_at'] ) && ! empty( $post_meta['it_logistics_status_ordered_at'][0] ) ) {
 			$logistics_ordered_time = strtotime( $post_meta['it_logistics_status_ordered_at'][0].' UTC' );
-			$logistics_ordered_date = '<span class=\"badge badge-success\">Ordered</span> ' . date( 'M j, Y \a\t g:i a', $logistics_ordered_time );
+			$logistics_ordered_date = '<span class="badge badge-success">Ordered</span> ' . date( 'M j, Y \a\t g:i a', $logistics_ordered_time );
 		}
 		$program             = get_post( $post_meta['program'][0] );
 		$program_fiscal_year = get_post_meta( $post_meta['program'][0], 'fiscal_year', true );
@@ -290,7 +294,7 @@ function cla_render_order( $content ) {
 			}
 			$content .= "<dt>{$tt_wrap_open}Business Staff{$tt_content}{$tt_wrap_close} ({$business_admin->data->display_name})</dt><dd>{$business_admin_date}</dd>";
 		} else {
-			$content .= '<dt>Business Staff</dt><dd>Not required</dd>';
+			$content .= '<dt>Business Staff</dt><dd><span class="badge badge-light">Not required</span></dd>';
 		}
 		$content .= "<dt>IT Logistics</dt><dd>{$logistics_date}<br>{$logistics_ordered_date}</dd>";
 		$content .= "<dt>IT Staff Comments</dt><dd>{$it_rep_comments}</dd>";

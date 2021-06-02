@@ -297,6 +297,8 @@ function get_order_output( $post_id ) {
 	}
 	if ( $logistics_fields['ordered'] === true ) {
 		$output .= " <span class=\"badge badge-success\">Ordered</span>";
+	} elseif ( true === $logistics_fields['confirmed'] ) {
+		$output .= " <span class=\"badge badge-error\">Not fully ordered</span>";
 	} else {
 		$output .= " <span class=\"badge badge-light\">Not yet ordered</span>";
 	}
