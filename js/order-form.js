@@ -303,35 +303,6 @@
 
 	};
 
-	var saveForm = function(e){
-
-		$form = $('#cla_order_form');
-		$form.find('input[type="text"],input[type="number"],input[type="hidden"]')
-			.not('#cla_account_number,#cla_current_asset_number').each(function() {
-		  $(this).attr('value', $(this).val());
-		});
-		$form.find('textarea').each(function(){
-			$(this).html($(this).val());
-		});
-		$form.find('select').each(function(){
-			var val = $(this).val();
-			$(this).find('option[value="'+val+'"]').attr('selected','selected');
-		});
-		var cloned = $form.clone(true);
-		localStorage.setItem("cla-order-form", JSON.stringify(cloned.html()));
-
-		// e.preventDefault();
-		// return false;
-
-	};
-
-	var getSavedForm = function(){
-
-		var lastForm = JSON.parse(localStorage.getItem("cla-order-form"));
-		$('#cla_order_form').html(lastForm);
-
-	}
-
 	var validateForm = function(e){
 
 		var valid = true;
@@ -479,11 +450,6 @@
 			.selectedIndex = 0;
 	};
 
-	// getSavedForm();
-	// validateForm();
-
-	// Add event handlers.
-
 	// Add event handlers
 	$('#list_purchases').on( 'click', '.trash-product', removeProduct );
 	$('#list_purchases').on( 'click', '.trash-quote', removeQuoteFieldset );
@@ -491,8 +457,6 @@
 	$('.add-product').on('click', addProductToCart);
 	$('#cla_contribution_amount').on('keyup', updateTotals);
 	$form.find('#cla_add_quote').on('click', addQuoteFieldset);
-	$form.find('textarea, input[type="text"], input[type="number"]').on('blur', saveForm);
-	$form.find('button[type="button"]').on('click', saveForm);
 	// Add submit event handler.
 	jQuery('#cla_order_form').submit(ajaxSubmit);
 	function ajaxSubmit(e) {
