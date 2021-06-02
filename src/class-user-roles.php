@@ -44,20 +44,7 @@ class User_Roles {
 
 		// Update existing Subscriber role.
 		$subscriber_role = get_role( 'subscriber' );
-    $subscriber_role->add_cap( 'edit_wsorder', true );
-    $subscriber_role->add_cap( 'read_wsorder', true );
-    $subscriber_role->add_cap( 'create_wsorders', true ); // For some reason this is required to view the post list page.
-    $subscriber_role->add_cap( 'delete_wsorder', false );
-    $subscriber_role->add_cap( 'delete_wsorders', false );
-    $subscriber_role->add_cap( 'delete_others_wsorders', false );
-    $subscriber_role->add_cap( 'delete_private_wsorders', false );
-    $subscriber_role->add_cap( 'delete_published_wsorders', false );
-    $subscriber_role->add_cap( 'edit_wsorders', true );
-    $subscriber_role->add_cap( 'edit_others_wsorders', false );
-    $subscriber_role->add_cap( 'edit_private_wsorders', false );
-    $subscriber_role->add_cap( 'edit_published_wsorders', true );
-    $subscriber_role->add_cap( 'publish_wsorders', false ); // Required for changing the post status.
-    $subscriber_role->add_cap( 'read_private_wsorders', false );
+		$subscriber_role->add_cap( 'read', false );
 
 		/**
 		 * Add new roles with custom post type capabilities.
@@ -271,16 +258,6 @@ class User_Roles {
 		 * IT Rep capabilities.
 		 */
 		$it_rep_caps = array(
-			'edit_wsorder'              => true,
-      'read_wsorder'              => true,
-      'create_wsorders'           => true, // Required to edit others orders for some reason.
-      'edit_wsorders'             => true,
-      'edit_others_wsorders'      => true,
-      'edit_private_wsorders'     => true,
-      'edit_published_wsorders'   => true, // Required to read published wsorders.
-      'publish_wsorders'          => false, // Required "true" for changing the post status.
-      'read_private_wsorders'     => true,
-      'read'                      => true,
 		);
 		$this->add_role( 'wso_it_rep', 'IT Rep', false, $it_rep_caps );
 
@@ -297,15 +274,6 @@ class User_Roles {
 		 * Admin capabilities.
 		 */
 		$business_admin_caps = array(
-			'edit_wsorder'              => true,
-      'read_wsorder'              => true,
-      'create_wsorders'           => true, // Required to edit others orders for some reason.
-      'edit_wsorders'             => true,
-      'edit_others_wsorders'      => true,
-      'edit_private_wsorders'     => true,
-      'edit_published_wsorders'   => true, // Required to read published wsorders.
-      'read_private_wsorders'     => true,
-      'read'                      => true,
 		);
 		$this->add_role( 'wso_business_admin', 'Business Admin', false, $business_admin_caps );
 
@@ -349,13 +317,7 @@ class User_Roles {
 
 		// Update existing Subscriber role.
 		$subscriber_role = get_role( 'subscriber' );
-		$subscriber_role->remove_cap( 'edit_wsorder' );
-		$subscriber_role->remove_cap( 'read_wsorder' );
-		$subscriber_role->remove_cap( 'edit_wsorders' );
-		$subscriber_role->remove_cap( 'create_wsorders' );
-		$subscriber_role->remove_cap( 'publish_wsorders' );
-		$subscriber_role->remove_cap( 'edit_published_wsorders' );
-		$subscriber_role->remove_cap( 'read_private_wsorders' );
+		$subscriber_role->add_cap( 'read', true );
 
 		remove_role( 'wso_admin' );
 		remove_role( 'wso_logistics' );
