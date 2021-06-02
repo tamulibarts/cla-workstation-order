@@ -212,6 +212,10 @@ class WSOrder_PostType {
 		// Ensure nonce is valid.
 		check_ajax_referer( 'confirm_order' );
 
+		if ( ! is_user_logged_in() ) {
+			return;
+		}
+
 		// Get referring post properties.
 		$url       = wp_get_referer();
 		$post_id   = url_to_postid( $url );
@@ -261,6 +265,10 @@ class WSOrder_PostType {
 
 		// Ensure nonce is valid.
 		check_ajax_referer( 'confirm_order' );
+
+		if ( ! is_user_logged_in() ) {
+			return;
+		}
 
 		// Get referring post properties.
 		$url       = wp_get_referer();
@@ -355,6 +363,10 @@ class WSOrder_PostType {
 		// Ensure nonce is valid.
 		check_ajax_referer( 'confirm_order' );
 
+		if ( ! is_user_logged_in() ) {
+			return;
+		}
+
 		// Get referring post properties.
 		$url       = wp_get_referer();
 		$post_id   = url_to_postid( $url );
@@ -406,6 +418,10 @@ class WSOrder_PostType {
 		// Ensure nonce is valid.
 		check_ajax_referer( 'confirm_order' );
 
+		if ( ! is_user_logged_in() ) {
+			return;
+		}
+
 		// Get referring post properties.
 		$url       = wp_get_referer();
 		$post_id   = url_to_postid( $url );
@@ -452,6 +468,10 @@ class WSOrder_PostType {
 		// Ensure nonce is valid.
 		check_ajax_referer( 'delete_order' );
 
+		if ( ! is_user_logged_in() ) {
+			return;
+		}
+
 		if ( isset( $_REQUEST['order_post_id'] ) ) {
 			$post_id = (int) $_REQUEST['order_post_id'];
 		} else {
@@ -491,6 +511,10 @@ class WSOrder_PostType {
 
 		// Ensure nonce is valid.
 		check_ajax_referer( 'search_order' );
+
+		if ( ! is_user_logged_in() ) {
+			return;
+		}
 
 		$json_out     = array( 'status' => 'No orders found.' );
 		$program_id   = (int) $_POST['program_id'];
@@ -1217,6 +1241,10 @@ class WSOrder_PostType {
 		// Ensure nonce is valid.
 		check_ajax_referer( 'make_order' );
 
+		if ( ! is_user_logged_in() ) {
+			return;
+		}
+
 		// Get referring post properties.
 		$url       = wp_get_referer();
 		$post_id   = url_to_postid( $url );
@@ -1551,6 +1579,10 @@ Here is the form data:
 
 		// Ensure nonce is valid.
 		check_ajax_referer( 'confirm_order' );
+
+		if ( ! is_user_logged_in() ) {
+			return;
+		}
 
 		// Get referring post properties.
 		$url       = wp_get_referer();

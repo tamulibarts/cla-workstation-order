@@ -43,7 +43,7 @@ class Dashboard {
 
 		// Get referring post properties.
 		$url = wp_get_referer();
-		if ( false === strpos( $url, '/my-account/' ) ) {
+		if ( false === strpos( $url, '/my-account/' ) || ! is_user_logged_in() ) {
 			return;
 		}
 
