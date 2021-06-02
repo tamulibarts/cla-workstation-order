@@ -480,8 +480,9 @@ class WSOrder_PostType {
 			$post_id = url_to_postid( $url );
 		}
 		$post_type = get_post_type( $post_id );
+		$post_status = get_post_status( $post_id );
 
-		if ( 'wsorder' !== $post_type ) {
+		if ( 'wsorder' !== $post_type || ! in_array( $post_status, array( 'action_required', 'returned', 'publish' ) ) ) {
 			return;
 		}
 
