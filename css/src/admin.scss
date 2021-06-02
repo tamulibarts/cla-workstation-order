@@ -30,10 +30,6 @@ body.wp-admin.post-type-wsorder {
 		display: none;
 	}
 
-	#post-body-content #titlediv {
-		display: none;
-	}
-
 	.acf-field input[disabled] {
 		color: #666;
 	}
@@ -147,11 +143,4 @@ body.wp-admin.post-type-wsorder {
 		font-weight: bold;
 		line-height: 40px;
 	}
-}
-
-// User profile page.
-#application-passwords-section,
-#wpfooter,
-#your-profile tr.user-url-wrap {
-	display: none;
 }

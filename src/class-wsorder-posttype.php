@@ -40,18 +40,8 @@ class WSOrder_PostType {
 		add_filter( 'display_post_states', array( $this, 'display_status_state' ) );
 		// Enqueue JavaScript file for admin.
 		add_action( 'admin_print_scripts-post.php', array( $this, 'admin_script' ), 11 );
-		// Manipulate post title into a certain format.
-		add_filter( 'default_title', array( $this, 'default_post_title' ), 11, 2 );
-		// Redirect new order post creation to the order page.
-		add_filter( 'admin_url', array( $this, 'replace_all_orders_url' ), 10, 3 );
-		add_filter( 'admin_url', array( $this, 'replace_new_order_url' ), 10, 3 );
-		add_action( 'admin_init', array( $this, 'redirect_to_order_form' ) );
-		// Hide the publish button from users other than admins.
-		add_action( 'admin_body_class', array( $this, 'set_admin_body_class' ) );
 		// Prevent users uninvolved with an order from editing it.
 		add_action( 'admin_init', array( $this, 'redirect_uninvolved_users_from_editing' ) );
-		// Generate a print button for the order.
-		add_action( 'post_submitbox_misc_actions', array( $this, 'pdf_print_receipt' ) );
 
 		/**
 		 * Change features of edit.php list view for order posts.
@@ -77,10 +67,8 @@ class WSOrder_PostType {
 		$my_orders = new \CLA_Workstation_Order\PageTemplate( CLA_WORKSTATION_ORDER_TEMPLATE_PATH, 'my-orders.php', 'My Orders' );
 		$my_orders->register();
 
-		// Create order posts from form.
+		// AJAX action hooks.
 		add_action( 'wp_ajax_make_order', array( $this, 'make_order' ) );
-
-		// Approve order posts from form.
 		add_action( 'wp_ajax_confirm_order', array( $this, 'confirm_order' ) );
 		add_action( 'wp_ajax_return_order', array( $this, 'return_order' ) );
 		add_action( 'wp_ajax_update_order_acquisitions', array( $this, 'update_order_acquisitions' ) );
@@ -93,55 +81,12 @@ class WSOrder_PostType {
 		add_action( 'restrict_manage_posts', array( $this, 'add_admin_post_program_filter' ), 10 );
 		add_filter( 'parse_query', array( $this, 'parse_query_program_filter' ), 10);
 
-		// Disable order form fields
-		add_filter( 'acf/prepare_field/key=field_60074b5ee982b', array( $this, 'readonly_field_if_not_empty' ) ); // Products Subtotal.
-		add_filter( 'acf/load_field/key=field_5ffcc2590682b', array( $this, 'readonly_field' ) ); // Program.
-		add_filter( 'acf/load_field/key=field_60186adc3a4e7', array( $this, 'readonly_field' ) ); // Order Item Price.
-		add_filter( 'acf/load_field/key=field_5ffdfd1abaaa7', array( $this, 'readonly_field' ) ); // Quote Price.
-		add_filter( 'acf/load_field/key=field_5ffdfc23d5e87', array( $this, 'readonly_field' ) ); // SKU.
-		add_filter( 'acf/load_field/key=field_5ffdfcbcbaaa3', array( $this, 'readonly_field' ) ); // Order Item Name.
-		add_filter( 'acf/prepare_field/key=field_60992c45f8994', '__return_false' ); // Order Item Post Object.
-		add_filter( 'acf/load_field/name=requisition_number', array( $this, 'readonly_field_for_non_logistics_user' ) );
-		add_filter( 'acf/load_field/name=requisition_date', array( $this, 'readonly_field_for_non_logistics_user' ) );
-		add_filter( 'acf/load_field/name=asset_number', array( $this, 'readonly_field_for_non_logistics_user' ) );
-		add_filter( 'acf/load_field/name=order_items', array( $this, 'disable_repeater_buttons' ) );
-		add_filter( 'acf/load_field/name=order_items', array( $this, 'disable_repeater_sorting' ) );
-		add_filter( 'acf/load_field/name=quotes', array( $this, 'disable_repeater_sorting' ) );
-		add_filter( 'acf/load_field/name=quotes', array( $this, 'disable_repeater_buttons' ) );
-		add_filter( 'acf/prepare_field/name=order_items', array( $this, 'remove_field_if_empty' ) );
-		add_filter( 'acf/prepare_field/name=quotes', array( $this, 'remove_field_if_empty' ) );
-
-		// Keep certain fields from being updated when they can't be disabled.
-		add_filter( 'acf/update_value/key=field_5ffcc2590682b', array( $this, 'lock_program_field_value' ), 11, 3 );
-
-		// Add a timestamp for when users complete their tasks in the order.
-		add_filter( 'acf/update_value/key=field_5fff6b71a22b0', array( $this, 'timestamp_it_rep_confirm' ), 11, 2 );
-		add_filter( 'acf/update_value/key=field_5fff6ec0e4385', array( $this, 'timestamp_business_admin_confirm' ), 11, 2 );
-		add_filter( 'acf/update_value/key=field_5fff6f3cef757', array( $this, 'timestamp_logistics_confirm' ), 11, 2 );
-		add_filter( 'acf/update_value/key=field_60074e2222cee', array( $this, 'timestamp_logistics_ordered' ), 11, 2 );
-
-		// When the IT Rep confirmation checkbox is checked, set the confirming IT rep to the current user.
-		add_filter( 'acf/update_value/key=field_5fff6b71a22b0', array( $this, 'confirming_it_rep_as_current_user' ), 11, 2 );
-		// When the Business Admin confirmation checkbox is checked, set the confirming business admin to the current user.
-		add_filter( 'acf/update_value/key=field_5fff6ec0e4385', array( $this, 'confirming_business_admin_as_current_user' ), 11, 2 );
-
 		// Custom returned order action.
 		add_action( 'transition_post_status', array( $this, 'do_action_wsorder_returned' ), 12, 3 );
 		add_action( 'wsorder_returned', array( $this, 'reset_approvals' ) );
 
-		// Handle "Returned" custom post status checkbox field.
-		add_filter( 'acf/update_value/key=field_608964b7880fe', array( $this, 'update_returned_order_field' ), 11, 2 );
-		add_action( 'transition_post_status', array( $this, 'handle_returned_post_meta' ), 11, 3 );
-
-		// Redirect "Pending" post status to "Action Required".
-		add_action( 'transition_post_status', array( $this, 'handle_pending_post_status' ), 11, 3 );
-
 		// Customize post permissions.
 		add_action( 'acf/validate_save_post', array( $this, 'disable_save_order' ) );
-
-		// Lock the post title from being edited.
-		add_filter( 'wp_insert_post_data', array( $this, 'lock_post_title' ), 11, 2 );
-		add_action( 'edit_form_after_title', array( $this, 'show_post_title' ) );
 
 		// Render single order view.
 		add_filter( 'single_template', array( $this, 'get_single_template' ) );
@@ -669,55 +614,6 @@ class WSOrder_PostType {
 	}
 
 	/**
-	 * Show the order title manually on the order editor page.
-	 *
-	 * @param WP_Post $post The post object.
-	 *
-	 * @return void
-	 */
-	public function show_post_title( $post ){
-		if ( 'wsorder' === $post->post_type ) {
-			echo wp_kses_post( '<h1><strong>' . get_the_title( $post ) . '</strong></h1>' );
-		}
-	}
-
-	/**
-	 * Prevent the order title from being changed.
-	 *
-	 * @param array $data    The post data.
-	 * @param array $postarr The extended post data.
-	 *
-	 * @return array
-	 */
-	public function lock_post_title( $data, $postarr ) {
-		if ( 'wsorder' === $data['post_type'] ) {
-			$the_title = get_the_title( $postarr['ID'] );
-			if ( ! empty( $the_title ) ) {
-				$data['post_title'] = $the_title;
-			}
-		}
-		return $data;
-	}
-
-	/**
-	 * Prevent people other than admins and logistics from editing the program field.
-	 *
-	 * @param mixed      $value   The field value.
-	 * @param int|string $post_id The post ID where the value is saved.
-	 * @param array      $field   The field array containing all settings.
-	 *
-	 * @return array
-	 */
-	public function lock_program_field_value ( $value, $post_id, $field ) {
-		if ( ! current_user_can( 'wso_admin' ) && ! current_user_can( 'wso_logistics' ) ) {
-			$value = get_post_meta( $post_id, $field['name'], true );
-		}
-
-		return $value;
-
-	}
-
-	/**
 	 * Decide if user can update the order. Return true or the error message.
 	 *
 	 * @param int $post_id The post ID.
@@ -909,255 +805,6 @@ class WSOrder_PostType {
       acf_add_validation_error( false, $can_update );
     }
 
-	}
-
-	public function handle_pending_post_status( $new_status, $old_status, $post ) {
-
-		if (
-			'wsorder' !== $post->post_type
-			|| $new_status === $old_status
-			|| 'auto-draft' === $new_status
-		) {
-			return;
-		}
-
-		if ( 'pending' === $new_status ) {
-
-	    // Update current post
-	    $my_post = array(
-	      'ID'          => $post->ID,
-	      'post_status' => 'action_required',
-	    );
-    	wp_update_post( $my_post );
-
-		}
-
-	}
-
-	public function handle_returned_post_meta( $new_status, $old_status, $post ){
-
-		if (
-			'wsorder' !== $post->post_type
-			|| $new_status === $old_status
-			|| 'auto-draft' === $new_status
-		) {
-			return;
-		}
-
-		$returned_meta_value = (int) get_post_meta( $post->ID, 'returned', true );
-
-		// Make the "Returned" checkbox reflect a change in the post status.
-		if ( 1 === $returned_meta_value && 'returned' === $old_status && 'returned' !== $new_status ) {
-			update_post_meta( $post->ID, 'returned', 0 );
-		} elseif ( 0 === $returned_meta_value && 'returned' !== $old_status && 'returned' === $new_status ) {
-			update_post_meta( $post->ID, 'returned', 1 );
-		}
-	}
-
-	public function update_returned_order_field( $value, $post_id ){
-
-		$value = (int) $value;
-		$current_field_value = (int) get_post_meta( $post_id, 'returned', true );
-		$current_post_status = get_post_status( $post_id );
-
-		if ( 1 === $value && 0 === $current_field_value && 'returned' !== $current_post_status ) {
-	    // Update current post
-	    $my_post = array(
-	      'ID'          => $post_id,
-	      'post_status' => 'returned',
-	    );
-    	wp_update_post( $my_post );
-		} elseif ( 0 === $value && 1 === $current_field_value && 'returned' === $current_post_status ) {
-	    // Update current post
-	    $my_post = array(
-	      'ID'          => $post_id,
-	      'post_status' => 'action_required',
-	    );
-    	wp_update_post( $my_post );
-		}
-
-		return $value;
-
-	}
-
-	public function timestamp_it_rep_confirm( $value, $post_id ) {
-		$old_value = (int) get_post_meta( $post_id, 'it_rep_status_confirmed', true );
-		if ( 1 === intval( $value ) && 0 === $old_value ) {
-			// Is checked now.
-			update_post_meta( $post_id, 'it_rep_status_date', date('Y-m-d H:i:s') );
-		}
-		return $value;
-	}
-
-	public function timestamp_business_admin_confirm( $value, $post_id ) {
-		$old_value = (int) get_post_meta( $post_id, 'business_staff_status_confirmed', true );
-		if ( 1 === intval( $value ) && 0 === $old_value ) {
-			// Is checked now.
-			update_post_meta( $post_id, 'business_staff_status_date', date('Y-m-d H:i:s') );
-		}
-		return $value;
-	}
-
-	public function timestamp_logistics_confirm( $value, $post_id ) {
-		$old_value = (int) get_post_meta( $post_id, 'it_logistics_status_confirmed', true );
-		if ( 1 === intval( $value ) && 0 === $old_value ) {
-			// Is checked now.
-			update_post_meta( $post_id, 'it_logistics_status_date', date('Y-m-d H:i:s') );
-		}
-		return $value;
-	}
-
-	public function timestamp_logistics_ordered( $value, $post_id ) {
-		$old_value = (int) get_post_meta( $post_id, 'it_logistics_status_ordered', true );
-		if ( 1 === intval( $value ) && 0 === $old_value ) {
-			// Is checked now.
-			update_post_meta( $post_id, 'it_logistics_status_ordered_at', date('Y-m-d H:i:s') );
-		}
-		return $value;
-	}
-
-	/**
-	 * Force confirming IT rep to current user.
-	 *
-	 * @param string $value   The new value.
-	 * @param int    $post_id The post ID.
-	 *
-	 * @return string
-	 */
-	public function confirming_it_rep_as_current_user( $value, $post_id  ) {
-		$old_value = (int) get_post_meta( $post_id, 'it_rep_status_confirmed', true );
-		if ( 1 === intval( $value ) && 0 === $old_value ) {
-			// Is checked now.
-			$current_user    = wp_get_current_user();
-			$current_user_id = (int) $current_user->ID;
-			update_post_meta( $post_id, 'it_rep_status_it_rep', $current_user_id );
-		}
-		return $value;
-	}
-
-	/**
-	 * Force confirming business admin to current user.
-	 *
-	 * @param string $value   The new value.
-	 * @param int    $post_id The post ID.
-	 *
-	 * @return string
-	 */
-	public function confirming_business_admin_as_current_user( $value, $post_id  ) {
-		$old_value = (int) get_post_meta( $post_id, 'business_staff_status_confirmed', true );
-		if ( 1 === intval( $value ) && 0 === $old_value ) {
-			// Is checked now.
-			$current_user    = wp_get_current_user();
-			$current_user_id = (int) $current_user->ID;
-			update_post_meta( $post_id, 'business_staff_status_business_staff', $current_user_id );
-		}
-		return $value;
-	}
-
-	/**
-	 * Remove an Advanced Custom Fields field from the page editor if its value is empty.
-	 *
-	 * @param array $field The field settings.
-	 *
-	 * @return array
-	 */
-	public function remove_field_if_empty( $field ) {
-		global $post;
-		if ( is_object( $post ) && 'wsorder' === $post->post_type && empty( $field['value'] ) ) {
-			return false;
-		}
-		return $field;
-	}
-
-	/**
-	 * Disable add/remove buttons in an Advanced Custom Fields repeater field.
-	 *
-	 * @param array $field The field settings.
-	 *
-	 * @return array
-	 */
-	public function disable_repeater_buttons( $field ) {
-		global $pagenow;
-		if ( is_admin() && 'post.php' === $pagenow ) {
-			$field_key = str_replace( '_', '-', $field['key'] );
-	    ?>
-	    <script type='text/javascript'>
-	      acf.addAction('load', function(){
-	        jQuery('body.wp-admin.post-type-wsorder .acf-<?php echo $field_key; ?>').find('.acf-row .acf-row-handle.remove, .acf-actions').remove();
-	  		});
-	    </script>
-	    <?php
-		}
-		return $field;
-	}
-
-	/**
-	 * Disable jquery sorting UI for an Advanced Custom Fields repeater field.
-	 *
-	 * @param array $field The field settings.
-	 *
-	 * @return array
-	 */
-	public function disable_repeater_sorting( $field ) {
-		global $pagenow;
-		if ( is_admin() && 'post.php' === $pagenow ) {
-			$field_key = str_replace( '_', '-', $field['key'] );
-	    ?>
-	    <script type='text/javascript'>
-	      acf.addAction('load', function(){
-	        jQuery('body.wp-admin.post-type-wsorder .acf-<?php echo $field_key; ?> .acf-row-handle.order').removeClass('order');
-	  		});
-	    </script>
-	    <?php
-	  }
-		return $field;
-	}
-
-	/**
-	 * Make an Advanced Custom Fields field read-only in the page editor.
-	 *
-	 * @param array $field The field settings.
-	 *
-	 * @return array
-	 */
-	public function readonly_field( $field ) {
-		global $post;
-		if ( is_object( $post ) && 'wsorder' === $post->post_type ) {
-			$field['readonly'] = '1';
-		}
-		return $field;
-	}
-
-
-
-	/**
-	 * Make an Advanced Custom Fields field read-only in the page editor if it is empty.
-	 *
-	 * @param array $field The field settings.
-	 *
-	 * @return array
-	 */
-	public function readonly_field_if_not_empty( $field ) {
-		global $post;
-		if ( is_object( $post ) && 'wsorder' === $post->post_type && ! empty( $field['value'] ) ) {
-			$field['readonly'] = '1';
-		}
-		return $field;
-	}
-
-	/**
-	 * Disable an Advanced Custom Fields field in the page editor if the current user is not logistics or admin.
-	 *
-	 * @param array $field The field settings.
-	 *
-	 * @return array
-	 */
-	public function readonly_field_for_non_logistics_user( $field ) {
-		global $post;
-		if ( is_object( $post ) && 'wsorder' === $post->post_type && ! current_user_can( 'wso_logistics' ) && ! current_user_can( 'wso_admin' ) ) {
-			$field['readonly'] = '1';
-		}
-		return $field;
 	}
 
 	/**
@@ -1596,28 +1243,42 @@ Here is the form data:
 		}
 
 		if ( current_user_can( 'wso_logistics' ) ) {
+			$ordered_all = true;
+			$was_checked = false;
 			// Update products.
 			$products = get_field( 'order_items', $post_id );
 			foreach ($products as $key => $product) {
+				$was_checked = true;
 				$req_number   = sanitize_text_field( wp_unslash( $_POST[ "cla_item_{$key}_req_number" ] ) );
 				$req_date     = sanitize_text_field( wp_unslash( $_POST[ "cla_item_{$key}_req_date" ] ) );
 				$asset_number = sanitize_text_field( wp_unslash( $_POST[ "cla_item_{$key}_asset_number" ] ) );
 				$products[$key]['requisition_number'] = $req_number;
 				$products[$key]['requisition_date']   = $req_date;
 				$products[$key]['asset_number']       = $asset_number;
+				if ( empty( $req_date ) ) {
+					$ordered_all = false;
+				}
 			}
 			update_field( 'order_items', $products, $post_id );
 			// Update quotes.
 			$quotes = get_field( 'quotes', $post_id );
 			foreach ($quotes as $key => $quote) {
+				$was_checked = true;
 				$req_number   = sanitize_text_field( wp_unslash( $_POST[ "cla_quote_{$key}_req_number" ] ) );
 				$req_date     = sanitize_text_field( wp_unslash( $_POST[ "cla_quote_{$key}_req_date" ] ) );
 				$asset_number = sanitize_text_field( wp_unslash( $_POST[ "cla_quote_{$key}_asset_number" ] ) );
 				$quotes[$key]['requisition_number'] = $req_number;
 				$quotes[$key]['requisition_date']   = $req_date;
 				$quotes[$key]['asset_number']       = $asset_number;
+				if ( empty( $req_date ) ) {
+					$ordered_all = false;
+				}
 			}
 			update_field( 'quotes', $quotes, $post_id );
+
+			if ( $ordered_all && $was_checked ) {
+				update_post_meta( $post_id, 'it_logistics_status_ordered_at', date('Y-m-d H:i:s') );
+			}
 
 			$json_out['status'] = 'success';
 
@@ -1724,35 +1385,6 @@ Here is the form data:
 		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'fields/business-staff-status-order-fields.php';
 		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'fields/it-logistics-status-order-fields.php';
 
-	}
-
-	/**
-	 * Set the body class with the current post status and user roles so that CSS can hide or show appropriate features.
-	 *
-	 * @param array $classes Current class list.
-	 *
-	 * @return array
-	 */
-	public function set_admin_body_class( $classes ) {
-		global $pagenow;
-
-		if ( 'post.php' === $pagenow || 'post-new.php' === $pagenow ) {
-			$post_id = get_the_ID();
-			if ( 'wsorder' === get_post_type( $post_id ) ) {
-				$post_status = get_post_status( $post_id );
-				$user        = wp_get_current_user();
-				$roles       = (array) $user->roles;
-				$classes    .= " $post_status " . implode( ' ', $roles );
-
-		    // Add disable update class.
-		    $can_update = $this->can_current_user_update_order( $post_id );
-		    if ( true !== $can_update ) {
-		    	$classes .= ' disable-update-order';
-		    }
-			}
-		}
-
-		return $classes;
 	}
 
 	/**
@@ -2000,38 +1632,6 @@ jQuery( 'select[name=\"post_status\"]' ).val('publish')";
 	}
 
 	/**
-	 * Make post title using current program ID and incremented order ID from last order.
-	 *
-	 * @param string  $post_title The post title.
-	 * @param WP_Post $post       The post object.
-	 *
-	 * @return string
-	 */
-	public function default_post_title( $post_title, $post ) {
-
-		if ( 'wsorder' === $post->post_type ) {
-
-			// Get current program meta.
-			$current_program_post = get_field( 'current_program', 'option' );
-			if ( ! empty( $current_program_post ) ) {
-				$current_program_id        = $current_program_post->ID;
-				$current_program_post_meta = get_post_meta( $current_program_id );
-				$current_program_prefix    = $current_program_post_meta['prefix'][0];
-
-				// Get last order ID.
-				$last_wsorder_id = $this->get_last_order_id( $current_program_id );
-				$wsorder_id      = $last_wsorder_id + 1;
-
-				// Push order ID value to post details.
-				$post_title = "{$current_program_prefix}-{$wsorder_id}";
-			}
-		}
-
-		return $post_title;
-
-	}
-
-	/**
 	 * Add columns to the list view for Order posts.
 	 *
 	 * @param array $columns THe current set of columns.
@@ -2165,7 +1765,7 @@ jQuery( 'select[name=\"post_status\"]' ).val('publish')";
 	}
 
 	/**
-	 * Modify the Order post type query in admin so that people not involved with the order
+	 * Modify the Order post type query so that people not involved with the order
 	 * cannot see the post.
 	 *
 	 * @param object $query The query object.
@@ -2221,65 +1821,6 @@ jQuery( 'select[name=\"post_status\"]' ).val('publish')";
 	}
 
 	/**
-	 * Redirect visits from new order edit page to public order form.
-	 *
-	 * @return void
-	 */
-	public function redirect_to_order_form() {
-
-		global $pagenow;
-
-		if (
-		'post-new.php' === $pagenow
-		&& isset( $_GET['post_type'] ) //phpcs:ignore
-		&& 'wsorder' === $_GET['post_type'] //phpcs:ignore
-		) {
-
-			$blog_id = get_current_blog_id();
-			$url     = get_site_url( $blog_id, 'new-order/' );
-			wp_safe_redirect( $url );
-			exit();
-
-		}
-
-	}
-
-	/**
-	 * Filter admin_url to rewrite new order URLs so users must use the public order form.
-	 *
-	 * @param string $url     Current URL.
-	 * @param string $path    Current path.
-	 * @param int    $blog_id The current site ID.
-	 */
-	public function replace_new_order_url( $url, $path, $blog_id ) {
-
-		if ( 'post-new.php?post_type=wsorder' === $path ) {
-			$url = get_site_url( $blog_id, 'new-order/' );
-		}
-
-		return $url;
-
-	}
-
-	/**
-	 * Filter admin_url to rewrite all order URLs so users see the current program year.
-	 *
-	 * @param string $url     Current URL.
-	 * @param string $path    Current path.
-	 * @param int    $blog_id The current site ID.
-	 */
-	public function replace_all_orders_url( $url, $path, $blog_id ) {
-
-		if ( 'edit.php?post_type=wsorder' === $path ) {
-			$current_program_id = get_site_option( 'options_current_program' );
-			$url                = get_site_url( $blog_id, $path . '&program=' . $current_program_id );
-		}
-
-		return $url;
-
-	}
-
-	/**
 	 * Prevent users not involved with a work order from accessing the edit page.
 	 *
 	 * @return void
@@ -2315,30 +1856,6 @@ jQuery( 'select[name=\"post_status\"]' ).val('publish')";
 				exit();
 			}
 		}
-	}
-
-	/**
-	 * Generate PDF print link.
-	 *
-	 * @param WP_Post $post The post object.
-	 *
-	 * @return void
-	 */
-	public function pdf_print_receipt( $post ) {
-		if ( ! $post
-			|| 'publish' !== $post->post_status
-			|| 'wsorder' !== $post->post_type
-		) {
-			return;
-		}
-		$bare_url     = CLA_WORKSTATION_ORDER_DIR_URL . 'order-receipt.php?postid=' . $post->ID;
-		$complete_url = wp_nonce_url( $bare_url, 'auth-post_' . $post->ID, 'token' );
-		$html         = '<div class="misc-pub-section" style="overflow:hidden">';
-		$html        .= '<div id="publishing-action">';
-		$html        .= '<a class="button-primary" href="' . $complete_url . '" id="printpdf" target="_blank">Save as PDF</a>';
-		$html        .= '</div>';
-		$html        .= '</div>';
-		echo wp_kses_post( $html );
 	}
 
 	/**

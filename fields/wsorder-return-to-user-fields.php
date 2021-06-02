@@ -15,25 +15,6 @@ acf_add_local_field_group(array(
 	'title' => 'Return to User',
 	'fields' => array(
 		array(
-			'key' => 'field_608964b7880fe',
-			'label' => 'Returned',
-			'name' => 'returned',
-			'type' => 'true_false',
-			'instructions' => 'Check this box to return the order to the person who created it',
-			'required' => 0,
-			'conditional_logic' => 0,
-			'wrapper' => array(
-				'width' => '',
-				'class' => '',
-				'id' => '',
-			),
-			'message' => 'Return this order',
-			'default_value' => 0,
-			'ui' => 0,
-			'ui_on_text' => '',
-			'ui_off_text' => '',
-		),
-		array(
 			'key' => 'field_601d52f2e5418',
 			'label' => 'Comments',
 			'name' => 'returned_comments',
