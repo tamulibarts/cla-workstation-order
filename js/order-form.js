@@ -1,12 +1,12 @@
 (function($){
 
 	var $form           = $('#cla_order_form');
-	var admin_ajax      = WSOAjax;
-	var product_prices  = cla_product_prices;
-	var cost_allocation = cla_allocation;
-	var cost_threshold  = cla_threshold;
-	var is_order        = cla_is_order;
-	var post_status     = cla_status;
+	var admin_ajax      = typeof WSOAjax === 'undefined' ? {} : WSOAjax;
+	var product_prices  = typeof cla_product_prices === 'undefined' ? {} : cla_product_prices;
+	var cost_allocation = typeof cla_allocation === 'undefined' ? '' : cla_allocation;
+	var cost_threshold  = typeof cla_threshold === 'undefined' ? '' : cla_threshold;
+	var is_order        = typeof cla_is_order === 'undefined' ? '' : cla_is_order;
+	var post_status     = typeof cla_status === 'undefined' ? '' : cla_status;
 
 	// Remove product from shopping cart.
 	var removeProduct = function(e){
