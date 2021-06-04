@@ -790,19 +790,19 @@ class WSOrder_PostType {
 	 */
 	public function disable_save_order() {
 
-    // Remove all errors if user is an administrator.
-    if ( current_user_can('manage_options') ) {
-      acf_reset_validation_errors();
-    }
-
     $post_id    = $_POST['post_ID'];
     $post_type  = get_post_type( $post_id );
     if ( 'wsorder' !== $post_type ) {
     	return;
     }
-    $can_update = $this->can_current_user_update_order( $post_id );
-    if ( true !== $can_update ) {
-      acf_add_validation_error( false, $can_update );
+
+    // Remove all errors if user is an administrator.
+    if ( current_user_can('manage_options') ) {
+      acf_reset_validation_errors();
+    }
+
+    if ( ! current_user_can('wso_logistics') ) {
+      acf_add_validation_error( false, 'You cannot update the order.' );
     }
 
 	}
