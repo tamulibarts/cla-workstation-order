@@ -350,14 +350,6 @@
 			message += '<li>Please either uncheck "I don\'t have a computer yet" or clear the field labeled "Current Workstation Asset Number".</li>';
 		}
 
-		// Order comment.
-		$comments = $form.find('#cla_order_comments');
-		if ( $comments.val() === '' ) {
-			valid = false;
-			$form.find('label[for="cla_order_comments"]').addClass('flagged');
-			message += '<li>Please provide an order comment.</li>';
-		}
-
 		// Account Number.
 		var $accountNumber = $form.find('#cla_account_number');
 		var contributionAmount = parseFloat( $form.find('#cla_contribution_amount').val() );

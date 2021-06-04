@@ -416,7 +416,7 @@ function cla_render_order_form( $content ) {
 <div><label for=\"cla_current_asset_number\">Current Workstation Asset Number *</label> {$asset_number_field}<br><small>What is the TAMU asset number of your current workstation computer? Example: 021500123456</small></div>
 <div class=\"nobreak\">{$no_computer_field}<label for=\"cla_no_computer_yet\">I don't have a computer yet.</label></div>
 </div><div class=\"cell medium-6\">
-<div><label for=\"cla_order_comments\">Order Comment *</label> {$order_comment_field}<br><small>Any additional information that would be helpful to pass along.
+<div><label for=\"cla_order_comments\">Order Comment</label> {$order_comment_field}<br><small>Any additional information that would be helpful to pass along.
 </small></div>
 </div>
 </div>
