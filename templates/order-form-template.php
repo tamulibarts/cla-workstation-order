@@ -162,7 +162,23 @@ function cla_render_order_form( $content ) {
 		/**
 		 * Get current user info
 		 */
-		$order_info  = '<div id="cla_order_info"><h2>Order Information</h2><p>Please verify your information below. If you need to update anything, please <a href="/my-account/">update your info</a>.</p><dl>';
+		$order_info = '';
+		if ( 'wsorder' === $post->post_type && 'returned' === $post->post_status && get_current_user_id() === $maybe_order_author_id ) {
+			$returned_message    = get_post_meta( $post->ID, 'returned_comments', true );
+			$returning_user_name = '';
+			$returning_user_id   = (int) get_post_meta( $post->ID, 'returned_by', true );
+			if ( $returning_user_id ) {
+				$returning_user = get_user_by( 'id', $returning_user_id );
+				if ( $returning_user ) {
+					$returning_user_name = $returning_user->data->display_name;
+				}
+			}
+			if ( ! $returning_user_name ) {
+				$returning_user_name = '(user not found)';
+			}
+			$order_info .= "<div class=\"outline-fields notice notice-red\">Your order was returned by $returning_user_name: \"$returned_message\"</div>";
+		}
+		$order_info .= '<div id="cla_order_info"><h2>Order Information</h2><p>Please verify your information below. If you need to update anything, please <a href="/my-account/">update your info</a>.</p><dl>';
 		$order_info .= '<dt>First Name</dt><dd>' . $user_meta['first_name'][0] . '</dd>';
 		$order_info .= '<dt>Last Name</dt><dd>' . $user_meta['last_name'][0] . '</dd>';
 		$order_info .= '<dt>Email Address</dt><dd>' . $user->data->user_email . '</dd>';
