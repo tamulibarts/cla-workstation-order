@@ -53,6 +53,9 @@ class Bundle_PostType {
 			array(
 				'capability_type'    => array( 'bundle', 'bundles' ),
 				'publicly_queryable' => false,
+				'has_archive'        => false,
+				'rewrite'            => false,
+				'public'             => false,
 			)
 		);
 

@@ -53,6 +53,9 @@ class Department_PostType {
 			array(
 				'capability_type'    => array( 'department', 'departments' ),
 				'publicly_queryable' => false,
+				'has_archive'        => false,
+				'rewrite'            => false,
+				'public'             => false,
 			)
 		);
 

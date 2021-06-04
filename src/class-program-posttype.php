@@ -56,6 +56,9 @@ class Program_PostType {
 			array(
 				'capability_type'    => array( 'program', 'programs' ),
 				'publicly_queryable' => false,
+				'has_archive'        => false,
+				'rewrite'            => false,
+				'public'             => false,
 			)
 		);
 

@@ -68,6 +68,9 @@ class Product_PostType {
 			array(
 				'capability_type'    => array( 'product', 'products' ),
 				'publicly_queryable' => false,
+				'has_archive'        => false,
+				'rewrite'            => false,
+				'public'             => false,
 			)
 		);
 
