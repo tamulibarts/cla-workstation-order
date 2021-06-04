@@ -212,6 +212,7 @@ function cla_render_order_form( $content ) {
 			'echo'    => false,
 			'include' => $it_rep_ids,
 			'name'    => 'cla_it_rep_id',
+			'role'    => 'wso_it_rep',
 		);
 		$selected_rep = (int) get_post_meta( $post->ID, 'it_rep_status_it_rep', true );
 		if ( ! empty( $selected_rep ) ) {
