@@ -162,10 +162,7 @@ function cla_render_order_form( $content ) {
 		/**
 		 * Get current user info
 		 */
-		$order_info  = sprintf(
-			'<div id="cla_order_info"><h2>Order Information</h2><p>Please verify your information below. If you need to update anything, please <a href="%s">update your info</a>.</p><dl>',
-			get_edit_profile_url()
-		);
+		$order_info  = '<div id="cla_order_info"><h2>Order Information</h2><p>Please verify your information below. If you need to update anything, please <a href="/my-account/">update your info</a>.</p><dl>';
 		$order_info .= '<dt>First Name</dt><dd>' . $user_meta['first_name'][0] . '</dd>';
 		$order_info .= '<dt>Last Name</dt><dd>' . $user_meta['last_name'][0] . '</dd>';
 		$order_info .= '<dt>Email Address</dt><dd>' . $user->data->user_email . '</dd>';
