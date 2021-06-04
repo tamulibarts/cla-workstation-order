@@ -189,7 +189,7 @@ function cla_render_order_form( $content ) {
 		 * Get dropdown of users
 		 */
 		$it_rep_ids = get_field( 'field_6048e8d2b575a', $post->ID );
-		if ( empty( $affiliated_it_reps ) ) {
+		if ( ! $it_rep_ids ) {
 			// Get current program IT Reps assigned to current user's department.
 			$department_ids = array();
 			foreach ( $program_post_meta as $key => $value ) {
@@ -206,28 +206,33 @@ function cla_render_order_form( $content ) {
 			}
 
 			$it_rep_ids = get_post_meta( $program_id, "{$dept_key}_it_reps", true );
+
 		}
 
-		$it_rep_args = array(
-			'echo'    => false,
-			'include' => $it_rep_ids,
-			'name'    => 'cla_it_rep_id',
-			'role'    => 'wso_it_rep',
-		);
-		$selected_rep = (int) get_post_meta( $post->ID, 'it_rep_status_it_rep', true );
-		if ( ! empty( $selected_rep ) ) {
-			$it_rep_args['selected'] = $selected_rep;
-			$it_rep_args['include_selected'] = true;
+		if ( $it_rep_ids ) {
+			$it_rep_args = array(
+				'echo'              => false,
+				'include'           => $it_rep_ids,
+				'name'              => 'cla_it_rep_id',
+				'role'              => 'wso_it_rep',
+				'show_option_none'  => 'Select a representative',
+				'option_none_value' => '-1',
+			);
+			$selected_rep = (int) get_post_meta( $post->ID, 'it_rep_status_it_rep', true );
+			if ( ! empty( $selected_rep ) ) {
+				$it_rep_args['selected'] = $selected_rep;
+				$it_rep_args['include_selected'] = true;
+			}
+			$it_rep_dropdown = wp_dropdown_users( $it_rep_args );
 		}
-		$it_rep_dropdown = wp_dropdown_users( $it_rep_args );
-		// Handle when no IT Representatives are found.
-		if ( false === strpos( $it_rep_dropdown, '<option' ) ) {
-			$empty_option    = '<option value="-1">No IT Representatives are available</option>';
-			$it_rep_dropdown = preg_replace( '/(<select[^>]*>)([^<]*)/', '$1$2' . $empty_option, $it_rep_dropdown );
-		} else {
-			// Add "Select a user" default option to it_rep_dropdown.
-			$default_option  = '<option value="-1">Select a representative</option>';
-			$it_rep_dropdown = preg_replace( '/(<select[^>]*>)([^<]*)<option/', '$1$2' . $default_option . '<option', $it_rep_dropdown );
+
+		// Dropdown for no users.
+		if ( ! $it_rep_ids || ! $it_rep_dropdown ) {
+			$logistics_email = get_field( 'logistics_email', 'option' );
+			if ( ! $logistics_email ) {
+				$logistics_email = 'us';
+			}
+			$it_rep_dropdown = '<select name="cla_it_rep_id" id="cla_it_rep_id" class="" disabled><option value="-1">No IT Representatives are available, please contact ' . $logistics_email . ' for assistance.</option></select>';
 		}
 
 		/**
@@ -454,9 +459,10 @@ function cla_render_order_form( $content ) {
 				'action'  => array(),
 			),
 			'select'   => array(
-				'name'  => array(),
-				'id'    => array(),
-				'class' => array(),
+				'name'     => array(),
+				'id'       => array(),
+				'class'    => array(),
+				'disabled' => array(),
 			),
 			'option'   => array(
 				'value' => array(),
