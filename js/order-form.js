@@ -384,7 +384,8 @@
 			if ( this.value.length === 0 ) {
 				valid = false;
 				$(this).parent().find('label[for="' + this.id + '"]').addClass('flagged');
-				message += '<li>Please provide details for your custom quote.</li>';
+				var label = $(this).parent().find('label[for="' + this.id + '"]').html().toLowerCase();
+				message += '<li>Please provide a ' + label + ' for your custom quote.</li>';
 			}
 		});
 
@@ -392,19 +393,21 @@
 		$form.find('.cla-quote-file').each(function(){
 			// Validate file extension ('pdf', 'doc', 'docx').
 			var filename  = this.value;
-			var extension = filename.match(/(pdf|doc|docx)$/g)[0];
-			if ( extension !== 'pdf' && extension !== 'doc' && extension !== 'docx' ) {
-				valid = false;
-				$(this).parent().find('label[for="' + this.id + '"]').addClass('flagged');
-				message += '<li>Please provide a custom quote file in pdf, doc, or docx format.</li>';
-			}
-			// Validate file size (1024000).
-			var files = $(this).prop('files');
-			var size = files[0].size;
-			if ( size > 1024000 ) {
-				valid = false;
-				$(this).parent().find('label[for="' + this.id + '"]').addClass('flagged');
-				message += '<li>Custom quote file size must be less than or equal to 1mb.</li>';
+			if ( '' !== filename ) {
+				var extension = filename.match(/(pdf|doc|docx)$/g)[0];
+				if ( extension !== 'pdf' && extension !== 'doc' && extension !== 'docx' ) {
+					valid = false;
+					$(this).parent().find('label[for="' + this.id + '"]').addClass('flagged');
+					message += '<li>Please provide a custom quote file in pdf, doc, or docx format.</li>';
+				}
+				// Validate file size (1024000).
+				var files = $(this).prop('files');
+				var size = files[0].size;
+				if ( size > 1024000 ) {
+					valid = false;
+					$(this).parent().find('label[for="' + this.id + '"]').addClass('flagged');
+					message += '<li>Custom quote file size must be less than or equal to 1mb.</li>';
+				}
 			}
 		});
 

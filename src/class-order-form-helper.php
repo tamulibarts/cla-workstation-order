@@ -36,39 +36,40 @@ class Order_Form_Helper {
 	/**
 	 * Validate file upload.
 	 */
-	public function validate_file_field( $files ) {
+	public function validate_file_field( $file, $index ) {
 
-		$return = array(
+		$return   = array(
 			'passed' => true,
 			'message' => '',
 		);
+		$messages = array();
 
 		// No files to validate.
-		if ( empty( $files ) ) {
-			return $return;
-		}
-
-		// Throws a message if no file is selected
-		if ( ! $files['cla_quote_0_file']['name'] ) {
+		if ( empty( $file ) || ! $file['name'] ) {
 			$return['passed'] = false;
-			$return['message'] = esc_html__( 'Please choose a file', 'cla-workstation-order-textdomain' );
+			$messages[]       = esc_html__( 'Please choose a file.', 'cla-workstation-order-textdomain' );
 		}
 
 		// Validate file extension.
 		$allowed_extensions = array( 'pdf', 'doc', 'docx' );
-		$file_type = wp_check_filetype( $files['cla_quote_0_file']['name'] );
-		$file_extension = $file_type['ext'];
+		$file_type          = wp_check_filetype( $file['name'] );
+		$file_extension     = $file_type['ext'];
 		if ( ! in_array( $file_extension, $allowed_extensions ) ) {
 			$return['passed'] = false;
-			$return['message'] = sprintf(  esc_html__( 'Invalid file extension, only allowed: %s', 'cla-workstation-order-textdomain' ), implode( ', ', $allowed_extensions ) );
+			$messages[]       = sprintf(  esc_html__( 'Invalid file extension, only allowed: %s.', 'cla-workstation-order-textdomain' ), implode( ', ', $allowed_extensions ) );
 		}
 
 		// Validate file size.
-		$file_size = $files['cla_quote_0_file']['size'];
+		$file_size         = $file['size'];
 		$allowed_file_size = 1024000; // Here we are setting the file size limit
 		if ( $file_size >= $allowed_file_size ) {
 			$return['passed'] = false;
-			$return['message'] = sprintf( esc_html__( 'File size limit exceeded, file size should be smaller than %d KB', 'cla-workstation-order-textdomain' ), $allowed_file_size / 1000 );
+			$messages[]       = esc_html__( 'File size limit exceeded, file size should be smaller than 1 MB.', 'cla-workstation-order-textdomain' );
+		}
+
+		if ( $messages ) {
+			$filename          = empty( $file ) || ! $file['name'] ? ($index + 1) : $file['name'];
+			$return['message'] = "There was an error with file $filename: " . implode(' ', $messages);
 		}
 
 		return $return;

@@ -899,6 +899,34 @@ class WSOrder_PostType {
 			return;
 		}
 
+		// Validate the file uploads, if present.
+		if ( isset( $_POST['cla_quote_count'] ) && 0 < intval( $_POST['cla_quote_count'] ) ) {
+			$quote_count = (int) sanitize_text_field( wp_unslash( $_POST['cla_quote_count'] ) );
+			if ( $quote_count > 0 ) {
+
+				/**
+				 * Handle quote fields and file uploads.
+				 */
+				// These files need to be included as dependencies when on the front end.
+				require_once CLA_WORKSTATION_ORDER_DIR_PATH . '/src/class-order-form-helper.php';
+				$order_form_helper = new \CLA_Workstation_Order\Order_Form_Helper();
+				$quote_fields = array();
+				for ( $i = 0; $i < $quote_count; $i++ ) {
+					// Handle uploading quote file.
+					if ( array_key_exists( "cla_quote_{$i}_file", $_FILES ) ) {
+						$validate_file = $order_form_helper->validate_file_field( $_FILES["cla_quote_{$i}_file"], $i );
+						if ( ! $validate_file['passed'] ) {
+							$json_out['errors'][] = $validate_file['message'];
+						}
+					}
+				}
+				if ( count( $json_out['errors'] ) > 0 ) {
+					echo json_encode( $json_out );
+					die();
+				}
+			}
+		}
+
 		if ( 'wsorder' !== $post_type ) {
 
 			// Make a new order.
