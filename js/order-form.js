@@ -161,7 +161,6 @@
 		var contribution = validateContribution();
 
 		// Show or hide the contribution amount needed and disable the form.
-		console.log(contribution.difference);
 		if ( contribution.difference === 0 ) {
 			$allocationData.addClass('hidden');
 			$('#contribution_needed_label').html('Contribution needed');
