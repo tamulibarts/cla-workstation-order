@@ -380,10 +380,6 @@ class WSOrder_PostType {
 
 		// Decide what kind of user this is.
 		if ( current_user_can( 'wso_logistics' ) ) {
-			// Check the logistics ordered box.
-			$logistics = get_field( 'it_logistics_status', $post_id );
-			$logistics['ordered'] = true;
-			update_field( 'it_logistics_status', $logistics, $post_id );
 			// Save the post status.
 			$args = array(
 				'ID'          => $post_id,
@@ -1255,7 +1251,7 @@ Here is the form data:
 				$products[$key]['requisition_number'] = $req_number;
 				$products[$key]['requisition_date']   = $req_date;
 				$products[$key]['asset_number']       = $asset_number;
-				if ( empty( $req_date ) ) {
+				if ( empty( $req_date ) || empty( $req_number ) ) {
 					$ordered_all = false;
 				}
 			}
@@ -1270,13 +1266,17 @@ Here is the form data:
 				$quotes[$key]['requisition_number'] = $req_number;
 				$quotes[$key]['requisition_date']   = $req_date;
 				$quotes[$key]['asset_number']       = $asset_number;
-				if ( empty( $req_date ) ) {
+				if ( empty( $req_date ) || empty( $req_number ) ) {
 					$ordered_all = false;
 				}
 			}
 			update_field( 'quotes', $quotes, $post_id );
 
 			if ( $ordered_all && $was_checked ) {
+				// Logistics user has finished ordering items.
+				$logistics_fields = get_field( 'it_logistics_status', $post_id );
+				$logistics_fields['ordered'] = true;
+				update_field( 'it_logistics_status', $logistics_fields, $post_id );
 				update_post_meta( $post_id, 'it_logistics_status_ordered_at', date('Y-m-d H:i:s') );
 			}
 
