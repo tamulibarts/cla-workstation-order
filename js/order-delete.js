@@ -25,7 +25,7 @@
         $button.after(message_html);
       }
       var $message = $container.find('.ajax-delete-message');
-      if ( false === Number.isNaN( post_id ) ) {
+      if ( post_id !== undefined && false === Number.isNaN( post_id ) ) {
         form_data.append('order_post_id', post_id);
       }
       form_data.append('action', 'delete_order');
