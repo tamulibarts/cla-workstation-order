@@ -24,6 +24,10 @@ function cla_entry_atts( $attributes ){
 add_action( 'the_content', 'cla_my_orders' );
 function cla_my_orders() {
 
+	if ( ! is_user_logged_in() ) {
+		return;
+	}
+
 	$user    = wp_get_current_user();
 	$user_id = $user->get( 'ID' );
 

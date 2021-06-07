@@ -27,6 +27,10 @@ add_filter( 'genesis_attr_content', 'cla_add_container_class' );
  */
 function cla_workstation_order_account_scripts() {
 
+	if ( ! is_user_logged_in() ) {
+		return;
+	}
+
 	wp_register_script(
 		'cla-workstation-order-account-scripts',
 		CLA_WORKSTATION_ORDER_DIR_URL . 'js/update-account.js',
@@ -71,6 +75,11 @@ function get_department_dropdown() {
 
 add_action( 'the_content', 'cla_my_account' );
 function cla_my_account() {
+
+	if ( ! is_user_logged_in() ) {
+		return;
+	}
+
 	$permalink     = get_permalink();
 	$output        = "<form method=\"post\" enctype=\"multipart/form-data\" id=\"cla_update_account_form\" action=\"{$permalink}\">";
 	$user          = wp_get_current_user();

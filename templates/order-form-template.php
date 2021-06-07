@@ -67,6 +67,10 @@ add_action( 'wp_enqueue_scripts', 'cla_workstation_order_form_styles', 1 );
  */
 function cla_workstation_order_form_scripts() {
 
+	if ( ! is_user_logged_in() ) {
+		return;
+	}
+
 	wp_register_script(
 		'cla-workstation-order-form-scripts',
 		CLA_WORKSTATION_ORDER_DIR_URL . 'js/order-form.js',
@@ -129,321 +133,319 @@ add_action( 'wp_enqueue_scripts', 'cla_workstation_order_form_scripts', 1 );
 function cla_render_order_form( $content ) {
 
 	if ( ! is_user_logged_in() ) {
+		return $content;
+	}
 
-		return '<p>You must be logged in to view this page.</p>';
+	global $post;
 
+	// Limit users to 1 order per program.
+	// Determine if this is the order form and if a user has already placed an order for the program.
+	$current_program = get_field( 'current_program', 'option' );
+	$current_user    = wp_get_current_user();
+	if ( 'page' === $post->post_type ) {
+		$author_post_args = array(
+			'post_type'      => 'wsorder',
+			'author'         => $current_user->ID,
+			'posts_per_page' => 1,
+			'meta_key'       => 'program',
+			'meta_value'     => $current_program->ID,
+		);
+		$previous_order = get_posts( $author_post_args );
+		if ( $previous_order ) {
+			$permalink = get_permalink( $previous_order[0]->ID );
+			return wp_kses_post( "<div class=\"text-center\">You have already placed an order for {$current_program->post_title}: <a href=\"$permalink\">$permalink</a></div>" );
+		}
+	}
+
+	$maybe_order_author_id = (int) get_post_meta( $post->ID, 'order_author', true );
+	if ( 'wsorder' === $post->post_type && ! empty( $maybe_order_author_id ) ) {
+		$user = get_user_by( 'id', $maybe_order_author_id );
 	} else {
+		$user = wp_get_current_user();
+	}
+	$user_id   = $user->get( 'ID' );
+	$user_meta = get_user_meta( $user_id );
 
-		global $post;
+	// Get user's department.
+	$user_department_post    = get_field( 'department', "user_{$user_id}" );
+	$user_department_post_id = $user_department_post->ID;
 
-		// Limit users to 1 order per program.
-		// Determine if this is the order form and if a user has already placed an order for the program.
-		$current_program = get_field( 'current_program', 'option' );
-		$current_user    = wp_get_current_user();
-		if ( 'page' === $post->post_type ) {
-			$author_post_args = array(
-				'post_type'      => 'wsorder',
-				'author'         => $current_user->ID,
-				'posts_per_page' => 1,
-				'meta_key'       => 'program',
-				'meta_value'     => $current_program->ID,
-			);
-			$previous_order = get_posts( $author_post_args );
-			if ( $previous_order ) {
-				$permalink = get_permalink( $previous_order[0]->ID );
-				return wp_kses_post( "<div class=\"text-center\">You have already placed an order for {$current_program->post_title}: <a href=\"$permalink\">$permalink</a></div>" );
+	// Get current program meta.
+	$maybe_program_post = get_post_meta( $post->ID, 'program', true );
+	if ( 'wsorder' === $post->post_type && ! empty( $maybe_program_post ) ) {
+		$program_post = get_post( $maybe_program_post );
+	} else {
+		$program_post = $current_program;
+	}
+	$program_id        = $program_post->ID;
+	$program_post_meta = get_post_meta( $program_id, '', true );
+
+	/**
+	 * Get current user info
+	 */
+	$order_info = '';
+	if ( 'wsorder' === $post->post_type && 'returned' === $post->post_status && get_current_user_id() === $maybe_order_author_id ) {
+		$returned_message    = get_post_meta( $post->ID, 'returned_comments', true );
+		$returning_user_name = '';
+		$returning_user_id   = (int) get_post_meta( $post->ID, 'returned_by', true );
+		if ( $returning_user_id ) {
+			$returning_user = get_user_by( 'id', $returning_user_id );
+			if ( $returning_user ) {
+				$returning_user_name = $returning_user->data->display_name;
+			}
+		}
+		if ( ! $returning_user_name ) {
+			$returning_user_name = '(user not found)';
+		}
+		$order_info .= "<div class=\"outline-fields notice notice-red\">Your order was returned by $returning_user_name: \"$returned_message\"</div>";
+	}
+	$order_info .= '<div id="cla_order_info"><h2>Order Information</h2><p>Please verify your information below. If you need to update anything, please <a href="/my-account/">update your info</a>.</p><dl>';
+	$order_info .= '<dt>First Name</dt><dd>' . $user_meta['first_name'][0] . '</dd>';
+	$order_info .= '<dt>Last Name</dt><dd>' . $user_meta['last_name'][0] . '</dd>';
+	$order_info .= '<dt>Email Address</dt><dd>' . $user->data->user_email . '</dd>';
+	$order_info .= '<dt>Department</dt><dd>' . $user_department_post->post_title . '</dd>';
+	$order_info .= '</dl></div>';
+
+	/**
+	 * Additional Funding
+	 */
+	$contribution_amount = get_post_meta( $post->ID, 'contribution_amount', true );
+	if ( empty( $contribution_amount ) ) {
+		$contribution_amount = '0.0';
+	}
+	$contribution_account = get_post_meta( $post->ID, 'contribution_account', true );
+	if ( empty( $contribution_account ) ) {
+		$contribution_account = '';
+	}
+	$additional_funding  = '<div id="cla_add_funding"><h3>Additional Funding</h3><p>Enter any additional funds that you would like to contribute on top of your base allowance.<br>Your cart calculations will include this amount. It\'s also required if your cart total exceeds the base allowance.</p>';
+	$additional_funding .= '<div class="form-group"><label for="cla_contribution_amount">Contribution Amount</label> <div class="grid-x"><div class="cell shrink dollar-field">$</div><div class="cell auto"><input id="cla_contribution_amount" name="cla_contribution_amount" type="number" min="0" step="0.01" value="' . $contribution_amount . '" step="any" /></div></div></div>';
+	$additional_funding .= '<div class="form-group"><label for="cla_account_number">Account</label> <input id="cla_account_number" name="cla_account_number" type="text" value="' . $contribution_account . '"/><small><br>Research, Bursary, etc. or the Acct #</small></div>';
+	$additional_funding .= '</div>';
+
+	/**
+	 * Get dropdown of users
+	 */
+	$it_rep_ids = get_field( 'field_6048e8d2b575a', $post->ID );
+	if ( ! $it_rep_ids ) {
+		// Get current program IT Reps assigned to current user's department.
+		$department_ids = array();
+		foreach ( $program_post_meta as $key => $value ) {
+			$value = $value[0];
+			if ( false !== strpos( $key, '_department_post_id' ) && false === strpos( $value, 'field_' ) ) {
+				$department_ids[ $key ] = (int) $value;
+			}
+		}
+		$dept_key = '';
+		foreach ( $department_ids as $key => $value ) {
+			if ( $user_department_post_id === $value ) {
+				$dept_key = str_replace( '_department_post_id', '', $key );
 			}
 		}
 
-		$maybe_order_author_id = (int) get_post_meta( $post->ID, 'order_author', true );
-		if ( 'wsorder' === $post->post_type && ! empty( $maybe_order_author_id ) ) {
-			$user = get_user_by( 'id', $maybe_order_author_id );
-		} else {
-			$user = wp_get_current_user();
+		$it_rep_ids = get_post_meta( $program_id, "{$dept_key}_it_reps", true );
+
+	}
+
+	if ( $it_rep_ids ) {
+		$it_rep_args = array(
+			'echo'              => false,
+			'include'           => $it_rep_ids,
+			'name'              => 'cla_it_rep_id',
+			'role'              => 'wso_it_rep',
+			'show_option_none'  => 'Select a representative',
+			'option_none_value' => '-1',
+		);
+		$selected_rep = (int) get_post_meta( $post->ID, 'it_rep_status_it_rep', true );
+		if ( ! empty( $selected_rep ) ) {
+			$it_rep_args['selected'] = $selected_rep;
+			$it_rep_args['include_selected'] = true;
 		}
-		$user_id   = $user->get( 'ID' );
-		$user_meta = get_user_meta( $user_id );
+		$it_rep_dropdown = wp_dropdown_users( $it_rep_args );
+	}
 
-		// Get user's department.
-		$user_department_post    = get_field( 'department', "user_{$user_id}" );
-		$user_department_post_id = $user_department_post->ID;
-
-		// Get current program meta.
-		$maybe_program_post = get_post_meta( $post->ID, 'program', true );
-		if ( 'wsorder' === $post->post_type && ! empty( $maybe_program_post ) ) {
-			$program_post = get_post( $maybe_program_post );
-		} else {
-			$program_post = $current_program;
+	// Dropdown for no users.
+	if ( ! $it_rep_ids || ! $it_rep_dropdown ) {
+		$logistics_email = get_field( 'logistics_email', 'option' );
+		if ( ! $logistics_email ) {
+			$logistics_email = 'us';
 		}
-		$program_id        = $program_post->ID;
-		$program_post_meta = get_post_meta( $program_id, '', true );
+		$it_rep_dropdown = '<select name="cla_it_rep_id" id="cla_it_rep_id" class="" disabled><option value="-1">No IT Representatives are available, please contact ' . $logistics_email . ' for assistance.</option></select>';
+	}
 
-		/**
-		 * Get current user info
-		 */
-		$order_info = '';
-		if ( 'wsorder' === $post->post_type && 'returned' === $post->post_status && get_current_user_id() === $maybe_order_author_id ) {
-			$returned_message    = get_post_meta( $post->ID, 'returned_comments', true );
-			$returning_user_name = '';
-			$returning_user_id   = (int) get_post_meta( $post->ID, 'returned_by', true );
-			if ( $returning_user_id ) {
-				$returning_user = get_user_by( 'id', $returning_user_id );
-				if ( $returning_user ) {
-					$returning_user_name = $returning_user->data->display_name;
-				}
+	/**
+	 * Identify which products or bundles were selected during ordering.
+	 */
+	$selected_products_and_bundles = get_field( 'selected_products_and_bundles', $post->ID );
+
+	/**
+	 * Get the CLA Form Helper class.
+	 */
+	require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-order-form-helper.php';
+	$cla_form_helper = new \CLA_Workstation_Order\Order_Form_Helper();
+
+	/**
+	 * Get product categories.
+	 */
+	$selected_array = ! empty( $selected_products_and_bundles ) ? $selected_products_and_bundles : array();
+	$apple_list  = $cla_form_helper->cla_get_products( 'apple', false, $selected_array );
+	$pc_list     = $cla_form_helper->cla_get_products( 'pc', false, $selected_array );
+	$addons_list = $cla_form_helper->cla_get_products( 'add-on', false, $selected_array );
+
+	/**
+	 * Add advanced quote button.
+	 */
+	$button_add_quote = '<button class="button" type="button" id="cla_add_quote">Add an Advanced Teaching/Research Quote</button>';
+
+	/**
+	 * Shopping cart items.
+	 */
+	$purchase_list_items = '';
+
+	/**
+	 * Purchased product IDs field.
+	 */
+	$selected_pab_value = '';
+	if ( !empty( $selected_products_and_bundles ) ) {
+		$selected_pab_value = implode( ',', $selected_products_and_bundles );
+		foreach ( $selected_products_and_bundles as $key => $pob_post_id ) {
+			$pob_price = get_field( 'price', $pob_post_id );
+			$cart_price = floatval( $pob_price );
+			$cart_price = '$' . number_format( $cart_price, 2, '.', ',' );
+			$pob_thumb = get_the_post_thumbnail_url( $pob_post_id );
+			$item = '<div class="cart-item shopping-cart-'.$pob_post_id.' grid-x">';
+			if ( $pob_thumb ) {
+				$item .= '<div class="cell shrink"><img width="50" src="' . $pob_thumb . '"></div>';
 			}
-			if ( ! $returning_user_name ) {
-				$returning_user_name = '(user not found)';
-			}
-			$order_info .= "<div class=\"outline-fields notice notice-red\">Your order was returned by $returning_user_name: \"$returned_message\"</div>";
+			$item .= '<div class="cell auto">' . get_the_title( $pob_post_id ) . '</div>';
+			$item .= '<div class="cell shrink align-right bold"><button class="trash trash-product" type="button" data-product-id="'.$pob_post_id.'">Remove product from cart</button>' . $cart_price . '</div>';
+			$item .= '</div>';
+			$purchase_list_items .= $item;
 		}
-		$order_info .= '<div id="cla_order_info"><h2>Order Information</h2><p>Please verify your information below. If you need to update anything, please <a href="/my-account/">update your info</a>.</p><dl>';
-		$order_info .= '<dt>First Name</dt><dd>' . $user_meta['first_name'][0] . '</dd>';
-		$order_info .= '<dt>Last Name</dt><dd>' . $user_meta['last_name'][0] . '</dd>';
-		$order_info .= '<dt>Email Address</dt><dd>' . $user->data->user_email . '</dd>';
-		$order_info .= '<dt>Department</dt><dd>' . $user_department_post->post_title . '</dd>';
-		$order_info .= '</dl></div>';
+	}
+	$purchase_field = '<input type="hidden" id="cla_product_ids" name="cla_product_ids" value="' . $selected_pab_value . '" />';
 
-		/**
-		 * Additional Funding
-		 */
-		$contribution_amount = get_post_meta( $post->ID, 'contribution_amount', true );
-		if ( empty( $contribution_amount ) ) {
-			$contribution_amount = '0.0';
-		}
-		$contribution_account = get_post_meta( $post->ID, 'contribution_account', true );
-		if ( empty( $contribution_account ) ) {
-			$contribution_account = '';
-		}
-		$additional_funding  = '<div id="cla_add_funding"><h3>Additional Funding</h3><p>Enter any additional funds that you would like to contribute on top of your base allowance.<br>Your cart calculations will include this amount. It\'s also required if your cart total exceeds the base allowance.</p>';
-		$additional_funding .= '<div class="form-group"><label for="cla_contribution_amount">Contribution Amount</label> <div class="grid-x"><div class="cell shrink dollar-field">$</div><div class="cell auto"><input id="cla_contribution_amount" name="cla_contribution_amount" type="number" min="0" step="0.01" value="' . $contribution_amount . '" step="any" /></div></div></div>';
-		$additional_funding .= '<div class="form-group"><label for="cla_account_number">Account</label> <input id="cla_account_number" name="cla_account_number" type="text" value="' . $contribution_account . '"/><small><br>Research, Bursary, etc. or the Acct #</small></div>';
-		$additional_funding .= '</div>';
-
-		/**
-		 * Get dropdown of users
-		 */
-		$it_rep_ids = get_field( 'field_6048e8d2b575a', $post->ID );
-		if ( ! $it_rep_ids ) {
-			// Get current program IT Reps assigned to current user's department.
-			$department_ids = array();
-			foreach ( $program_post_meta as $key => $value ) {
-				$value = $value[0];
-				if ( false !== strpos( $key, '_department_post_id' ) && false === strpos( $value, 'field_' ) ) {
-					$department_ids[ $key ] = (int) $value;
-				}
-			}
-			$dept_key = '';
-			foreach ( $department_ids as $key => $value ) {
-				if ( $user_department_post_id === $value ) {
-					$dept_key = str_replace( '_department_post_id', '', $key );
-				}
-			}
-
-			$it_rep_ids = get_post_meta( $program_id, "{$dept_key}_it_reps", true );
-
-		}
-
-		if ( $it_rep_ids ) {
-			$it_rep_args = array(
-				'echo'              => false,
-				'include'           => $it_rep_ids,
-				'name'              => 'cla_it_rep_id',
-				'role'              => 'wso_it_rep',
-				'show_option_none'  => 'Select a representative',
-				'option_none_value' => '-1',
-			);
-			$selected_rep = (int) get_post_meta( $post->ID, 'it_rep_status_it_rep', true );
-			if ( ! empty( $selected_rep ) ) {
-				$it_rep_args['selected'] = $selected_rep;
-				$it_rep_args['include_selected'] = true;
-			}
-			$it_rep_dropdown = wp_dropdown_users( $it_rep_args );
-		}
-
-		// Dropdown for no users.
-		if ( ! $it_rep_ids || ! $it_rep_dropdown ) {
-			$logistics_email = get_field( 'logistics_email', 'option' );
-			if ( ! $logistics_email ) {
-				$logistics_email = 'us';
-			}
-			$it_rep_dropdown = '<select name="cla_it_rep_id" id="cla_it_rep_id" class="" disabled><option value="-1">No IT Representatives are available, please contact ' . $logistics_email . ' for assistance.</option></select>';
-		}
-
-		/**
-		 * Identify which products or bundles were selected during ordering.
-		 */
-		$selected_products_and_bundles = get_field( 'selected_products_and_bundles', $post->ID );
-
-		/**
-		 * Get the CLA Form Helper class.
-		 */
-		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-order-form-helper.php';
-		$cla_form_helper = new \CLA_Workstation_Order\Order_Form_Helper();
-
-		/**
-		 * Get product categories.
-		 */
-		$selected_array = ! empty( $selected_products_and_bundles ) ? $selected_products_and_bundles : array();
-		$apple_list  = $cla_form_helper->cla_get_products( 'apple', false, $selected_array );
-		$pc_list     = $cla_form_helper->cla_get_products( 'pc', false, $selected_array );
-		$addons_list = $cla_form_helper->cla_get_products( 'add-on', false, $selected_array );
-
-		/**
-		 * Add advanced quote button.
-		 */
-		$button_add_quote = '<button class="button" type="button" id="cla_add_quote">Add an Advanced Teaching/Research Quote</button>';
-
-		/**
-		 * Shopping cart items.
-		 */
-		$purchase_list_items = '';
-
-		/**
-		 * Purchased product IDs field.
-		 */
-		$selected_pab_value = '';
-		if ( !empty( $selected_products_and_bundles ) ) {
-			$selected_pab_value = implode( ',', $selected_products_and_bundles );
-			foreach ( $selected_products_and_bundles as $key => $pob_post_id ) {
-				$pob_price = get_field( 'price', $pob_post_id );
-				$cart_price = floatval( $pob_price );
-				$cart_price = '$' . number_format( $cart_price, 2, '.', ',' );
-				$pob_thumb = get_the_post_thumbnail_url( $pob_post_id );
-				$item = '<div class="cart-item shopping-cart-'.$pob_post_id.' grid-x">';
-				if ( $pob_thumb ) {
-					$item .= '<div class="cell shrink"><img width="50" src="' . $pob_thumb . '"></div>';
-				}
-				$item .= '<div class="cell auto">' . get_the_title( $pob_post_id ) . '</div>';
-				$item .= '<div class="cell shrink align-right bold"><button class="trash trash-product" type="button" data-product-id="'.$pob_post_id.'">Remove product from cart</button>' . $cart_price . '</div>';
-				$item .= '</div>';
-				$purchase_list_items .= $item;
-			}
-		}
-		$purchase_field = '<input type="hidden" id="cla_product_ids" name="cla_product_ids" value="' . $selected_pab_value . '" />';
-
-		/**
-		 * Store number of quotes.
-		 */
-		$custom_quotes = get_field( 'quotes', $post->ID );
-		$quote_count   = 0;
-		$quote_html    = '';
-		if ( ! empty( $custom_quotes ) ) {
-			$quote_count = count( $custom_quotes );
-			foreach ( $custom_quotes as $key => $quote ) {
-				$file_field = '';
-				if ( ! empty( $quote['file'] ) ) {
-					$file_field = '<a target="_blank" href="' . $quote['file']['url'] . '">' . $quote['file']['filename'] . '</a>';
-				} else {
-					$file_field = '<input name="cla_quote_' . $key . '_file" id="cla_quote_' . $key . '_file" class="cla-quote-file" type="file" accept=".pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"/>';
-				}
-				$quote_html .= '<div class="cla-quote-item grid-x grid-margin-x" data-quote-index="' . $key . '">';
-				$quote_html .= '<div class="cell small-12 medium-4"><label for="cla_quote_' . $key . '_name">Name</label><input name="cla_quote_' . $key . '_name" id="cla_quote_' . $key . '_name" class="cla-quote-name" type="text" value="' . $quote['name'] . '" />';
-				$quote_html .= '<label for="cla_quote_' . $key . '_price">Price</label><input name="cla_quote_' . $key . '_price" id="cla_quote_' . $key . '_price" class="cla-quote-price" type="number" min="0" step="0.01" value="' . $quote['price'] . '" /></div>';
-				$quote_html .= '<div class="cell small-12 medium-4"><label for="cla_quote_' . $key . '_description">Description</label><textarea name="cla_quote_' . $key . '_description" id="cla_quote_' . $key . '_description" class="cla-quote-description" name="cla_quote_' . $key . '_description">' . $quote['description'] . '</textarea></div>';
-				$quote_html .= '<div class="cell small-12 medium-auto"><label for="cla_quote_' . $key . '_file">File</label>' . $file_field . '</div>';
-				$quote_html .= '<div class="cell small-12 medium-shrink"><button type="button" class="remove" data-quote-index="' . $key . '">Remove this quote item</button></div>';
-				$quote_html .= '</div>';
-
-				// Shopping cart item.
-				$cart_price = floatval( $quote['price'] );
-				$cart_price = '$' . number_format( $cart_price, 2, '.', ',' );
-				$item = '<div class="cart-item quote-item quote-item-' . $key . ' grid-x">';
-				$item .= '<div class="cell auto">Advanced Teaching/Research Item</div>';
-				$item .= '<div class="cell shrink align-right bold"><button class="trash trash-quote" type="button" data-quote-index="' . $key . '">Remove product from cart</button><span class="price">' . $cart_price . '</span></div>';
-				$item .= '</div>';
-				$purchase_list_items .= $item;
-			}
-		}
-		$count_quotes = '<input type="hidden" id="cla_quote_count" name="cla_quote_count" value="' . $quote_count . '" />';
-		$list_quotes  = "<div id=\"list_quotes\">{$quote_html}</div>";
-
-		/**
-		 * Purchased product list view.
-		 */
-		$list_purchases = "<div id=\"list_purchases\">{$purchase_list_items}</div>";
-
-		/**
-		 * Order subtotal.
-		 */
-		$subtotal = '$0.00';
-		$subtotal_field = get_field( 'products_subtotal', $post->ID );
-		if ( ! empty( $subtotal_field ) ) {
-			$subtotal_float = floatval( $subtotal_field );
-			$subtotal       = '$' . number_format( $subtotal_float, 2, '.', ',' );
-		}
-
-		/**
-		 * Submit button.
-		 */
-		if ( 'wsorder' === $post->post_type ) {
-			if ( 'returned' === $post->post_status ) {
-				$submit_text = 'Update and Resubmit Order';
+	/**
+	 * Store number of quotes.
+	 */
+	$custom_quotes = get_field( 'quotes', $post->ID );
+	$quote_count   = 0;
+	$quote_html    = '';
+	if ( ! empty( $custom_quotes ) ) {
+		$quote_count = count( $custom_quotes );
+		foreach ( $custom_quotes as $key => $quote ) {
+			$file_field = '';
+			if ( ! empty( $quote['file'] ) ) {
+				$file_field = '<a target="_blank" href="' . $quote['file']['url'] . '">' . $quote['file']['filename'] . '</a>';
 			} else {
-				$submit_text = 'Update Order';
+				$file_field = '<input name="cla_quote_' . $key . '_file" id="cla_quote_' . $key . '_file" class="cla-quote-file" type="file" accept=".pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"/>';
 			}
+			$quote_html .= '<div class="cla-quote-item grid-x grid-margin-x" data-quote-index="' . $key . '">';
+			$quote_html .= '<div class="cell small-12 medium-4"><label for="cla_quote_' . $key . '_name">Name</label><input name="cla_quote_' . $key . '_name" id="cla_quote_' . $key . '_name" class="cla-quote-name" type="text" value="' . $quote['name'] . '" />';
+			$quote_html .= '<label for="cla_quote_' . $key . '_price">Price</label><input name="cla_quote_' . $key . '_price" id="cla_quote_' . $key . '_price" class="cla-quote-price" type="number" min="0" step="0.01" value="' . $quote['price'] . '" /></div>';
+			$quote_html .= '<div class="cell small-12 medium-4"><label for="cla_quote_' . $key . '_description">Description</label><textarea name="cla_quote_' . $key . '_description" id="cla_quote_' . $key . '_description" class="cla-quote-description" name="cla_quote_' . $key . '_description">' . $quote['description'] . '</textarea></div>';
+			$quote_html .= '<div class="cell small-12 medium-auto"><label for="cla_quote_' . $key . '_file">File</label>' . $file_field . '</div>';
+			$quote_html .= '<div class="cell small-12 medium-shrink"><button type="button" class="remove" data-quote-index="' . $key . '">Remove this quote item</button></div>';
+			$quote_html .= '</div>';
+
+			// Shopping cart item.
+			$cart_price = floatval( $quote['price'] );
+			$cart_price = '$' . number_format( $cart_price, 2, '.', ',' );
+			$item = '<div class="cart-item quote-item quote-item-' . $key . ' grid-x">';
+			$item .= '<div class="cell auto">Advanced Teaching/Research Item</div>';
+			$item .= '<div class="cell shrink align-right bold"><button class="trash trash-quote" type="button" data-quote-index="' . $key . '">Remove product from cart</button><span class="price">' . $cart_price . '</span></div>';
+			$item .= '</div>';
+			$purchase_list_items .= $item;
+		}
+	}
+	$count_quotes = '<input type="hidden" id="cla_quote_count" name="cla_quote_count" value="' . $quote_count . '" />';
+	$list_quotes  = "<div id=\"list_quotes\">{$quote_html}</div>";
+
+	/**
+	 * Purchased product list view.
+	 */
+	$list_purchases = "<div id=\"list_purchases\">{$purchase_list_items}</div>";
+
+	/**
+	 * Order subtotal.
+	 */
+	$subtotal = '$0.00';
+	$subtotal_field = get_field( 'products_subtotal', $post->ID );
+	if ( ! empty( $subtotal_field ) ) {
+		$subtotal_float = floatval( $subtotal_field );
+		$subtotal       = '$' . number_format( $subtotal_float, 2, '.', ',' );
+	}
+
+	/**
+	 * Submit button.
+	 */
+	if ( 'wsorder' === $post->post_type ) {
+		if ( 'returned' === $post->post_status ) {
+			$submit_text = 'Update and Resubmit Order';
 		} else {
-			$submit_text = 'Place Order';
+			$submit_text = 'Update Order';
 		}
-		$submit_button = '<input type="submit" id="cla_submit" name="cla_submit" value="' . $submit_text . '">';
+	} else {
+		$submit_text = 'Place Order';
+	}
+	$submit_button = '<input type="submit" id="cla_submit" name="cla_submit" value="' . $submit_text . '">';
 
-		/**
-		 * Nonce field.
-		 */
-		$nonce_field = wp_nonce_field( 'verify_order_form_nonce8', 'the_superfluous_nonceity_n8me', true, false );
+	/**
+	 * Nonce field.
+	 */
+	$nonce_field = wp_nonce_field( 'verify_order_form_nonce8', 'the_superfluous_nonceity_n8me', true, false );
 
-		/**
-		 * Building field.
-		 */
-		$building = get_post_meta( $post->ID, 'building', true );
-		if ( empty( $building ) ) {
-			$building = '';
-		}
-		$building_field = "<input id=\"cla_building_name\" name=\"cla_building_name\" type=\"text\" value=\"{$building}\"/>";
+	/**
+	 * Building field.
+	 */
+	$building = get_post_meta( $post->ID, 'building', true );
+	if ( empty( $building ) ) {
+		$building = '';
+	}
+	$building_field = "<input id=\"cla_building_name\" name=\"cla_building_name\" type=\"text\" value=\"{$building}\"/>";
 
-		/**
-		 * Room number.
-		 */
-		$room_number = get_post_meta( $post->ID, 'office_location', true );
-		if ( empty( $room_number ) ) {
-			$room_number = '';
-		}
-		$room_number_field = "<input id=\"cla_room_number\" name=\"cla_room_number\" type=\"text\" value=\"{$room_number}\"/>";
+	/**
+	 * Room number.
+	 */
+	$room_number = get_post_meta( $post->ID, 'office_location', true );
+	if ( empty( $room_number ) ) {
+		$room_number = '';
+	}
+	$room_number_field = "<input id=\"cla_room_number\" name=\"cla_room_number\" type=\"text\" value=\"{$room_number}\"/>";
 
-		/**
-		 * Asset number.
-		 */
-		$asset_number = get_post_meta( $post->ID, 'current_asset', true );
-		if ( empty( $asset_number ) ) {
-			$asset_number = '';
-		}
-		$asset_number_field = "<input id=\"cla_current_asset_number\" name=\"cla_current_asset_number\" type=\"text\" value=\"{$asset_number}\"/>";
+	/**
+	 * Asset number.
+	 */
+	$asset_number = get_post_meta( $post->ID, 'current_asset', true );
+	if ( empty( $asset_number ) ) {
+		$asset_number = '';
+	}
+	$asset_number_field = "<input id=\"cla_current_asset_number\" name=\"cla_current_asset_number\" type=\"text\" value=\"{$asset_number}\"/>";
 
-		/**
-		 * No computer yet.
-		 */
-		$no_computer = (int) get_post_meta( $post->ID, 'i_dont_have_a_computer_yet', true );
-		if ( 1 === $no_computer ) {
-			$no_computer = ' checked';
-		} else {
-			$no_computer = '';
-		}
-		$no_computer_field = "<input id=\"cla_no_computer_yet\" name=\"cla_no_computer_yet\" type=\"checkbox\"$no_computer />";
+	/**
+	 * No computer yet.
+	 */
+	$no_computer = (int) get_post_meta( $post->ID, 'i_dont_have_a_computer_yet', true );
+	if ( 1 === $no_computer ) {
+		$no_computer = ' checked';
+	} else {
+		$no_computer = '';
+	}
+	$no_computer_field = "<input id=\"cla_no_computer_yet\" name=\"cla_no_computer_yet\" type=\"checkbox\"$no_computer />";
 
-		/**
-		 * Order comment.
-		 */
-		$order_comment = get_post_meta( $post->ID, 'order_comment', true );
-		if ( empty( $order_comment ) ) {
-			$order_comment = '';
-		}
-		$order_comment_field = "<textarea id=\"cla_order_comments\" name=\"cla_order_comments\" rows=\"5\">{$order_comment}</textarea>";
+	/**
+	 * Order comment.
+	 */
+	$order_comment = get_post_meta( $post->ID, 'order_comment', true );
+	if ( empty( $order_comment ) ) {
+		$order_comment = '';
+	}
+	$order_comment_field = "<textarea id=\"cla_order_comments\" name=\"cla_order_comments\" rows=\"5\">{$order_comment}</textarea>";
 
-		/**
-		 * Form
-		 */
-		$permalink = get_permalink();
-		$order_form = "<div id=\"cla_order_form_wrap\">
+	/**
+	 * Form
+	 */
+	$permalink = get_permalink();
+	$order_form = "<div id=\"cla_order_form_wrap\">
 <form method=\"post\" enctype=\"multipart/form-data\" id=\"cla_order_form\" action=\"{$permalink}\">
 <div class=\"grid-x grid-margin-x\"><div class=\"cell medium-6\">{$order_info}</div><div class=\"cell medium-6\">{$additional_funding}</div></div><div class=\"grid-x grid-margin-x\"><div class=\"cell small-12\"><hr /></div></div>
 <div class=\"grid-x grid-margin-x\"><div class=\"cell medium-6\">
@@ -473,8 +475,8 @@ function cla_render_order_form( $content ) {
 </div>
 <div id=\"allocation-data\" class=\"hidden\">
 <div class=\"grid-x\">
-	<div id=\"contribution_needed_label\" class=\"cell shrink\">Contribution Needed:</div>
-	<div id=\"contribution_needed\" class=\"cell auto align-right\">$0.00</div>
+<div id=\"contribution_needed_label\" class=\"cell shrink\">Contribution Needed:</div>
+<div id=\"contribution_needed\" class=\"cell auto align-right\">$0.00</div>
 </div>
 </div>
 <hr />
@@ -486,91 +488,89 @@ function cla_render_order_form( $content ) {
 </form>
 </div>";
 
-		$allowed_html = array(
-			'form'     => array(
-				'method'  => array(),
-				'enctype' => array(),
-				'id'      => array(),
-				'action'  => array(),
-			),
-			'select'   => array(
-				'name'     => array(),
-				'id'       => array(),
-				'class'    => array(),
-				'disabled' => array(),
-			),
-			'option'   => array(
-				'value' => array(),
-				'id'    => array(),
-				'name'  => array(),
-				'selected' => array(),
-			),
-			'label'    => array(
-				'for' => array(),
-			),
-			'input'    => array(
-				'id'       => array(),
-				'name'     => array(),
-				'type'     => array(),
-				'value'    => array(),
-				'disabled' => array(),
-				'checked'  => array(),
-				'files'    => array(),
-				'class'    => array(),
-				'min'      => array(),
-				'step'     => array(),
-				'accept'   => array(),
-			),
-			'div'      => array(
-				'class'            => array(),
-				'id'               => array(),
-				'data-quote-index' => array(),
-			),
-			'textarea' => array(
-				'id'    => array(),
-				'name'  => array(),
-				'rows'  => array(),
-				'class' => array(),
-			),
-			'button'   => array(
-				'type'               => array(),
-				'id'                 => array(),
-				'class'              => array(),
-				'disabled'           => array(),
-				'data-product-id'    => array(),
-				'data-product-name'  => array(),
-				'data-quote-index'   => array(),
-			),
-			'small'    => array(),
-			'dl'       => array(),
-			'dt'       => array(),
-			'dd'       => array(),
-			'h2'       => array(),
-			'h3'       => array(),
-			'h5'       => array(
-				'class' => array(),
-			),
-			'hr'       => array(),
-			'a'        => array(
-				'class'  => array(),
-				'href'   => array(),
-				'target' => array(),
-			),
-			'img'      => array(
-				'src'     => array(),
-				'alt'     => array(),
-				'width'   => array(),
-				'height'  => array(),
-				'class'   => array(),
-				'loading' => array(),
-			),
-			'ul'       => array(),
-			'li'       => array(),
-			'p'        => array(),
-		);
-		return wp_kses( $order_form, $allowed_html );
-
-	}
+	$allowed_html = array(
+		'form'     => array(
+			'method'  => array(),
+			'enctype' => array(),
+			'id'      => array(),
+			'action'  => array(),
+		),
+		'select'   => array(
+			'name'     => array(),
+			'id'       => array(),
+			'class'    => array(),
+			'disabled' => array(),
+		),
+		'option'   => array(
+			'value' => array(),
+			'id'    => array(),
+			'name'  => array(),
+			'selected' => array(),
+		),
+		'label'    => array(
+			'for' => array(),
+		),
+		'input'    => array(
+			'id'       => array(),
+			'name'     => array(),
+			'type'     => array(),
+			'value'    => array(),
+			'disabled' => array(),
+			'checked'  => array(),
+			'files'    => array(),
+			'class'    => array(),
+			'min'      => array(),
+			'step'     => array(),
+			'accept'   => array(),
+		),
+		'div'      => array(
+			'class'            => array(),
+			'id'               => array(),
+			'data-quote-index' => array(),
+		),
+		'textarea' => array(
+			'id'    => array(),
+			'name'  => array(),
+			'rows'  => array(),
+			'class' => array(),
+		),
+		'button'   => array(
+			'type'               => array(),
+			'id'                 => array(),
+			'class'              => array(),
+			'disabled'           => array(),
+			'data-product-id'    => array(),
+			'data-product-name'  => array(),
+			'data-quote-index'   => array(),
+		),
+		'small'    => array(),
+		'dl'       => array(),
+		'dt'       => array(),
+		'dd'       => array(),
+		'h2'       => array(),
+		'h3'       => array(),
+		'h5'       => array(
+			'class' => array(),
+		),
+		'hr'       => array(),
+		'a'        => array(
+			'class'  => array(),
+			'href'   => array(),
+			'target' => array(),
+		),
+		'img'      => array(
+			'src'     => array(),
+			'alt'     => array(),
+			'width'   => array(),
+			'height'  => array(),
+			'class'   => array(),
+			'loading' => array(),
+		),
+		'ul'       => array(),
+		'li'       => array(),
+		'p'        => array(),
+	);
+	return wp_kses( $order_form, $allowed_html );
 }
 add_filter( 'the_content', 'cla_render_order_form' );
 

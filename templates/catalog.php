@@ -37,6 +37,10 @@ add_action( 'wp_enqueue_scripts', 'cla_workstation_order_form_styles', 1 );
  */
 function cla_workstation_order_form_scripts() {
 
+	if ( ! is_user_logged_in() ) {
+		return;
+	}
+
 	wp_register_script(
 		'cla-workstation-order-form-scripts',
 		CLA_WORKSTATION_ORDER_DIR_URL . 'js/order-form.js',
@@ -52,6 +56,11 @@ function cla_workstation_order_form_scripts() {
 add_action( 'wp_enqueue_scripts', 'cla_workstation_order_form_scripts', 1 );
 
 add_action( 'the_content', function(){
+
+	if ( ! is_user_logged_in() ) {
+		return;
+	}
+
 	/**
 	 * Get the CLA Form Helper class.
 	 */
