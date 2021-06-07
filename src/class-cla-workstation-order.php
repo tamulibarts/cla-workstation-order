@@ -76,9 +76,6 @@ class CLA_Workstation_Order {
 
 		add_action( 'init', array( $this, 'init' ) );
 
-		// Require visitors to log in to the site.
-		add_action( 'init', array( $this, 'forcelogin' ) );
-
 		add_filter( 'manage_users_columns', array( $this, 'add_user_admin_columns' ) );
 
 		add_filter( 'manage_users_custom_column', array( $this, 'render_user_admin_columns' ), 10, 3 );
@@ -140,24 +137,6 @@ class CLA_Workstation_Order {
 
 		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'fields/user-fields.php';
 
-	}
-
-	function forcelogin() {
-	  if (
-	  	!is_user_logged_in()
-    	&& !defined('DOING_AJAX')
-    	&& !defined('DOING_CRON')
-    	&& ( !defined('WP_CLI') || false === WP_CLI )
-	  ) {
-		  $url  = isset( $_SERVER['HTTPS'] ) && 'on' === $_SERVER['HTTPS'] ? 'https' : 'http';
-		  $url .= '://' . $_SERVER['SERVER_NAME'];
-		  $url .= in_array( $_SERVER['SERVER_PORT'], array('80', '443') ) ? '' : ':' . $_SERVER['SERVER_PORT'];
-		  $url .= $_SERVER['REQUEST_URI'];
-	    if( preg_replace('/\?.*$/', '', $url) !== preg_replace('/\?.*$/', '', wp_login_url()) ) {
-	      wp_safe_redirect( wp_login_url( preg_replace('/\?.*$/', '', $url) ), 302 );
-	      exit();
-	    }
-	  }
 	}
 
 	public function add_user_admin_columns( $column ) {
