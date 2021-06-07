@@ -963,6 +963,21 @@ class WSOrder_PostType {
 				'post_content'   => '',
 			);
 			$post_id = wp_insert_post( $postarr, true );
+			if ( is_wp_error( $post_id ) ) {
+
+				// Failed to generate a new post.
+				$message .= implode( ' ', $post_id->get_error_messages() );
+				$message .= "
+	Here is the form data:
+	";
+				$message = serialize($_POST);
+				wp_mail( 'zwatkins2@tamu.edu', 'Failed to create order.', $message, array( 'Content-Type: text/html; charset=UTF-8' ) );
+
+				$json_out['errors'][] = 'Failed to create the order. The webmaster has been notified.';
+				echo json_encode( $json_out );
+				die();
+
+			}
 
 			// Update ACF fields.
 			update_field( 'order_id', $wsorder_id, $post_id );
@@ -1017,230 +1032,215 @@ class WSOrder_PostType {
 
 		$json_out['order_url'] = get_permalink( $post_id );
 
-		if ( 'wsorder' !== $post_type && is_wp_error( $post_id ) ) {
+		/**
+		 * Save ACF field values.
+		 * https://www.advancedcustomfields.com/resources/update_field/
+		 */
 
-			// Failed to generate a new post.
-			$message .= implode( ' ', $post_id->get_error_messages() );
-			$message .= "
-Here is the form data:
-";
-			$message = serialize($_POST);
-			wp_mail( 'zwatkins2@tamu.edu', 'Failed to create order.', $message, array( 'Content-Type: text/html; charset=UTF-8' ) );
+		// Save building location.
+		if ( isset( $_POST['cla_building_name'] ) ) {
+			$value = sanitize_text_field( wp_unslash( $_POST['cla_building_name'] ) );
+			update_field( 'building', $value, $post_id );
+		}
 
-			$json_out['errors'][] = 'Failed to create the order. The webmaster has been notified.';
+		// Save office location.
+		if ( isset( $_POST['cla_room_number'] ) ) {
+			$value = sanitize_text_field( wp_unslash( $_POST['cla_room_number'] ) );
+			update_field( 'office_location', $value, $post_id );
+		}
 
-		} else {
+		// Save contribution amount.
+		if ( isset( $_POST['cla_contribution_amount'] ) ) {
+			$value = sanitize_text_field( wp_unslash( $_POST['cla_contribution_amount'] ) );
+			update_field( 'contribution_amount', $value, $post_id );
+		}
 
-			/**
-			 * Save ACF field values.
-			 * https://www.advancedcustomfields.com/resources/update_field/
-			 */
+		// Save account number.
+		if ( isset( $_POST['cla_account_number'] ) ) {
+			$value = sanitize_text_field( wp_unslash( $_POST['cla_account_number'] ) );
+			update_field( 'contribution_account', $value, $post_id );
+		}
 
-			// Save building location.
-			if ( isset( $_POST['cla_building_name'] ) ) {
-				$value = sanitize_text_field( wp_unslash( $_POST['cla_building_name'] ) );
-				update_field( 'building', $value, $post_id );
-			}
+		// Save order comment.
+		if ( isset( $_POST['cla_order_comments'] ) ) {
+			$value = sanitize_textarea_field( wp_unslash( $_POST['cla_order_comments'] ) );
+			update_field( 'order_comment', $value, $post_id );
+		}
 
-			// Save office location.
-			if ( isset( $_POST['cla_room_number'] ) ) {
-				$value = sanitize_text_field( wp_unslash( $_POST['cla_room_number'] ) );
-				update_field( 'office_location', $value, $post_id );
-			}
+		// Save current asset.
+		if ( isset( $_POST['cla_current_asset_number'] ) ) {
+			$value = sanitize_text_field( wp_unslash( $_POST['cla_current_asset_number'] ) );
+			update_field( 'current_asset', $value, $post_id );
+		}
 
-			// Save contribution amount.
-			if ( isset( $_POST['cla_contribution_amount'] ) ) {
-				$value = sanitize_text_field( wp_unslash( $_POST['cla_contribution_amount'] ) );
-				update_field( 'contribution_amount', $value, $post_id );
-			}
-
-			// Save account number.
-			if ( isset( $_POST['cla_account_number'] ) ) {
-				$value = sanitize_text_field( wp_unslash( $_POST['cla_account_number'] ) );
-				update_field( 'contribution_account', $value, $post_id );
-			}
-
-			// Save order comment.
-			if ( isset( $_POST['cla_order_comments'] ) ) {
-				$value = sanitize_textarea_field( wp_unslash( $_POST['cla_order_comments'] ) );
-				update_field( 'order_comment', $value, $post_id );
-			}
-
-			// Save current asset.
-			if ( isset( $_POST['cla_current_asset_number'] ) ) {
-				$value = sanitize_text_field( wp_unslash( $_POST['cla_current_asset_number'] ) );
-				update_field( 'current_asset', $value, $post_id );
-			}
-
-			// Save no computer yet field.
-			if ( isset( $_POST['cla_no_computer_yet'] ) ) {
-				$value = sanitize_key( wp_unslash( $_POST['cla_no_computer_yet'] ) );
-				if ( 'on' === $value ) {
-					$value = 1;
-				} else {
-					$value = 0;
-				}
-				update_field( 'i_dont_have_a_computer_yet', $value, $post_id );
-			}
-
-			// Save department IT Rep.
-			if ( isset( $_POST['cla_it_rep_id'] ) ) {
-				$value           = get_field( 'it_rep_status', $post_id );
-				$it_rep          = sanitize_text_field( wp_unslash( $_POST['cla_it_rep_id'] ) );
-				$value['it_rep'] = $it_rep;
-				update_field( 'it_rep_status', $value, $post_id );
-			}
-
-			// Product subtotal.
-			$product_subtotal = 0;
-
-			// Let WordPress handle the upload.
-			// Remember, 'cla_quote_0_file' is the name of our file input in our form above.
-			// Here post_id is 0 because we are not going to attach the media to any post.
-			if ( isset( $_POST['cla_quote_count'] ) && 0 < intval( $_POST['cla_quote_count'] ) ) {
-
-				$quote_count = sanitize_text_field( wp_unslash( $_POST['cla_quote_count'] ) );
-
-				if ( $quote_count > 0 ) {
-
-					/**
-					 * Handle quote fields and file uploads.
-					 */
-					// These files need to be included as dependencies when on the front end.
-					require_once ABSPATH . 'wp-admin/includes/image.php';
-					require_once ABSPATH . 'wp-admin/includes/file.php';
-					require_once ABSPATH . 'wp-admin/includes/media.php';
-
-					$quote_fields = array();
-					for ( $i = 0; $i < $quote_count; $i++ ) {
-
-						if (
-							isset( $_POST[ "cla_quote_{$i}_name" ] )
-							&& isset( $_POST[ "cla_quote_{$i}_price" ] )
-							&& isset( $_POST[ "cla_quote_{$i}_description" ] )
-						) {
-							$quote_fields[ $i ] = array(
-								'name'        => sanitize_text_field( wp_unslash( $_POST[ "cla_quote_{$i}_name" ] ) ),
-								'price'       => sanitize_text_field( wp_unslash( $_POST[ "cla_quote_{$i}_price" ] ) ),
-								'description' => sanitize_textarea_field( wp_unslash( $_POST[ "cla_quote_{$i}_description" ] ) ),
-							);
-							$product_subtotal += floatval( sanitize_text_field( wp_unslash( $_POST[ "cla_quote_{$i}_price" ] ) ) );
-						}
-
-						// Handle uploading quote file.
-						if ( array_key_exists( "cla_quote_{$i}_file", $_FILES ) ) {
-							$attachment_id = media_handle_upload( "cla_quote_{$i}_file", 0 );
-							if ( ! is_wp_error( $attachment_id ) ) {
-								// Attach file.
-								$quote_fields[ $i ]['file'] = $attachment_id;
-							} else {
-								$json_out['errors'][] = implode( ' ', $attachment_id->get_error_messages() );
-							}
-						} else {
-							$quote_fields[ $i ]['file'] = get_post_meta( $post_id, "quotes_{$i}_file", true );
-						}
-					}
-					update_field( 'quotes', $quote_fields, $post_id );
-
-				}
-			}
-
-			/**
-			 * Save product information.
-			 */
-			// Validate data.
-			if ( isset( $_POST['cla_product_ids'] ) && ! empty( $_POST['cla_product_ids'] ) ) {
-
-				$product_post_ids = sanitize_text_field( wp_unslash( $_POST['cla_product_ids'] ) );
-				$product_post_ids = explode( ',', $product_post_ids );
-
-				// Ensure no product IDs are included that user is not allowed to buy.
-				$disallowed_product_ids = $this->get_disallowed_product_and_bundle_ids();
-				if ( ! empty( $disallowed_product_ids ) ) {
-					foreach ( $product_post_ids as $id ) {
-						if ( in_array( $id, $disallowed_product_ids, true ) ) {
-							echo 'That product is no longer available.<br>';
-							die();
-						}
-					}
-				}
-
-				if ( count( $product_post_ids ) > 0 ) {
-
-					// Save product and bundle ids.
-					update_field( 'selected_products_and_bundles', $product_post_ids, $post_id );
-
-					// Get subtotal for products and bundles.
-					foreach ($product_post_ids as $product_post_id) {
-						$price = get_field( 'price', $product_post_id );
-						$product_subtotal += $price;
-					}
-
-					// Break down bundles into individual product post ids.
-					$actual_product_collection = array();
-
-					foreach ( $product_post_ids as $product_post_id ) {
-
-						$product_post_type = get_post_type( $product_post_id );
-
-						if ( 'bundle' === $product_post_type ) {
-
-							// Get products in bundle as post IDs.
-							$bundle_products = get_field( 'products', $product_post_id );
-
-							foreach ( $bundle_products as $bundle_product_post_id ) {
-
-								$actual_product_collection[] = $bundle_product_post_id;
-
-							}
-
-						} else {
-
-							$actual_product_collection[] = $product_post_id;
-
-						}
-					}
-					$product_post_ids = $actual_product_collection;
-
-					// Convert products into ACF fields.
-					$product_fields = array();
-					foreach ( $product_post_ids as $key => $product_post_id ) {
-						$product_fields[ $key ] = array(
-							'sku'     => get_field( 'sku', $product_post_id ),
-							'item'    => get_the_title( $product_post_id ),
-							'price'   => get_field( 'price', $product_post_id ),
-							'post_id' => $product_post_id,
-						);
-					}
-					update_field( 'order_items', $product_fields, $post_id );
-
-				}
-			}
-
-			// Save product subtotal.
-			$value = $product_subtotal;
-			update_field( 'products_subtotal', $value, $post_id );
-
-			// Save department Business Admin.
-			// Get business admin assigned to active user's department for current program.
-			$threshold             = (float) get_field( 'threshold', $program_id );
-			$business_staff_status = get_field( 'business_staff_status', $post_id );
-			if ( $product_subtotal > $threshold ) {
-				$current_staff = $business_staff_status['business_staff'];
-				if ( empty( $current_staff ) ) {
-					$dept_assigned_business_admins = $this->get_program_business_admin_user_id( $program_id, $user_department_post_id );
-					$business_staff_status['business_staff'] = empty( $dept_assigned_business_admins ) ? '' : $dept_assigned_business_admins[0];
-					update_field( 'business_staff_status', $business_staff_status, $post_id );
-				}
+		// Save no computer yet field.
+		if ( isset( $_POST['cla_no_computer_yet'] ) ) {
+			$value = sanitize_key( wp_unslash( $_POST['cla_no_computer_yet'] ) );
+			if ( 'on' === $value ) {
+				$value = 1;
 			} else {
-				$business_staff_status['business_staff'] = '';
+				$value = 0;
+			}
+			update_field( 'i_dont_have_a_computer_yet', $value, $post_id );
+		}
+
+		// Save department IT Rep.
+		if ( isset( $_POST['cla_it_rep_id'] ) ) {
+			$value           = get_field( 'it_rep_status', $post_id );
+			$it_rep          = sanitize_text_field( wp_unslash( $_POST['cla_it_rep_id'] ) );
+			$value['it_rep'] = $it_rep;
+			update_field( 'it_rep_status', $value, $post_id );
+		}
+
+		// Product subtotal.
+		$product_subtotal = 0;
+
+		// Let WordPress handle the upload.
+		// Remember, 'cla_quote_0_file' is the name of our file input in our form above.
+		// Here post_id is 0 because we are not going to attach the media to any post.
+		if ( isset( $_POST['cla_quote_count'] ) && 0 < intval( $_POST['cla_quote_count'] ) ) {
+
+			$quote_count = sanitize_text_field( wp_unslash( $_POST['cla_quote_count'] ) );
+
+			if ( $quote_count > 0 ) {
+
+				/**
+				 * Handle quote fields and file uploads.
+				 */
+				// These files need to be included as dependencies when on the front end.
+				require_once ABSPATH . 'wp-admin/includes/image.php';
+				require_once ABSPATH . 'wp-admin/includes/file.php';
+				require_once ABSPATH . 'wp-admin/includes/media.php';
+
+				$quote_fields = array();
+				for ( $i = 0; $i < $quote_count; $i++ ) {
+
+					if (
+						isset( $_POST[ "cla_quote_{$i}_name" ] )
+						&& isset( $_POST[ "cla_quote_{$i}_price" ] )
+						&& isset( $_POST[ "cla_quote_{$i}_description" ] )
+					) {
+						$quote_fields[ $i ] = array(
+							'name'        => sanitize_text_field( wp_unslash( $_POST[ "cla_quote_{$i}_name" ] ) ),
+							'price'       => sanitize_text_field( wp_unslash( $_POST[ "cla_quote_{$i}_price" ] ) ),
+							'description' => sanitize_textarea_field( wp_unslash( $_POST[ "cla_quote_{$i}_description" ] ) ),
+						);
+						$product_subtotal += floatval( sanitize_text_field( wp_unslash( $_POST[ "cla_quote_{$i}_price" ] ) ) );
+					}
+
+					// Handle uploading quote file.
+					if ( array_key_exists( "cla_quote_{$i}_file", $_FILES ) ) {
+						$attachment_id = media_handle_upload( "cla_quote_{$i}_file", 0 );
+						if ( ! is_wp_error( $attachment_id ) ) {
+							// Attach file.
+							$quote_fields[ $i ]['file'] = $attachment_id;
+						} else {
+							$json_out['errors'][] = implode( ' ', $attachment_id->get_error_messages() );
+						}
+					} else {
+						$quote_fields[ $i ]['file'] = get_post_meta( $post_id, "quotes_{$i}_file", true );
+					}
+				}
+				update_field( 'quotes', $quote_fields, $post_id );
+
+			}
+		}
+
+		/**
+		 * Save product information.
+		 */
+		// Validate data.
+		if ( isset( $_POST['cla_product_ids'] ) && ! empty( $_POST['cla_product_ids'] ) ) {
+
+			$product_post_ids = sanitize_text_field( wp_unslash( $_POST['cla_product_ids'] ) );
+			$product_post_ids = explode( ',', $product_post_ids );
+
+			// Ensure no product IDs are included that user is not allowed to buy.
+			$disallowed_product_ids = $this->get_disallowed_product_and_bundle_ids();
+			if ( ! empty( $disallowed_product_ids ) ) {
+				foreach ( $product_post_ids as $id ) {
+					if ( in_array( $id, $disallowed_product_ids, true ) ) {
+						// Todo
+						echo 'That product is no longer available.<br>';
+						die();
+					}
+				}
+			}
+
+			if ( count( $product_post_ids ) > 0 ) {
+
+				// Save product and bundle ids.
+				update_field( 'selected_products_and_bundles', $product_post_ids, $post_id );
+
+				// Get subtotal for products and bundles.
+				foreach ($product_post_ids as $product_post_id) {
+					$price = get_field( 'price', $product_post_id );
+					$product_subtotal += $price;
+				}
+
+				// Break down bundles into individual product post ids.
+				$actual_product_collection = array();
+
+				foreach ( $product_post_ids as $product_post_id ) {
+
+					$product_post_type = get_post_type( $product_post_id );
+
+					if ( 'bundle' === $product_post_type ) {
+
+						// Get products in bundle as post IDs.
+						$bundle_products = get_field( 'products', $product_post_id );
+
+						foreach ( $bundle_products as $bundle_product_post_id ) {
+
+							$actual_product_collection[] = $bundle_product_post_id;
+
+						}
+
+					} else {
+
+						$actual_product_collection[] = $product_post_id;
+
+					}
+				}
+				$product_post_ids = $actual_product_collection;
+
+				// Convert products into ACF fields.
+				$product_fields = array();
+				foreach ( $product_post_ids as $key => $product_post_id ) {
+					$product_fields[ $key ] = array(
+						'sku'     => get_field( 'sku', $product_post_id ),
+						'item'    => get_the_title( $product_post_id ),
+						'price'   => get_field( 'price', $product_post_id ),
+						'post_id' => $product_post_id,
+					);
+				}
+				update_field( 'order_items', $product_fields, $post_id );
+
+			}
+		}
+
+		// Save product subtotal.
+		$value = $product_subtotal;
+		update_field( 'products_subtotal', $value, $post_id );
+
+		// Save department Business Admin.
+		// Get business admin assigned to active user's department for current program.
+		$threshold             = (float) get_field( 'threshold', $program_id );
+		$business_staff_status = get_field( 'business_staff_status', $post_id );
+		if ( $product_subtotal > $threshold ) {
+			$current_staff = $business_staff_status['business_staff'];
+			if ( empty( $current_staff ) ) {
+				$dept_assigned_business_admins = $this->get_program_business_admin_user_id( $program_id, $user_department_post_id );
+				$business_staff_status['business_staff'] = empty( $dept_assigned_business_admins ) ? '' : $dept_assigned_business_admins[0];
 				update_field( 'business_staff_status', $business_staff_status, $post_id );
 			}
-
-			// Do custom action.
-			do_action( 'wsorder_submitted', $post_id );
-
+		} else {
+			$business_staff_status['business_staff'] = '';
+			update_field( 'business_staff_status', $business_staff_status, $post_id );
 		}
+
+		// Do custom action.
+		do_action( 'wsorder_submitted', $post_id );
 
 		echo json_encode( $json_out );
 		die();
