@@ -130,11 +130,30 @@ function cla_render_order_form( $content ) {
 
 	if ( ! is_user_logged_in() ) {
 
-		echo 'You must be logged in to view this page.';
+		return '<p>You must be logged in to view this page.</p>';
 
 	} else {
 
 		global $post;
+
+		// Limit users to 1 order per program.
+		// Determine if this is the order form and if a user has already placed an order for the program.
+		$current_program = get_field( 'current_program', 'option' );
+		$current_user    = wp_get_current_user();
+		if ( 'page' === $post->post_type ) {
+			$author_post_args = array(
+				'post_type'      => 'wsorder',
+				'author'         => $current_user->ID,
+				'posts_per_page' => 1,
+				'meta_key'       => 'program',
+				'meta_value'     => $current_program->ID,
+			);
+			$previous_order = get_posts( $author_post_args );
+			if ( $previous_order ) {
+				$permalink = get_permalink( $previous_order[0]->ID );
+				return wp_kses_post( "<div class=\"text-center\">You have already placed an order for {$current_program->post_title}: <a href=\"$permalink\">$permalink</a></div>" );
+			}
+		}
 
 		$maybe_order_author_id = (int) get_post_meta( $post->ID, 'order_author', true );
 		if ( 'wsorder' === $post->post_type && ! empty( $maybe_order_author_id ) ) {
@@ -154,7 +173,7 @@ function cla_render_order_form( $content ) {
 		if ( 'wsorder' === $post->post_type && ! empty( $maybe_program_post ) ) {
 			$program_post = get_post( $maybe_program_post );
 		} else {
-			$program_post = get_field( 'current_program', 'option' );
+			$program_post = $current_program;
 		}
 		$program_id        = $program_post->ID;
 		$program_post_meta = get_post_meta( $program_id, '', true );
