@@ -141,27 +141,9 @@ function cla_render_order_form( $content ) {
 		return $content;
 	}
 
-	global $post;
+	$pre = '';
 
-	// Limit users to 1 order per program.
-	// Determine if this is the order form and if a user has already placed an order for the program.
-	$current_program = get_field( 'current_program', 'option' );
-	$current_user    = wp_get_current_user();
-	if ( 'page' === $post->post_type ) {
-		$author_post_args = array(
-			'post_type'      => 'wsorder',
-			'author'         => $current_user->ID,
-			'posts_per_page' => 1,
-			'meta_key'       => 'program',
-			'meta_value'     => $current_program->ID,
-			'post_status'    => array( 'publish', 'action_required', 'returned' ),
-		);
-		$previous_order = get_posts( $author_post_args );
-		if ( $previous_order ) {
-			$permalink = get_permalink( $previous_order[0]->ID );
-			return wp_kses_post( "<div class=\"text-center\">You have already placed an order for {$current_program->post_title}: <a href=\"$permalink\">$permalink</a></div>" );
-		}
-	}
+	global $post;
 
 	$maybe_order_author_id = (int) get_post_meta( $post->ID, 'order_author', true );
 	if ( 'wsorder' === $post->post_type && ! empty( $maybe_order_author_id ) ) {
@@ -181,7 +163,25 @@ function cla_render_order_form( $content ) {
 	if ( 'wsorder' === $post->post_type && ! empty( $maybe_program_post ) ) {
 		$program_post = get_post( $maybe_program_post );
 	} else {
-		$program_post = $current_program;
+		// Limit users to 1 order per program.
+		// Determine if this is the order form and if a user has already placed an order for the program.
+		$current_program = get_field( 'current_program', 'option' );
+		$program_post    = $current_program;
+		$current_user    = wp_get_current_user();
+		$author_post_args = array(
+			'post_type'      => 'wsorder',
+			'author'         => $current_user->ID,
+			'posts_per_page' => 1,
+			'meta_key'       => 'program',
+			'meta_value'     => $current_program->ID,
+			'post_status'    => array( 'publish', 'action_required', 'returned' ),
+		);
+		$previous_order = get_posts( $author_post_args );
+		if ( $previous_order ) {
+			$program_post = get_field( 'unfunded_program', 'option' );
+			$permalink = get_permalink( $previous_order[0]->ID );
+			$pre = "<p class=\"notice-red\"><em>Notice: You have already placed an order for {$current_program->post_title} (<a href=\"$permalink\">$permalink</a>) but you may still place a self-funded order.</em></p>";
+		}
 	}
 	$program_id        = $program_post->ID;
 	$program_post_meta = get_post_meta( $program_id, '', true );
@@ -227,10 +227,27 @@ function cla_render_order_form( $content ) {
 	$additional_funding .= '<div class="form-group"><label for="cla_contribution_amount">Contribution Amount</label> <div class="grid-x"><div class="cell shrink dollar-field">$</div><div class="cell auto"><input id="cla_contribution_amount" name="cla_contribution_amount" type="number" min="0" step="0.01" value="' . $contribution_amount . '" step="any" /></div></div></div>';
 	$additional_funding .= '<div class="form-group"><label for="cla_account_number">Account</label> <input id="cla_account_number" name="cla_account_number" type="text" value="' . $contribution_account . '"/><small>Research, Bursary, etc. or the Acct #</small></div>';
 	$additional_funding .= '<div class="form-group"><label for="cla_funding_program">Program <span class="program-ajax-message"></span></label> <select id="cla_funding_program" name="cla_funding_program">';
+	// Limit users to 1 order per regular program.
+	// Determine if this is the order form and if a user has already placed an order for the program.
+	$disable_current_program = '';
+	if ( 'page' === $post->post_type ) {
+		$author_post_args = array(
+			'post_type'      => 'wsorder',
+			'author'         => $user_id,
+			'posts_per_page' => 1,
+			'meta_key'       => 'program',
+			'meta_value'     => $current_program->ID,
+			'post_status'    => array( 'publish', 'action_required', 'returned' ),
+		);
+		$previous_order = get_posts( $author_post_args );
+		if ( $previous_order ) {
+			$disable_current_program = ' disabled';
+		}
+	}
 	$active_program_post = get_field( 'current_program', 'option' );
 	if ( $active_program_post ) {
 		$active_program_id = $active_program_post->ID;
-		$additional_funding .= "<option value=\"$active_program_id\">$active_program_post->post_title</option>";
+		$additional_funding .= "<option value=\"$active_program_id\"{$disable_current_program}>$active_program_post->post_title</option>";
 	}
 	$unfunded_program_post = get_field( 'unfunded_program', 'option' );
 	if ( $unfunded_program_post ) {
@@ -462,7 +479,7 @@ function cla_render_order_form( $content ) {
 	 * Form
 	 */
 	$permalink = get_permalink();
-	$order_form = "<div id=\"cla_order_form_wrap\">
+	$order_form = "{$pre}<div id=\"cla_order_form_wrap\">
 <form method=\"post\" enctype=\"multipart/form-data\" id=\"cla_order_form\" action=\"{$permalink}\">
 <div class=\"grid-x grid-margin-x\"><div class=\"cell medium-6\">{$order_info}</div><div class=\"cell medium-6\">{$additional_funding}</div></div><div class=\"grid-x grid-margin-x\"><div class=\"cell small-12\"><hr /></div></div>
 <div class=\"grid-x grid-margin-x\"><div class=\"cell medium-6\">
@@ -478,10 +495,7 @@ function cla_render_order_form( $content ) {
 </div>
 </div>
 <div class=\"grid-x grid-margin-x\">
-<div id=\"products\" class=\"cell small-12 medium-auto\">
-<div class=\"products-apple toggle\"><h3><a class=\"btn\" href=\"#\">Apple</a></h3>{$apple_list}</div>
-<div class=\"products-pc toggle\"><h3><a class=\"btn\" href=\"#\">PC</a></h3>{$pc_list}</div>
-<div class=\"products-addons toggle\"><h3><a class=\"btn\" href=\"#\">Add Ons</a></h3>{$addons_list}</div>
+<div id=\"products\" class=\"cell small-12 medium-auto\">{$apple_list}{$pc_list}{$addons_list}
 <div class=\"products-custom-quote toggle\"><h3><a class=\"btn\" href=\"#\">Advanced Teaching/Research Quote</a></h3><div class=\"products\">{$button_add_quote}{$list_quotes}</div></div>
 </div>
 <div id=\"shopping_cart\" class=\"cell small-12 medium-3\"><h3>Shopping Cart</h3>
@@ -523,6 +537,7 @@ function cla_render_order_form( $content ) {
 			'id'    => array(),
 			'name'  => array(),
 			'selected' => array(),
+			'disabled' => array(),
 		),
 		'label'    => array(
 			'for' => array(),
@@ -585,8 +600,11 @@ function cla_render_order_form( $content ) {
 		),
 		'ul'       => array(),
 		'li'       => array(),
-		'p'        => array(),
+		'p'        => array(
+			'class' => array(),
+		),
 		'br'       => array(),
+		'em'       => array(),
 	);
 	return wp_kses( $order_form, $allowed_html );
 }

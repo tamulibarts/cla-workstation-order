@@ -950,6 +950,25 @@ class WSOrder_PostType {
 			$maybe_program_id = (int) isset( $_POST['cla_funding_program'] ) ? sanitize_text_field( wp_unslash( $_POST['cla_funding_program'] ) ) : 0;
 			if ( $maybe_program_id ) {
 				$program_id = (int) sanitize_text_field( wp_unslash( $_POST['cla_funding_program'] ) );
+				$unfunded_program = get_field( 'unfunded_program', 'option' );
+				if ( $unfunded_program->ID !== $program_id ) {
+					// Validate the program ID.
+					$author_post_args = array(
+						'post_type'      => 'wsorder',
+						'author'         => $user_id,
+						'posts_per_page' => 1,
+						'meta_key'       => 'program',
+						'meta_value'     => $program_id,
+						'post_status'    => array( 'publish', 'action_required', 'returned' ),
+						'fields'         => 'ids',
+					);
+					$previous_order = get_posts( $author_post_args );
+					if ( $previous_order ) {
+						$json_out['errors'][] = 'You have already placed an order for that program: ' . get_permalink( $previous_order[0] );
+						echo json_encode( $json_out );
+						die();
+					}
+				}
 			} else {
 				$program_post = get_field( 'unfunded_program', 'option' );
 				$program_id   = $program_post->ID;

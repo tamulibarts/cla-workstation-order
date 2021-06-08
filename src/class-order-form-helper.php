@@ -334,7 +334,8 @@ class Order_Form_Helper {
 
 		}
 		if ( $output ) {
-			$output = '<div class="products grid-x grid-margin-x grid-margin-y">' . $output . '</div>';
+			$term = get_term_by( 'slug', $category, 'product-category' );
+			$output = '<div class="products-' . $category . ' toggle"><h3><a class="btn" href="#">' . $term->name . '</a></h3><div class="products grid-x grid-margin-x grid-margin-y">' . $output . '</div></div>';
 		}
 
 		$return = wp_kses_post( $output );
