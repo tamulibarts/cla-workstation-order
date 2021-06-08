@@ -94,6 +94,7 @@
 
 	small {
 		line-height: 1.1;
+		margin-bottom: 1rem;
 	}
 
 	dd {
@@ -103,6 +104,10 @@
 
 	hr {
 		margin: 1rem auto;
+	}
+
+	input[type="checkbox"] + label {
+		padding-left: 0.5rem;
 	}
 
 	#order-message {

@@ -219,7 +219,7 @@ function cla_render_order_form( $content ) {
 	}
 	$additional_funding  = '<div id="cla_add_funding"><h3>Additional Funding</h3><p>Enter any additional funds that you would like to contribute on top of your base allowance.<br>Your cart calculations will include this amount. It\'s also required if your cart total exceeds the base allowance.</p>';
 	$additional_funding .= '<div class="form-group"><label for="cla_contribution_amount">Contribution Amount</label> <div class="grid-x"><div class="cell shrink dollar-field">$</div><div class="cell auto"><input id="cla_contribution_amount" name="cla_contribution_amount" type="number" min="0" step="0.01" value="' . $contribution_amount . '" step="any" /></div></div></div>';
-	$additional_funding .= '<div class="form-group"><label for="cla_account_number">Account</label> <input id="cla_account_number" name="cla_account_number" type="text" value="' . $contribution_account . '"/><small><br>Research, Bursary, etc. or the Acct #</small></div>';
+	$additional_funding .= '<div class="form-group"><label for="cla_account_number">Account</label> <input id="cla_account_number" name="cla_account_number" type="text" value="' . $contribution_account . '"/><small>Research, Bursary, etc. or the Acct #</small></div>';
 	$additional_funding .= '</div>';
 
 	/**
@@ -449,14 +449,14 @@ function cla_render_order_form( $content ) {
 <form method=\"post\" enctype=\"multipart/form-data\" id=\"cla_order_form\" action=\"{$permalink}\">
 <div class=\"grid-x grid-margin-x\"><div class=\"cell medium-6\">{$order_info}</div><div class=\"cell medium-6\">{$additional_funding}</div></div><div class=\"grid-x grid-margin-x\"><div class=\"cell small-12\"><hr /></div></div>
 <div class=\"grid-x grid-margin-x\"><div class=\"cell medium-6\">
-<div><label for=\"cla_it_rep_id\">IT Representative *</label> {$it_rep_dropdown}<br><small>To whom in IT should your order be sent to for confirmation?</small></div>
-<div class=\"grid-x grid-margin-x\"><div class=\"building-name cell medium-6\"><label for=\"cla_building_name\">Building *</label> {$building_field}<br><small>What building is your primary office located in?</small></div><div class=\"room-number cell medium-6\">
-<label for=\"cla_room_number\">Room Number *</label> {$room_number_field}<br><small>What is the room number of your primary office?</small></div>
+<div class=\"form-group\"><label for=\"cla_it_rep_id\">IT Representative *</label> {$it_rep_dropdown}<small>To whom in IT should your order be sent to for confirmation?</small></div>
+<div class=\"form-group grid-x grid-margin-x\"><div class=\"building-name cell medium-6\"><label for=\"cla_building_name\">Building *</label> {$building_field}<small>What building is your primary office located in?</small></div><div class=\"room-number cell medium-6\">
+<label for=\"cla_room_number\">Room Number *</label> {$room_number_field}<small>What is the room number of your primary office?</small></div>
 </div>
-<div><label for=\"cla_current_asset_number\">Current Workstation Asset Number *</label> {$asset_number_field}<br><small>What is the TAMU asset number of your current workstation computer? Example: 021500123456</small></div>
+<div class=\"form-group\"><label for=\"cla_current_asset_number\">Current Workstation Asset Number *</label> {$asset_number_field}<small>What is the TAMU asset number of your current workstation computer? Example: 021500123456</small></div>
 <div class=\"nobreak\">{$no_computer_field}<label for=\"cla_no_computer_yet\">I don't have a computer yet.</label></div>
 </div><div class=\"cell medium-6\">
-<div><label for=\"cla_order_comments\">Order Comment</label> {$order_comment_field}<br><small>Any additional information that would be helpful to pass along.
+<div class=\"form-group\"><label for=\"cla_order_comments\">Order Comment</label> {$order_comment_field}<small>Any additional information that would be helpful to pass along.
 </small></div>
 </div>
 </div>
@@ -569,6 +569,7 @@ function cla_render_order_form( $content ) {
 		'ul'       => array(),
 		'li'       => array(),
 		'p'        => array(),
+		'br'       => array(),
 	);
 	return wp_kses( $order_form, $allowed_html );
 }
