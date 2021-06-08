@@ -2,11 +2,115 @@
 
 	var $form           = $('#cla_order_form');
 	var admin_ajax      = typeof WSOAjax === 'undefined' ? {} : WSOAjax;
-	var product_prices  = typeof cla_product_prices === 'undefined' ? {} : cla_product_prices;
-	var cost_allocation = typeof cla_allocation === 'undefined' ? '' : cla_allocation;
-	var cost_threshold  = typeof cla_threshold === 'undefined' ? '' : cla_threshold;
+	var product_prices  = {};
+	var programs        = {};
+	var cost_allocation = 0;
+	var cost_threshold  = 0;
 	var is_order        = typeof cla_is_order === 'undefined' ? '' : cla_is_order;
 	var post_status     = typeof cla_status === 'undefined' ? '' : cla_status;
+	var product_html    = {};
+
+	if ( typeof cla_programs !== 'undefined' ) {
+		var choice      = cla_programs['choice'];
+		programs        = cla_programs;
+		cost_allocation = cla_programs[choice].allocation;
+		cost_threshold  = cla_programs[choice].threshold;
+		product_html[choice] = $form.find('.products-apple').prop('outerHTML');
+		product_html[choice] += $form.find('.products-pc').prop('outerHTML');
+		product_html[choice] += $form.find('.products-addons').prop('outerHTML');
+		product_prices[choice] = cla_product_prices;
+	}
+
+	var changeProgram = function(e){
+		console.log(programs[this.value]);
+		var program_choice = this.value;
+		programs['choice'] = program_choice;
+		cost_allocation = programs[program_choice].allocation;
+		cost_threshold  = programs[program_choice].threshold;
+		// Update product listings.
+		updateProgramProducts( program_choice );
+	};
+
+	var replaceProductListings = function( content ) {
+		$form.find('.products-apple,.products-pc,.products-addons').remove();
+		$form.find('#products').prepend( content );
+	};
+
+	var updateProgramViews = function( product_content ) {
+		replaceProductListings( product_content );
+		// Flag products that are no longer valid.
+		validateProductsInProgram();
+		// Recalculate shopping cart.
+		updateTotals();
+	};
+
+	var updateProgramProducts = function( program_id ){
+		if ( product_html.hasOwnProperty( program_id ) ) {
+  		// Update views.
+			updateProgramViews( product_html[program_id] );
+		} else {
+			var $program_ajax_message = $form.find('.program-ajax-message');
+			$program_ajax_message.html('');
+	    var form_data = new FormData();
+	    form_data.append('program_id', program_id);
+	    form_data.append('selected_products', $form.find('#cla_product_ids').val());
+	    form_data.append('action', 'get_program_products');
+	    form_data.append('_ajax_nonce', admin_ajax.nonce);
+	    jQuery.ajax({
+	      type: "POST",
+	      url: admin_ajax.ajaxurl,
+				contentType: false,
+				processData: false,
+	      data: form_data,
+	      success: function(data) {
+	      	if ( data.indexOf('{') === 0 ) {
+						// Only JSON returned.
+	      		var response = JSON.parse(data);
+	      		if ( response.hasOwnProperty('errors') && response.errors.length > 0 ) {
+	      			var list = '';
+	      			for ( var i = 0; i < response.errors.length; i++ ) {
+	      				list += '<li>' + response.errors[i] + '</li>';
+	      			}
+	      			if ( list !== '' ) {
+	      				list = '<ul>' + list + '</ul>';
+	      			}
+	      			$form.find('#order-message').append(list);
+	      		} else {
+	        		$program_ajax_message.append('<div class="fade-out">Product listings and shopping cart updated.</div>');
+	        		// Store product prices.
+	        		product_prices[programs['choice']] = response.prices;
+	        		// Update views.
+	        		var new_products = response.apple + response.pc + response.addons;
+	        		updateProgramViews( new_products );
+		      	}
+	      	} else {
+	      		$program_ajax_message.html('There was an error retrieving products for this program: ' + data);
+	      	}
+	      },
+	      error: function( jqXHR, textStatus, errorThrown ) {
+	      	$program_ajax_message.html('The application encountered an error while submitting your request (' + errorThrown + ').<br>' + jqXHR.responseText );
+	      }
+	    });
+		}
+	};
+
+	var validateProductsInProgram = function(){
+		var cart_products = $form.find('#cla_product_ids').val();
+		if ( '' !== cart_products ) {
+			cart_products = cart_products.split(',');
+			var prices = product_prices[programs['choice']];
+			var invalid = [];
+			var $cart = $form.find('#list_purchases');
+			$cart.find('.product-item[data-error="true"]').removeAttr('data-error');
+			console.log(prices);
+			console.log(cart_products);
+			for ( var i=0; i < cart_products.length; i++ ) {
+				if ( ! prices.hasOwnProperty( cart_products[i] ) ) {
+					$cart.find('.shopping-cart-' + cart_products[i]).attr('data-error','true');
+				}
+			}
+		}
+	};
 
 	// Remove product from shopping cart.
 	var removeProduct = function(e){
@@ -39,7 +143,8 @@
 		var $this = $(this);
 		var productID = $this.attr('data-product-id');
 		var productName = $('#product-' + productID + ' .card-header').html();
-		var productPrice = formatDollars( product_prices[productID] );
+		var programPrices = product_prices[cla_programs['choice']];
+		var productPrice = formatDollars( programPrices[productID] );
 		var $thumb = $('#product-'+productID+'.card .wp-post-image');
 
 		// Add product ID to form field.
@@ -57,7 +162,7 @@
 		$productIDsField.val( newProductIDs );
 
 		// Generate HTML elements for shopping cart listing.
-		var listItem = '<div class="cart-item shopping-cart-'+productID+' grid-x">';
+		var listItem = '<div class="cart-item product-item shopping-cart-'+productID+' grid-x">';
 		if ( $thumb.length > 0 ) {
 			listItem += '<div class="cell shrink"><img width="50" src="'+$thumb.attr('src')+'"></div>';
 		}
@@ -89,6 +194,7 @@
 
 		// Get array of post IDs for product post type.
 		var $productIDsField = $('#cla_product_ids');
+		var programPrices = product_prices[cla_programs['choice']];
 		var ids = $productIDsField.val();
 				ids = ids.replace(/^,|,$/g,'');
 
@@ -104,8 +210,11 @@
 		var total = 0;
 		for ( var i=0; i < ids.length; i++ ) {
 			var id = ids[i];
-			var price = parseFloat( product_prices[id] );
-			total = Number((total + price).toFixed(2));
+			// Skip this product ID if it is invalid.
+			if ( programPrices.hasOwnProperty(id) ) {
+				var price = parseFloat( programPrices[id] );
+				total = Number((total + price).toFixed(2));
+			}
 		}
 
 		// Get quote items total.
@@ -376,6 +485,17 @@
 			valid = false;
 			$form.find('#products .toggle .btn').addClass('flagged');
 			message += '<li>Please select one or more products.</li>';
+		} else if ( $form.find('#list_purchases .product-item').length > 0 ){
+			// Ensure all products are present within the selected program.
+			var program_id = $form.find('#cla_funding_program').val();
+			var product_ids = $form.find('#cla_product_ids').val().split(',');
+			for ( var i=0; i<product_ids.length; i++ ) {
+				if ( ! product_prices[program_id].hasOwnProperty( product_ids[i] ) ) {
+					valid = false;
+					message += '<li>Please remove any items in your cart that are not in the ordering program you have chosen.</li>';
+					i = product_ids.length;
+				}
+			}
 		}
 
 		// Quote Items.
@@ -448,8 +568,9 @@
 	$('#list_purchases').on( 'click', '.trash-product', removeProduct );
 	$('#list_purchases').on( 'click', '.trash-quote', removeQuoteFieldset );
 	$('#list_quotes').on( 'click', '.remove', removeQuoteFieldset );
-	$('.add-product').on('click', addProductToCart);
+	$('#products').on('click', '.add-product', addProductToCart);
 	$('#cla_contribution_amount').on('keyup', updateTotals);
+	$('#cla_funding_program').on('change', changeProgram);
 	$form.find('#cla_add_quote').on('click', addQuoteFieldset);
 	// Add submit event handler.
 	jQuery('#cla_order_form').submit(ajaxSubmit);
@@ -531,7 +652,7 @@
 	}
 
 	// Attach event handlers.
-	$('#products .toggle .btn').on('click', toggleActive);
+	$('#products').on('click', '.btn', toggleActive);
 
 })(jQuery);
 
@@ -549,6 +670,6 @@
 	}
 
 	// Attach event handlers.
-	$('#products .more-details').on('click', toggleActive);
+	$('#products').on('click', '.more-details', toggleActive);
 
 })(jQuery);

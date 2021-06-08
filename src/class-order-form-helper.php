@@ -160,7 +160,7 @@ class Order_Form_Helper {
 	 *
 	 * @return array
 	 */
-	public function get_product_post_objects_for_program_by_user_dept( $category = false ) {
+	public function get_product_post_objects_for_program_by_user_dept( $program_id = false, $category = false ) {
 
 		// Get current user and user ID.
 		$user    = wp_get_current_user();
@@ -171,9 +171,10 @@ class Order_Form_Helper {
 		$user_department_post_id = $user_department_post->ID;
 
 		// Retrieve products for the current program year.
-		$current_program_post      = get_field( 'current_program', 'option' );
-		$current_program_id        = $current_program_post->ID;
-		$current_program_post_meta = get_post_meta( $current_program_id );
+		if ( ! $program_id ) {
+			$program_post = get_field( 'current_program', 'option' );
+			$program_id   = $program_post->ID;
+		}
 
 		// Filter out hidden products for department.
 		$hidden_products = get_field( 'hidden_products', $user_department_post_id );
@@ -188,15 +189,16 @@ class Order_Form_Helper {
 
 		// Find the posts.
 		$product_args = array(
-			'post_type'    => 'product',
-			'nopaging'     => true,
-			'post__not_in' => $hidden_products_and_bundles,
-			'fields'       => 'ids',
-			'meta_query' => array( //phpcs:ignore
+			'posts_per_page' => -1,
+			'post_type'      => 'product',
+			'nopaging'       => true,
+			'post__not_in'   => $hidden_products_and_bundles,
+			'fields'         => 'ids',
+			'meta_query'     => array( //phpcs:ignore
 				'relation' => 'AND',
 				array(
-					'key'   => 'program', //phpcs:ignore
-					'value' => $current_program_id, //phpcs:ignore
+					'key'     => 'program', //phpcs:ignore
+					'value'   => $program_id, //phpcs:ignore
 					'compare' => '=',
 				),
 				array(
@@ -247,7 +249,7 @@ class Order_Form_Helper {
 				'relation' => 'AND',
 				array(
 					'key'   => 'program', //phpcs:ignore
-					'value' => $current_program_id, //phpcs:ignore
+					'value' => $program_id, //phpcs:ignore
 					'compare' => '=',
 				),
 				array(
@@ -293,15 +295,15 @@ class Order_Form_Helper {
 	 *
 	 * @return string
 	 */
-	public function cla_get_products( $category = false, $preview = false, $selected = array() ) {
+	public function cla_get_products( $category = false, $program_id = false, $preview = false, $selected = array() ) {
 
 		/**
 		 * Display products.
 		 */
-		$product_posts = $this->get_product_post_objects_for_program_by_user_dept( $category );
+		$product_posts = $this->get_product_post_objects_for_program_by_user_dept( $program_id, $category );
 
 		// Output posts.
-		$output = '<div class="products grid-x grid-margin-x grid-margin-y">';
+		$output = '';
 		foreach ( $product_posts as $post_id => $post_title ) {
 
 			// Define the card variables.
@@ -331,7 +333,9 @@ class Order_Form_Helper {
 			$output .= "</div>";
 
 		}
-		$output .= '</div>';
+		if ( $output ) {
+			$output = '<div class="products grid-x grid-margin-x grid-margin-y">' . $output . '</div>';
+		}
 
 		$return = wp_kses_post( $output );
 		return $output;

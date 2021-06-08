@@ -70,9 +70,9 @@ add_action( 'the_content', function(){
 	/**
 	 * Get product categories.
 	 */
-	$apple_list  = $cla_form_helper->cla_get_products( 'apple', true );
-	$pc_list     = $cla_form_helper->cla_get_products( 'pc', true );
-	$addons_list = $cla_form_helper->cla_get_products( 'add-on', true );
+	$apple_list  = $cla_form_helper->cla_get_products( 'apple', false, true );
+	$pc_list     = $cla_form_helper->cla_get_products( 'pc', false, true );
+	$addons_list = $cla_form_helper->cla_get_products( 'add-on', false, true );
 	$output = "<div id=\"cla-order-form\"><div id=\"products\" class=\"cell small-12 medium-auto\">
 	<div class=\"products-apple toggle\"><h3><a class=\"btn\" href=\"#\">Apple</a></h3>{$apple_list}</div>
 	<div class=\"products-pc toggle\"><h3><a class=\"btn\" href=\"#\">PC</a></h3>{$pc_list}</div>

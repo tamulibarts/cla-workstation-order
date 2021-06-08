@@ -93,32 +93,37 @@ function cla_workstation_order_form_scripts() {
 ";
 	// Include admin ajax URL and nonce.
 	$script_variables .= 'var WSOAjax = {"ajaxurl":"'.admin_url('admin-ajax.php').'","nonce":"'.wp_create_nonce('make_order').'"};';
-	// Include products and prices.
-	require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-order-form-helper.php';
-	$cla_form_helper      = new \CLA_Workstation_Order\Order_Form_Helper();
-	$products_and_bundles = $cla_form_helper->get_product_post_objects_for_program_by_user_dept();
-	foreach ( $products_and_bundles as $post_id => $post_title ) {
-		$products_and_bundles[$post_id] = get_post_meta( $post_id, 'price', true );
-	}
-	$script_variables .= "
-";
-	$script_variables .= 'var cla_product_prices = ' . json_encode($products_and_bundles);
 	// Allocation data.
-	$maybe_program_post = get_post_meta( get_the_ID(), 'program', true );
+	$maybe_program_post = get_post_meta( $post_id, 'program', true );
 	if ( ! empty( $maybe_program_post ) ) {
 		$program_id = (int) $maybe_program_post;
 	} else {
 		$program_post = get_field( 'current_program', 'option' );
 		$program_id   = $program_post->ID;
 	}
-	$allocation           = (float) get_post_meta( $program_id, 'allocation', true );
-	$allocation_threshold = (float) get_post_meta( $program_id, 'threshold', true );
+	$current_program            = get_field( 'current_program', 'option' );
+	$current_program_id         = $current_program->ID;
+	$current_program_allocation = (float) get_post_meta( $current_program_id, 'allocation', true );
+	$current_program_threshold  = (float) get_post_meta( $current_program_id, 'threshold', true );
+	$unfunded_program            = get_field( 'unfunded_program', 'option' );
+	$unfunded_program_id         = $unfunded_program->ID;
+	$unfunded_program_allocation = (float) get_post_meta( $unfunded_program_id, 'allocation', true );
+	$unfunded_program_threshold  = (float) get_post_meta( $unfunded_program_id, 'threshold', true );
 	$script_variables .= "
 ";
-	$script_variables .= "var cla_allocation = {$allocation};";
+	$script_variables .= "var cla_programs = {\"choice\":{$program_id},\"{$current_program_id}\":{allocation:{$current_program_allocation},threshold:{$current_program_threshold}},\"{$unfunded_program_id}\":{allocation:{$unfunded_program_allocation},threshold:{$unfunded_program_threshold}}};";
 	$script_variables .= "
 ";
-	$script_variables .= "var cla_threshold = {$allocation_threshold};";
+	// Include products and prices.
+	require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-order-form-helper.php';
+	$cla_form_helper      = new \CLA_Workstation_Order\Order_Form_Helper();
+	$products_and_bundles = $cla_form_helper->get_product_post_objects_for_program_by_user_dept( $program_id );
+	foreach ( $products_and_bundles as $post_id => $post_title ) {
+		$products_and_bundles[$post_id] = get_post_meta( $post_id, 'price', true );
+	}
+	$script_variables .= "
+";
+	$script_variables .= 'var cla_product_prices = ' . json_encode($products_and_bundles);
 
 	wp_add_inline_script( 'cla-workstation-order-form-scripts', $script_variables, 'before' );
 
@@ -149,6 +154,7 @@ function cla_render_order_form( $content ) {
 			'posts_per_page' => 1,
 			'meta_key'       => 'program',
 			'meta_value'     => $current_program->ID,
+			'post_status'    => array( 'publish', 'action_required', 'returned' ),
 		);
 		$previous_order = get_posts( $author_post_args );
 		if ( $previous_order ) {
@@ -220,6 +226,17 @@ function cla_render_order_form( $content ) {
 	$additional_funding  = '<div id="cla_add_funding"><h3>Additional Funding</h3><p>Enter any additional funds that you would like to contribute on top of your base allowance.<br>Your cart calculations will include this amount. It\'s also required if your cart total exceeds the base allowance.</p>';
 	$additional_funding .= '<div class="form-group"><label for="cla_contribution_amount">Contribution Amount</label> <div class="grid-x"><div class="cell shrink dollar-field">$</div><div class="cell auto"><input id="cla_contribution_amount" name="cla_contribution_amount" type="number" min="0" step="0.01" value="' . $contribution_amount . '" step="any" /></div></div></div>';
 	$additional_funding .= '<div class="form-group"><label for="cla_account_number">Account</label> <input id="cla_account_number" name="cla_account_number" type="text" value="' . $contribution_account . '"/><small>Research, Bursary, etc. or the Acct #</small></div>';
+	$additional_funding .= '<div class="form-group"><label for="cla_funding_program">Program <span class="program-ajax-message"></span></label> <select id="cla_funding_program" name="cla_funding_program">';
+	$active_program_post = get_field( 'current_program', 'option' );
+	if ( $active_program_post ) {
+		$active_program_id = $active_program_post->ID;
+		$additional_funding .= "<option value=\"$active_program_id\">$active_program_post->post_title</option>";
+	}
+	$unfunded_program_post = get_field( 'unfunded_program', 'option' );
+	if ( $unfunded_program_post ) {
+		$additional_funding .= "<option value=\"{$unfunded_program_post->ID}\">Self-funded</option>";
+	}
+	$additional_funding .= '</select><small>Select "Self-funded" to place a separate order not funded by any program.</small></div>';
 	$additional_funding .= '</div>';
 
 	/**
@@ -287,9 +304,9 @@ function cla_render_order_form( $content ) {
 	 * Get product categories.
 	 */
 	$selected_array = ! empty( $selected_products_and_bundles ) ? $selected_products_and_bundles : array();
-	$apple_list  = $cla_form_helper->cla_get_products( 'apple', false, $selected_array );
-	$pc_list     = $cla_form_helper->cla_get_products( 'pc', false, $selected_array );
-	$addons_list = $cla_form_helper->cla_get_products( 'add-on', false, $selected_array );
+	$apple_list  = $cla_form_helper->cla_get_products( 'apple', $program_id, false, $selected_array );
+	$pc_list     = $cla_form_helper->cla_get_products( 'pc', $program_id, false, $selected_array );
+	$addons_list = $cla_form_helper->cla_get_products( 'add-on', $program_id, false, $selected_array );
 
 	/**
 	 * Add advanced quote button.
@@ -312,7 +329,7 @@ function cla_render_order_form( $content ) {
 			$cart_price = floatval( $pob_price );
 			$cart_price = '$' . number_format( $cart_price, 2, '.', ',' );
 			$pob_thumb = get_the_post_thumbnail_url( $pob_post_id );
-			$item = '<div class="cart-item shopping-cart-'.$pob_post_id.' grid-x">';
+			$item = '<div class="cart-item product-item shopping-cart-'.$pob_post_id.' grid-x">';
 			if ( $pob_thumb ) {
 				$item .= '<div class="cell shrink"><img width="50" src="' . $pob_thumb . '"></div>';
 			}

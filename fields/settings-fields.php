@@ -37,6 +37,28 @@ acf_add_local_field_group(array(
 			'ui' => 1,
 		),
 		array(
+			'key' => 'field_60bf90684b119',
+			'label' => 'Unfunded Program',
+			'name' => 'unfunded_program',
+			'type' => 'post_object',
+			'instructions' => 'This is the program users can select when they want to submit an order their unit will fund 100% outside of any ordering program.',
+			'required' => 1,
+			'conditional_logic' => 0,
+			'wrapper' => array(
+				'width' => '',
+				'class' => '',
+				'id' => '',
+			),
+			'post_type' => array(
+				0 => 'program',
+			),
+			'taxonomy' => '',
+			'allow_null' => 0,
+			'multiple' => 0,
+			'return_format' => 'object',
+			'ui' => 1,
+		),
+		array(
 			'key' => 'field_601da56c35bfe',
 			'label' => 'Logistics Email',
 			'name' => 'logistics_email',

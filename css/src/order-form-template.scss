@@ -159,6 +159,7 @@
 		border: none;
 		text-indent: 300%;
 		white-space: nowrap;
+		cursor: pointer;
 	}
 
 	.remove {
@@ -401,6 +402,18 @@
 
 		> div:first-child ~ div {
 			margin-top: 1rem;
+		}
+	}
+
+	.cart-item[data-error="true"] {
+		color: #F00;
+
+		div {
+			text-decoration: line-through;
+		}
+
+		&:after {
+			content: "This product cannot be ordered in the selected program.";
 		}
 	}
 

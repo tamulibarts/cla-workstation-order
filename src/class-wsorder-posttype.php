@@ -76,6 +76,7 @@ class WSOrder_PostType {
 		add_action( 'wp_ajax_reassign_order', array( $this, 'reassign_order' ) );
 		add_action( 'wp_ajax_delete_order', array( $this, 'delete_order' ) );
 		add_action( 'wp_ajax_search_order', array( $this, 'search_order' ) );
+		add_action( 'wp_ajax_get_program_products', array( $this, 'get_program_products' ) );
 
 		// Add program dropdown filter to post list screen.
 		add_action( 'restrict_manage_posts', array( $this, 'add_admin_post_program_filter' ), 10 );
@@ -786,9 +787,20 @@ class WSOrder_PostType {
 	 */
 	public function disable_save_order() {
 
-    $post_id    = $_POST['post_ID'];
-    $post_type  = get_post_type( $post_id );
-    if ( 'wsorder' !== $post_type ) {
+		// Ensure this is only running on the order edit page.
+		if ( isset( $_POST['post_id'] ) ) {
+	    $post_id    = $_POST['post_id'];
+	    $post_type  = get_post_type( $post_id );
+		} elseif (isset( $_POST['POST_ID'] ) ) {
+			$post_id = $_POST['POST_ID'];
+			$post_type = get_post_type( $post_id );
+		} else {
+	    $screen = get_current_screen();
+	    if ( $screen ) {
+	    	$post_type = $screen->post_type;
+	    }
+		}
+    if ( ! isset( $post_type ) || 'wsorder' !== $post_type ) {
     	return;
     }
 
@@ -935,8 +947,13 @@ class WSOrder_PostType {
 			$user_id = $user->get( 'ID' );
 
 			// Get current program meta.
-			$program_post   = get_field( 'current_program', 'option' );
-			$program_id     = $program_post->ID;
+			$maybe_program_id = (int) isset( $_POST['cla_funding_program'] ) ? sanitize_text_field( wp_unslash( $_POST['cla_funding_program'] ) ) : 0;
+			if ( $maybe_program_id ) {
+				$program_id = (int) sanitize_text_field( wp_unslash( $_POST['cla_funding_program'] ) );
+			} else {
+				$program_post = get_field( 'unfunded_program', 'option' );
+				$program_id   = $program_post->ID;
+			}
 			$program_prefix = get_post_meta( $program_id, 'prefix', true );
 
 			// Get new wsorder ID.
@@ -1017,9 +1034,16 @@ class WSOrder_PostType {
 			$user_department_post    = get_field( 'department', "user_{$user_id}" );
 			$user_department_post_id = $user_department_post->ID;
 
-			// Get current program meta.
-			$program_id     = get_field( 'program', $post_id );
+			// Update program choice.
+			$maybe_program_id = (int) isset( $_POST['cla_funding_program'] ) ? sanitize_text_field( wp_unslash( $_POST['cla_funding_program'] ) ) : get_post_meta( $post_id, 'program', true );
+			if ( 0 !== $maybe_program_id ) {
+				$program_post = get_post( $maybe_program_id );
+			} else {
+				$program_post = get_field( 'unfunded_program', 'option' );
+			}
+			$program_id     = $program_post->ID;
 			$program_prefix = get_post_meta( $program_id, 'prefix', true );
+			update_field( 'program', $program_id, $post_id );
 
 			if ( 'returned' === get_post_status( $post_id ) ) {
 				wp_update_post( array(
@@ -1155,16 +1179,21 @@ class WSOrder_PostType {
 			$product_post_ids = sanitize_text_field( wp_unslash( $_POST['cla_product_ids'] ) );
 			$product_post_ids = explode( ',', $product_post_ids );
 
-			// Ensure no product IDs are included that user is not allowed to buy.
-			$disallowed_product_ids = $this->get_disallowed_product_and_bundle_ids();
-			if ( ! empty( $disallowed_product_ids ) ) {
-				foreach ( $product_post_ids as $id ) {
-					if ( in_array( $id, $disallowed_product_ids, true ) ) {
-						// Todo
-						echo 'That product is no longer available.<br>';
-						die();
-					}
+			// Remove all product IDs not included in the program.
+			if ( ! isset( $cla_form_helper ) ) {
+				require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-order-form-helper.php';
+				$cla_form_helper = new \CLA_Workstation_Order\Order_Form_Helper();
+			}
+			$products_and_bundles = $cla_form_helper->get_product_post_objects_for_program_by_user_dept( $program_id );
+			$restack_product_ids  = false;
+			foreach ( $product_post_ids as $key => $id ) {
+				if ( ! array_key_exists( $id, $products_and_bundles ) ) {
+					unset( $product_post_ids[$key] );
+					$restack_product_ids = true;
 				}
+			}
+			if ( $restack_product_ids && count( $product_post_ids ) > 0 ) {
+				$product_post_ids = array_values( $product_post_ids );
 			}
 
 			if ( count( $product_post_ids ) > 0 ) {
@@ -1312,6 +1341,76 @@ class WSOrder_PostType {
 
 		}
 
+		echo json_encode( $json_out );
+		die();
+
+	}
+
+	/**
+	 * Make the order from AJAX data.
+	 */
+	public function get_program_products() {
+
+		// Ensure nonce is valid.
+		check_ajax_referer( 'make_order' );
+
+		if ( ! is_user_logged_in() ) {
+			die();
+		}
+
+		// Get referring post properties.
+		$url       = wp_get_referer();
+		$post_id   = url_to_postid( $url );
+		$post_type = get_post_type( $post_id );
+		$json_out  = array( 'status' => 'failed' );
+
+		if ( 'wsorder' === $post_type && 'publish' === get_post_status( $post_id ) ) {
+			echo json_encode( $json_out );
+			die();
+		}
+
+		if ( ! isset( $_POST['program_id'] ) || ! isset( $_POST['selected_products'] ) ) {
+			echo json_encode( $json_out );
+			die();
+		}
+
+		$program_id = (int) sanitize_text_field( wp_unslash( $_POST[ 'program_id' ] ) );
+		// Build an array of ints for selected products.
+		$selected_products = sanitize_text_field( wp_unslash( $_POST[ 'selected_products' ] ) );
+		if ( strpos( $selected_products, ',' ) ) {
+			$selected_products = explode( ',', $selected_products );
+		} elseif ( $selected_products ) {
+			$selected_products = array( $selected_products );
+		} else {
+			$selected_products = array();
+		}
+		foreach ( $selected_products as $key => $value ) {
+			$selected_products[$key] = (int) $value;
+		}
+
+		/**
+		 * Get the CLA Form Helper class.
+		 */
+		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-order-form-helper.php';
+		$cla_form_helper = new \CLA_Workstation_Order\Order_Form_Helper();
+
+		/**
+		 * Get product categories.
+		 */
+		$json_out['apple']  = $cla_form_helper->cla_get_products( 'apple', $program_id, false, $selected_products );
+		$json_out['pc']     = $cla_form_helper->cla_get_products( 'pc', $program_id, false, $selected_products );
+		$json_out['addons'] = $cla_form_helper->cla_get_products( 'add-on', $program_id, false, $selected_products );
+
+		/**
+		 * Get product prices.
+		 */
+		$products_and_bundles = $cla_form_helper->get_product_post_objects_for_program_by_user_dept( $program_id );
+		foreach ( $products_and_bundles as $post_id => $post_title ) {
+			$products_and_bundles[$post_id] = get_post_meta( $post_id, 'price', true );
+		}
+		$json_out['prices'] = $products_and_bundles;
+
+		$json_out['status'] = 'success';
 		echo json_encode( $json_out );
 		die();
 
