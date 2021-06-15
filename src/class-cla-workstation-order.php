@@ -80,6 +80,9 @@ class CLA_Workstation_Order {
 
 		add_filter( 'manage_users_custom_column', array( $this, 'render_user_admin_columns' ), 10, 3 );
 
+		// Redirect users based on role.
+		add_filter( 'login_redirect', array( $this, 'login_redirect_roles' ), 11, 3 );
+
 	}
 
 	/**
@@ -159,6 +162,33 @@ class CLA_Workstation_Order {
       default:
     }
     return $val;
+
+	}
+
+	/**
+	 * Filters the login redirect URL.
+	 *
+	 * @param string           $redirect_to           The redirect destination URL.
+	 * @param string           $requested_redirect_to The requested redirect destination URL passed as a parameter.
+	 * @param WP_User|WP_Error $user                  WP_User object if login was successful, WP_Error object otherwise.
+	 *
+	 * @return string
+	 */
+	public function login_redirect_roles( $redirect_to, $requested_redirect_to, $user ) {
+
+    if ( isset( $user->roles ) && is_array( $user->roles ) ) {
+      // check for admins
+      if ( in_array( 'administrator', $user->roles ) || in_array( 'wso_admin', $user->roles ) ) {
+        // redirect them to the default place
+        return admin_url('index.php');
+      } elseif ( in_array( 'wso_logistics', $user->roles ) ) {
+      	return home_url('/orders/');
+      } else {
+        return home_url();
+      }
+  	}
+
+		return $redirect_to;
 
 	}
 
