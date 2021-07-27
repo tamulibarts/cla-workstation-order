@@ -129,7 +129,7 @@ class WSOrder_PostType_Emails {
   <em>-Liberal Arts IT</em>
 </p>
 <p><em>This email was sent from an unmonitored email address. Please do not reply to this email.</em></p>";
-		wp_mail( "{$primary_it_rep_name} <{$primary_it_rep_email}>}", 'Workstation Order Received', $message, $headers );
+		wp_mail( "{$primary_it_rep_name} <{$primary_it_rep_email}>", 'Workstation Order Received', $message, $headers );
 	}
 
 	/**
