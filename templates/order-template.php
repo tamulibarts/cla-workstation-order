@@ -117,16 +117,17 @@ add_action( 'genesis_entry_header', function(){
 		return;
 	}
 
-	global $post;
 	$output = '';
 	if ( current_user_can( 'wso_logistics' ) || current_user_can( 'wso_admin' ) ) {
 		$output .= '<div class="cell shrink"><button class="cla-delete-order btn btn-square btn-outline-red" type="button" title="Delete this order"><span class="dashicons dashicons-trash"></span></button></div>';
 	}
-	if ( 'publish' === get_post_status( $post ) ) {
-		$bare_url     = CLA_WORKSTATION_ORDER_DIR_URL . 'order-receipt.php?postid=' . $post->ID;
-		$complete_url = wp_nonce_url( $bare_url, 'auth-post_' . $post->ID, 'token' );
-		$output .= "<div class=\"cell shrink\"><a class=\"cla-print-order btn btn-square btn-outline-dark\" href=\"{$complete_url}\" target=\"_blank\"><span class=\"dashicons dashicons-printer\"></span></a></div>";
-	}
+
+	// Print button.
+	global $post;
+	$bare_url     = CLA_WORKSTATION_ORDER_DIR_URL . 'order-receipt.php?postid=' . $post->ID;
+	$complete_url = wp_nonce_url( $bare_url, 'auth-post_' . $post->ID, 'token' );
+	$output       .= "<div class=\"cell shrink\"><a class=\"cla-print-order btn btn-square btn-outline-dark\" href=\"{$complete_url}\" target=\"_blank\"><span class=\"dashicons dashicons-printer\"></span></a></div>";
+
 	if ( ! empty( $output ) ) {
 		$output = "<div class=\"cell shrink\"><div class=\"grid-x\">{$output}</div></div>";
 		echo wp_kses_post( $output );
