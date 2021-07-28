@@ -549,7 +549,7 @@ $pdf->Cell(25, 5, $meta['products_subtotal'], 0, 0, 'R');
  */
 if ( isset( $meta['contribution_amount'] ) && ! empty( $meta['contribution_amount'][0] ) ) {
 	$account_number = $meta['contribution_account'];
-	if ( isset( $meta['business_staff_status_account_number'] ) && ! empty( $meta['business_staff_status_account_number'][0] ) ) {
+	if ( isset( $meta['business_staff_status_account_number'] ) && ! empty( $meta['business_staff_status_account_number'] ) ) {
 		$account_number = $meta['business_staff_status_account_number'];
 	}
 	$contribution_amount = '$' . number_format( $meta['contribution_amount'], 2, '.', ',' );;
