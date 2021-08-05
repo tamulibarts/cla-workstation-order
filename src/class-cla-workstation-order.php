@@ -80,6 +80,8 @@ class CLA_Workstation_Order {
 
 		add_filter( 'manage_users_custom_column', array( $this, 'render_user_admin_columns' ), 10, 3 );
 
+		add_filter( 'admin_body_class', array( $this, 'identify_user_role' ) );
+
 	}
 
 	/**
@@ -136,6 +138,18 @@ class CLA_Workstation_Order {
 		}
 
 		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'fields/user-fields.php';
+
+	}
+
+	public function identify_user_role ( $classes ) {
+
+		if ( current_user_can( 'wso_admin' ) ) {
+			$classes .= ' wso_admin';
+		} elseif ( current_user_can( 'wso_logistics' ) ) {
+			$classes .= ' wso_logistics';
+		}
+
+		return $classes;
 
 	}
 
