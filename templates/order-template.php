@@ -292,6 +292,43 @@ function cla_render_order( $content ) {
 	$department_comments = isset( $post_meta['business_staff_status_comments'] ) ? $post_meta['business_staff_status_comments'][0] : '';
 	$business_admin      = get_user_by( 'id', $post_meta['business_staff_status_business_staff'][0] );
 	$subtotal            = (float) 0;
+	$switch_user_open    = array(
+		'end_user'       => '',
+		'it_rep'         => '',
+		'business_admin' => '',
+	);
+	$switch_user_close   = array(
+		'end_user'       => '',
+		'it_rep'         => '',
+		'business_admin' => '',
+	);
+
+	if (
+		( current_user_can( 'wso_admin' ) || current_user_can( 'wso_logistics' ) )
+		&& method_exists( 'user_switching', 'maybe_switch_url' )
+	) {
+		if ( false !== $order_author ) {
+			$end_user_switch = user_switching::maybe_switch_url( $order_author );
+	    if ( $end_user_switch ) {
+	      $switch_user_open['end_user'] = sprintf( '<a href="%s&redirect_to=%s">', $end_user_switch, get_permalink() );
+	      $switch_user_close['end_user'] = '</a>';
+	    }
+		}
+		if ( false !== $it_rep ) {
+	    $it_rep_switch = user_switching::maybe_switch_url( $it_rep );
+	    if ( $it_rep_switch ) {
+	      $switch_user_open['it_rep'] = sprintf( '<a href="%s&redirect_to=%s">', $it_rep_switch, get_permalink() );
+	      $switch_user_close['it_rep'] = '</a>';
+	    }
+		}
+		if ( false !== $business_admin ) {
+	    $bus_staff_switch = user_switching::maybe_switch_url( $business_admin );
+	    if ( $bus_staff_switch ) {
+	      $switch_user_open['business_admin'] = sprintf( '<a href="%s&redirect_to=%s">', $bus_staff_switch, get_permalink() );
+	      $switch_user_close['business_admin'] = '</a>';
+	    }
+	  }
+	}
 
 	if ( 'publish' !== $post->post_status ) {
 		$reason = can_current_user_update_order_public( $post_id );
@@ -302,7 +339,7 @@ function cla_render_order( $content ) {
 	 * User Details
 	 */
 	$content .= '<div class="grid-x grid-margin-x"><div class="cell small-12 medium-6"><h2>User Details</h2><dl class="row horizontal">';
-	$content .= "<dt>First Name</dt><dd>{$first_name}</dd>";
+	$content .= "<dt>First Name</dt><dd>{$switch_user_open['end_user']}{$first_name}{$switch_user_close['end_user']}</dd>";
 	$content .= "<dt>Last Name</dt><dd>{$last_name}</dd>";
 	$content .= "<dt>Email Address</dt><dd>{$order_author->data->user_email}</dd>";
 	$content .= "<dt>Department</dt><dd>{$department->post_title}</dd>";
@@ -330,7 +367,7 @@ function cla_render_order( $content ) {
 	 * Processing.
 	 */
 	$content .= '<div class="cell small-12 medium-6"><h2>Processing</h2><dl class="row horizontal">';
-	$content .= "<dt>IT Staff ({$it_rep->data->display_name})</dt><dd>{$it_rep_date}</dd>";
+	$content .= "<dt>IT Staff ({$switch_user_open['it_rep']}{$it_rep->data->display_name}{$switch_user_close['it_rep']})</dt><dd>{$it_rep_date}</dd>";
 	if ( $business_admin ) {
 		$tt_wrap_open         = '';
 		$tt_wrap_close        = '';
@@ -348,7 +385,7 @@ function cla_render_order( $content ) {
 			}
 			$tt_content .= implode( ', ', $admins ) . '</span>';
 		}
-		$content .= "<dt>{$tt_wrap_open}Business Staff{$tt_content}{$tt_wrap_close} ({$business_admin->data->display_name})</dt><dd>{$business_admin_date}</dd>";
+		$content .= "<dt>{$tt_wrap_open}Business Staff{$tt_content}{$tt_wrap_close} ({$switch_user_open['business_admin']}{$business_admin->data->display_name}{$switch_user_close['it_rep']})</dt><dd>{$business_admin_date}</dd>";
 	} else {
 		$content .= '<dt>Business Staff</dt><dd><span class="badge badge-light">Not required</span></dd>';
 	}
