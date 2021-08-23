@@ -92,6 +92,12 @@ class WSOrder_PostType {
 		// Render single order view.
 		add_filter( 'single_template', array( $this, 'get_single_template' ) );
 
+		// Update affiliated it reps when the primary it rep is changed.
+		add_filter( 'acf/update_value/key=field_5fff703a5289f', array( $this, 'approving_it_rep_changed' ), 12, 2 );
+
+		// Update affiliated business staff when the primary business admin is changed.
+		add_filter( 'acf/update_value/key=field_5fff70b84ffe4', array( $this, 'approving_business_admin_changed' ), 12, 2 );
+
 	}
 
 	/**
@@ -2222,6 +2228,120 @@ jQuery( 'select[name=\"post_status\"]' ).val('publish')";
 		}
 		$query->set( 'meta_query', $meta_query );
 		return $query;
+
+	}
+
+	/**
+	 * Add new business admin user selection to administrative field.
+	 *
+	 * @param string $value   The new value.
+	 * @param int    $post_id The post ID.
+	 *
+	 * @return string
+	 */
+	public function approving_it_rep_changed( $value, $post_id ){
+
+		$old_value = (string) get_post_meta( $post_id, 'it_rep_status_it_rep', true );
+
+		if ( $value !== $old_value ) {
+
+			$affiliated_it_reps = get_post_meta( $post_id, 'affiliated_it_reps', true );
+			if ( empty( $affiliated_it_reps ) ) {
+				$affiliated_it_reps = array();
+			}
+			$update_meta = false;
+
+			// Remove the previous business admin from the affiliated business staff field.
+			if ( ! empty( $old_value ) ) {
+				$key = array_search( $old_value, $affiliated_it_reps, true );
+				if ( false !== $key ) {
+					$update_meta = true;
+					unset( $affiliated_it_reps[ $key ] );
+					$affiliated_it_reps = array_values( $affiliated_it_reps );
+				}
+			}
+
+			// Add the new business admin to the affiliated business staff field.
+			if ( ! empty( $value ) ) {
+				// Validate new user we are about to copy into the affiliated business staff field.
+				$new_val_key = array_search( $value, $affiliated_it_reps, true );
+				$user_data   = get_userdata( intval( $value ) );
+				$user_roles  = $user_data->roles;
+				if ( in_array( 'wso_it_rep', $user_roles, true ) ) {
+					$update_meta = true;
+					// If an existing affiliated business user is being assigned as the primary,
+					// move them to the beginning of the list.
+					if ( false !== $new_val_key ) {
+						unset( $affiliated_it_reps[ $new_val_key ] );
+						$affiliated_it_reps = array_values( $affiliated_it_reps );
+					}
+					array_unshift( $affiliated_it_reps, $value );
+				}
+			}
+
+			if ( $update_meta ) {
+				update_post_meta( $post_id, 'affiliated_it_reps', $affiliated_it_reps );
+			}
+		}
+
+		return $value;
+
+	}
+
+	/**
+	 * Add new business admin user selection to administrative field.
+	 *
+	 * @param string $value   The new value.
+	 * @param int    $post_id The post ID.
+	 *
+	 * @return string
+	 */
+	public function approving_business_admin_changed( $value, $post_id ){
+
+		$old_value = (string) get_post_meta( $post_id, 'business_staff_status_business_staff', true );
+
+		if ( $value !== $old_value ) {
+
+			$affiliated_business_staff = get_post_meta( $post_id, 'affiliated_business_staff', true );
+			if ( empty( $affiliated_business_staff ) ) {
+				$affiliated_business_staff = array();
+			}
+			$update_meta = false;
+
+			// Remove the previous business admin from the affiliated business staff field.
+			if ( ! empty( $old_value ) ) {
+				$key = array_search( $old_value, $affiliated_business_staff, true );
+				if ( false !== $key ) {
+					$update_meta = true;
+					unset( $affiliated_business_staff[ $key ] );
+					$affiliated_business_staff = array_values( $affiliated_business_staff );
+				}
+			}
+
+			// Add the new business admin to the affiliated business staff field.
+			if ( ! empty( $value ) ) {
+				// Validate new user we are about to copy into the affiliated business staff field.
+				$new_val_key = array_search( $value, $affiliated_business_staff, true );
+				$user_data   = get_userdata( intval( $value ) );
+				$user_roles  = $user_data->roles;
+				if ( in_array( 'wso_business_admin', $user_roles, true ) ) {
+					$update_meta = true;
+					// If an existing affiliated business user is being assigned as the primary,
+					// move them to the beginning of the list.
+					if ( false !== $new_val_key ) {
+						unset( $affiliated_business_staff[ $new_val_key ] );
+						$affiliated_business_staff = array_values( $affiliated_business_staff );
+					}
+					array_unshift( $affiliated_business_staff, $value );
+				}
+			}
+
+			if ( $update_meta ) {
+				update_post_meta( $post_id, 'affiliated_business_staff', $affiliated_business_staff );
+			}
+		}
+
+		return $value;
 
 	}
 }
