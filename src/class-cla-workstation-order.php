@@ -186,9 +186,12 @@ class CLA_Workstation_Order {
    */
 	public function editable_roles( $all_roles ) {
 
-		if ( ! current_user_can( 'administrator' ) || ! current_user_can( 'wso_admin' ) ) {
+		if ( ! current_user_can( 'administrator' ) ) {
 			unset($all_roles['administrator']);
 			unset($all_roles['wso_admin']);
+		}
+
+		if ( ! current_user_can( 'administrator' ) && ! current_user_can( 'wso_admin' ) ) {
 			unset($all_roles['wso_logistics']);
 		}
 
