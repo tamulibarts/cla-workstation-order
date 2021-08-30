@@ -82,6 +82,9 @@ class CLA_Workstation_Order {
 
 		add_filter( 'admin_body_class', array( $this, 'identify_user_role' ) );
 
+		// Restrict access to user role promotion.
+		add_filter( 'editable_roles', array( $this, 'editable_roles' ) );
+
 	}
 
 	/**
@@ -173,6 +176,28 @@ class CLA_Workstation_Order {
       default:
     }
     return $val;
+
+	}
+
+  /**
+   * Filters the list of editable roles.
+   *
+   * @param array[] $all_roles Array of arrays containing role information.
+   */
+	public function editable_roles( $all_roles ) {
+
+		if ( ! current_user_can( 'administrator' ) || ! current_user_can( 'wso_admin' ) ) {
+			unset($all_roles['administrator']);
+			unset($all_roles['wso_admin']);
+			unset($all_roles['wso_logistics']);
+		}
+
+		// Remove default WordPress user role assignment since this application doesn't use it.
+		unset($all_roles['editor']);
+		unset($all_roles['author']);
+		unset($all_roles['contributor']);
+
+		return $all_roles;
 
 	}
 
