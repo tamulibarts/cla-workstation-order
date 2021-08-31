@@ -1955,13 +1955,13 @@ jQuery( 'select[name=\"post_status\"]' ).val('publish')";
 				'relation' => 'OR',
 				array(
 					'key'     => 'affiliated_it_reps',
-					'value'   => '"' . $current_user_id . '"',
-					'compare' => 'LIKE',
+					'value'   => '\D' . $current_user_id . '\D',
+					'compare' => 'REGEXP',
 				),
 				array(
 					'key'     => 'affiliated_business_staff',
-					'value'   => '"' . $current_user_id . '"',
-					'compare' => 'LIKE',
+					'value'   => '\D' . $current_user_id . '\D',
+					'compare' => 'REGEXP',
 				),
 				array(
 					'key'   => 'order_author',
