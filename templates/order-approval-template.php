@@ -74,7 +74,7 @@ function cla_workstation_order_delete_scripts() {
 		return;
 	}
 
-	if ( current_user_can( 'wso_logistics' ) || current_user_can( 'wso_admin' ) ) {
+	if ( current_user_can( 'wso_logistics' ) || current_user_can( 'wso_logistics_admin' ) || current_user_can( 'wso_admin' ) ) {
 
 		wp_register_script(
 			'cla-workstation-order-delete-scripts',
@@ -151,7 +151,7 @@ add_action( 'genesis_entry_header', function(){
 	}
 
 	$output = '';
-	if ( current_user_can( 'wso_logistics' ) || current_user_can( 'wso_admin' ) ) {
+	if ( current_user_can( 'wso_logistics' ) || current_user_can( 'wso_logistics_admin' ) || current_user_can( 'wso_admin' ) ) {
 		$output .= '<div class="cell shrink"><button class="cla-delete-order btn btn-square btn-outline-red" type="button" title="Delete this order"><span class="dashicons dashicons-trash"></span></button></div>';
 	}
 
@@ -254,7 +254,7 @@ function cla_render_order( $content ) {
 	);
 
 	if (
-		( current_user_can( 'wso_admin' ) || current_user_can( 'wso_logistics' ) )
+		( current_user_can( 'wso_admin' ) || current_user_can( 'wso_logistics' ) || current_user_can( 'wso_logistics_admin' ) )
 		&& method_exists( 'user_switching', 'maybe_switch_url' )
 	) {
 		if ( false !== $order_author ) {
@@ -313,7 +313,7 @@ function cla_render_order( $content ) {
 	 * Processing.
 	 */
 	$content .= '<div class="cell small-12 medium-6"><h2>Processing</h2>';
-	if ( $current_user_id === $it_rep_id || $current_user_id === $business_admin_id || current_user_can( 'wso_logistics' ) ) {
+	if ( $current_user_id === $it_rep_id || $current_user_id === $business_admin_id || current_user_can( 'wso_logistics' ) || current_user_can( 'wso_logistics_admin' ) ) {
 		$show_approval_form = false;
 		$extra_fields = '';
 		if ( $current_user_id === $it_rep_id && 1 !== $it_rep_approved ) {
@@ -323,7 +323,7 @@ function cla_render_order( $content ) {
 			$show_approval_form = true;
 			$label = 'business staff';
 			$extra_fields = "<input type=\"text\" name=\"cla_account_number\" id=\"cla_account_number\" placeholder=\"Account Number\" />";
-		} elseif ( current_user_can( 'wso_logistics' ) && 1 !== $logistics_confirmed ) {
+		} elseif ( ( current_user_can( 'wso_logistics' ) || current_user_can( 'wso_logistics_admin' ) ) && 1 !== $logistics_confirmed ) {
 			$show_approval_form = true;
 			$label = 'logistics';
 		}
@@ -367,7 +367,7 @@ function cla_render_order( $content ) {
 	$content .= '<h2>Order Items</h2><p>Note: some items in the catalog are bundles, which are a collection of products. Any bundles that you selected will be expanded as their products below.</p>';
 
 	// Logistics user can edit product acquisition fields.
-	if ( current_user_can( 'wso_logistics' ) && 1 === $logistics_confirmed ) {
+	if ( ( current_user_can( 'wso_logistics' ) || current_user_can( 'wso_logistics_admin' ) ) && 1 === $logistics_confirmed ) {
 		$content .= "<form method=\"post\" enctype=\"multipart/form-data\" id=\"cla_acquisition_form\" action=\"{$permalink}\">";
 	}
 
@@ -381,7 +381,7 @@ function cla_render_order( $content ) {
 			$requisition_number = $item['requisition_number'];
 			$requisition_date   = $item['requisition_date'];
 			$asset_number       = $item['asset_number'];
-			if ( current_user_can( 'wso_logistics' ) && 1 === $logistics_confirmed ) {
+			if ( ( current_user_can( 'wso_logistics' ) || current_user_can( 'wso_logistics_admin' ) ) && 1 === $logistics_confirmed ) {
 				$requisition_number = "<input type=\"text\" name=\"cla_item_{$key}_req_number\" value=\"{$requisition_number}\" />";
 				$requisition_date   = "<input type=\"date\" name=\"cla_item_{$key}_req_date\" value=\"{$requisition_date}\" />";
 				$asset_number       = "<input type=\"text\" name=\"cla_item_{$key}_asset_number\" value=\"{$asset_number}\" />";
@@ -409,7 +409,7 @@ function cla_render_order( $content ) {
 			$requisition_number = $item['requisition_number'];
 			$requisition_date   = $item['requisition_date'];
 			$asset_number       = $item['asset_number'];
-			if ( current_user_can( 'wso_logistics' ) && 1 === $logistics_confirmed ) {
+			if ( ( current_user_can( 'wso_logistics' ) || current_user_can( 'wso_logistics_admin' ) ) && 1 === $logistics_confirmed ) {
 				$requisition_number = "<input type=\"text\" name=\"cla_quote_{$key}_req_number\" value=\"{$requisition_number}\" />";
 				$requisition_date   = "<input type=\"date\" name=\"cla_quote_{$key}_req_date\" value=\"{$requisition_date}\" />";
 				$asset_number       = "<input type=\"text\" name=\"cla_quote_{$key}_asset_number\" value=\"{$asset_number}\" />";
@@ -446,7 +446,7 @@ function cla_render_order( $content ) {
 		$content .= "<tr><td colspan=\"6\" class=\"text-right\"><strong>Contributions from {$account_number}</strong></td><td>{$contribution}</td></tr>";
 	}
 
-	if ( current_user_can( 'wso_logistics' ) && 1 === $logistics_confirmed ) {
+	if ( ( current_user_can( 'wso_logistics' ) || current_user_can( 'wso_logistics_admin' ) ) && 1 === $logistics_confirmed ) {
 		$content .= "<tr><td colspan=\"6\" class=\"text-right\"><div class=\"ajax-response\"></div></td><td class=\"logistics-approval-buttons\"><input type=\"submit\" id=\"cla_submit\" value=\"Update\" />";
 		$content .= "<br><button type=\"button\" class=\"button button-submit button-green\" id=\"cla_publish\">Publish</button>";
 		$content .= "</td></tr>";
@@ -454,7 +454,7 @@ function cla_render_order( $content ) {
 
 	$content .= '</tbody></table>';
 
-	if ( current_user_can( 'wso_logistics' ) && 1 === $logistics_confirmed ) {
+	if ( ( current_user_can( 'wso_logistics' ) || current_user_can( 'wso_logistics_admin' ) ) && 1 === $logistics_confirmed ) {
 		$content .= "</form>";
 	}
 

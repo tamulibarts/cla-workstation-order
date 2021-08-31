@@ -152,6 +152,18 @@ acf_add_local_field_group(array(
 			array(
 				'param' => 'current_user_role',
 				'operator' => '==',
+				'value' => 'wso_logistics_admin',
+			),
+			array(
+				'param' => 'post_type',
+				'operator' => '==',
+				'value' => 'wsorder',
+			),
+		),
+		array(
+			array(
+				'param' => 'current_user_role',
+				'operator' => '==',
 				'value' => 'wso_admin',
 			),
 			array(

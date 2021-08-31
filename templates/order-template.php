@@ -41,7 +41,7 @@ function cla_workstation_order_delete_scripts() {
 		return;
 	}
 
-	if ( current_user_can( 'wso_logistics' ) || current_user_can( 'wso_admin' ) ) {
+	if ( current_user_can( 'wso_logistics' ) || current_user_can( 'wso_logistics_admin' ) || current_user_can( 'wso_admin' ) ) {
 
 		wp_register_script(
 			'cla-workstation-order-delete-scripts',
@@ -118,7 +118,7 @@ add_action( 'genesis_entry_header', function(){
 	}
 
 	$output = '';
-	if ( current_user_can( 'wso_logistics' ) || current_user_can( 'wso_admin' ) ) {
+	if ( current_user_can( 'wso_logistics' ) || current_user_can( 'wso_logistics_admin' ) || current_user_can( 'wso_admin' ) ) {
 		$output .= '<div class="cell shrink"><button class="cla-delete-order btn btn-square btn-outline-red" type="button" title="Delete this order"><span class="dashicons dashicons-trash"></span></button></div>';
 	}
 
@@ -173,7 +173,7 @@ function can_current_user_update_order_public( $post_id ) {
   	$can_update = false;
   	$message    = 'You can only change the order when it is returned to you.';
   	// Handle when the order is for the logistics user.
-  	if ( current_user_can( 'wso_logistics' ) ) {
+  	if ( current_user_can( 'wso_logistics' ) || current_user_can( 'wso_logistics_admin' ) ) {
   		if ( 1 !== $it_rep_confirmed ) {
 				$can_update = false;
 				$message    = 'An IT Rep has not confirmed the order yet.';
@@ -202,7 +202,7 @@ function can_current_user_update_order_public( $post_id ) {
 			$can_update = false;
 			$message    = 'An IT representative has already confirmed the order.';
 		}
-	} elseif ( current_user_can( 'wso_logistics' ) ) {
+	} elseif ( current_user_can( 'wso_logistics' ) || current_user_can( 'wso_logistics_admin' ) ) {
 		// Sometimes the logistics user can be a business admin too.
 		if ( 0 === $it_rep_confirmed && 'returned' !== $post_status ) {
 			$can_update = false;
@@ -304,7 +304,7 @@ function cla_render_order( $content ) {
 	);
 
 	if (
-		( current_user_can( 'wso_admin' ) || current_user_can( 'wso_logistics' ) )
+		( current_user_can( 'wso_admin' ) || current_user_can( 'wso_logistics' ) || current_user_can( 'wso_logistics_admin' ) )
 		&& method_exists( 'user_switching', 'maybe_switch_url' )
 	) {
 		if ( false !== $order_author ) {

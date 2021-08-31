@@ -357,11 +357,7 @@ class Dashboard {
 			'Quick Links', // Title.
 			array( $this, 'dashboard_widget_subscribers' ) // Display function.
 		);
-		if (
-			current_user_can( 'wso_logistics' )
-			|| current_user_can( 'wso_it_rep' )
-			|| current_user_can( 'wso_business_admin' )
-		) {
+		if ( ! current_user_can( 'subscriber' ) ) {
 			wp_add_dashboard_widget(
 				'cla_dashboard_todo', // Widget slug.
 				'Orders requiring your attention', // Title.

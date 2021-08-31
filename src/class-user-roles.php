@@ -223,19 +223,10 @@ class User_Roles {
       'delete_others_bundles'        => true,
       'delete_private_bundles'       => true,
       'delete_published_bundles'     => true,
-			'manage_wso_options'           => true,
 			'upload_files'                 => true,
 			'unfiltered_html'              => true,
 			'read'                         => true,
 			'upload_files'                 => true,
-			'create_users'                 => true,
-			'delete_users'                 => true,
-			'add_users'                    => true,
-			'edit_users'                   => true,
-			'remove_users'                 => true,
-			'promote_users'                => true,
-			'list_users'                   => true,
-      'switch_users'                 => true,
 			'manage_categories'            => false,
 			'create_posts'                 => false,
 			'read_post'                    => false,
@@ -255,20 +246,28 @@ class User_Roles {
 		$this->add_role( 'wso_logistics', 'Logistics', false, $logistics_caps );
 
 		/**
+		 * Logistics Admin capabilities.
+		 */
+		$logistics_admin_caps = array(
+			'create_users'                 => true,
+			'delete_users'                 => true,
+			'add_users'                    => true,
+			'edit_users'                   => true,
+			'remove_users'                 => true,
+			'promote_users'                => true,
+			'list_users'                   => true,
+			'switch_users'                 => true,
+			'manage_wso_options'           => true,
+    );
+    $logistics_admin_caps = array_merge( $logistics_admin_caps, $logistics_caps );
+		$this->add_role( 'wso_logistics_admin', 'Logistics Admin', false, $logistics_admin_caps );
+
+		/**
 		 * IT Rep capabilities.
 		 */
 		$it_rep_caps = array(
 		);
 		$this->add_role( 'wso_it_rep', 'IT Rep', false, $it_rep_caps );
-
-		$primary_it_rep_caps = array();
-		$this->add_role( 'wso_primary_it_rep', 'Primary IT Rep', 'wso_it_rep', $primary_it_rep_caps );
-
-		$program_it_rep_caps = array();
-		$this->add_role( 'wso_program_it_rep', 'Program IT Rep', 'wso_it_rep', $program_it_rep_caps );
-
-		$department_it_rep_caps = array();
-		$this->add_role( 'wso_department_it_rep', 'Department IT Rep', 'wso_it_rep', $department_it_rep_caps );
 
 		/**
 		 * Admin capabilities.
@@ -276,15 +275,6 @@ class User_Roles {
 		$business_admin_caps = array(
 		);
 		$this->add_role( 'wso_business_admin', 'Business Admin', false, $business_admin_caps );
-
-		$program_business_admin_caps = array();
-		$this->add_role( 'wso_program_business_admin', 'Program Business Admin', 'wso_business_admin', $program_business_admin_caps );
-
-		$department_business_admin_caps = array();
-		$this->add_role( 'wso_department_business_admin', 'Department Business Admin', 'wso_business_admin', $department_business_admin_caps );
-
-		$primary_business_admin_caps = array();
-		$this->add_role( 'wso_primary_business_admin', 'Primary Business Admin', 'wso_business_admin', $primary_business_admin_caps );
 
 	}
 
@@ -320,6 +310,7 @@ class User_Roles {
 		$subscriber_role->add_cap( 'read', true );
 
 		remove_role( 'wso_admin' );
+		remove_role( 'wso_logistics_admin' );
 		remove_role( 'wso_logistics' );
 		remove_role( 'wso_it_rep' );
 		remove_role( 'wso_primary_it_rep' );

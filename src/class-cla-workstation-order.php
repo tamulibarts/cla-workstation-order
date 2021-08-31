@@ -148,6 +148,8 @@ class CLA_Workstation_Order {
 
 		if ( current_user_can( 'wso_admin' ) ) {
 			$classes .= ' wso_admin';
+		} elseif ( current_user_can( 'wso_logistics_admin' ) ) {
+			$classes .= ' wso_logistics_admin';
 		} elseif ( current_user_can( 'wso_logistics' ) ) {
 			$classes .= ' wso_logistics';
 		}
@@ -189,10 +191,9 @@ class CLA_Workstation_Order {
 		if ( ! current_user_can( 'administrator' ) ) {
 			unset($all_roles['administrator']);
 			unset($all_roles['wso_admin']);
-		}
-
-		if ( ! current_user_can( 'administrator' ) && ! current_user_can( 'wso_admin' ) ) {
-			unset($all_roles['wso_logistics']);
+			if ( isset( $all_roles['wso_logistics_admin'] ) ) {
+				unset($all_roles['wso_logistics_admin']);
+			}
 		}
 
 		// Remove default WordPress user role assignment since this application doesn't use it.

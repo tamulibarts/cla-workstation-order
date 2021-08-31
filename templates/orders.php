@@ -1,5 +1,5 @@
 <?php
-if ( ! current_user_can( 'administrator' ) && ! current_user_can( 'wso_admin' ) && ! current_user_can( 'wso_logistics' ) && ! current_user_can( 'wso_business_admin' ) && ! current_user_can( 'wso_it_rep' ) ) {
+if ( ! current_user_can( 'administrator' ) && ! current_user_can( 'wso_admin' ) && ! current_user_can( 'wso_logistics' ) && ! current_user_can( 'wso_logistics_admin' ) && ! current_user_can( 'wso_business_admin' ) && ! current_user_can( 'wso_it_rep' ) ) {
 	$blog_id = get_current_blog_id();
 	$url     = get_site_url( $blog_id, '/my-orders/' );
 	wp_redirect( $url );
@@ -107,7 +107,7 @@ add_action( 'wp_enqueue_scripts', 'cla_order_search_scripts', 1 );
  */
 function cla_workstation_order_delete_scripts() {
 
-	if ( current_user_can( 'wso_logistics' ) || current_user_can( 'wso_admin' ) ) {
+	if ( current_user_can( 'wso_logistics' ) || current_user_can( 'wso_admin' ) || current_user_can( 'wso_logistics_admin' ) ) {
 
 		wp_register_script(
 			'cla-workstation-order-delete-scripts',
@@ -304,7 +304,7 @@ function get_order_output( $post_id ) {
 	}
 	$output .= "</td>";
 	$output .= "<td class=\"text-right\">";
-	if ( current_user_can( 'administrator' ) || current_user_can( 'wso_admin' ) || current_user_can( 'wso_logistics' ) ) {
+	if ( current_user_can( 'administrator' ) || current_user_can( 'wso_admin' ) || current_user_can( 'wso_logistics' ) || current_user_can( 'wso_logistics_admin' ) ) {
 		if ( 'publish' !== $status ) {
 			$output .= '<a class="btn btn-sm btn-outline-yellow" title="Edit this order" href="' . $permalink . '"><span class="dashicons dashicons-welcome-write-blog"></span></a>';
 		}
