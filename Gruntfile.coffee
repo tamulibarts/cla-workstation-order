@@ -83,7 +83,8 @@ module.exports = (grunt) ->
     done = @async()
 
     # Define simple properties for release object
-    grunt.config 'release.key', process.env.RELEASE_KEY
+    env = grunt.file.readJSON 'env.json'
+    grunt.config 'release.key', env["RELEASE_KEY"]
     grunt.config 'release.file', grunt.template.process '<%= pkg.name %>.zip'
 
     grunt.util.spawn {
@@ -120,21 +121,34 @@ module.exports = (grunt) ->
 
     grunt.util.spawn {
       cmd: 'git'
-      args: [ 'describe', '--tags' ]
+      args: [ 'tag' ]
     }, (err, result, code) ->
-      if result.stdout isnt ''
-        matches = result.stdout.match /([^\n]+)/
-        grunt.config 'release.lasttag', matches[1] + '..'
-
+      if result.stdout is ''
+        # No tags found.
+        # Get the first repository commit.
+        grunt.util.spawn {
+          cmd: 'git'
+          args: ['rev-list', '--max-parents=0', 'HEAD']
+        }, (err, result, code) ->
+          grunt.config 'release.lasttag', result.stdout
+          done(err)
+      else
+        grunt.util.spawn {
+          cmd: 'git'
+          args: ['describe', '--tags', '--abbrev=0']
+        }, (err, result, code) ->
+          if result.stdout isnt ''
+            # Tag found.
+            grunt.config 'release.lasttag', result.stdout
+            done(err)
       grunt.task.run 'setmsg'
-
       done(err)
       return
     return
   @registerTask 'setmsg', 'Set gh_release body with commit messages since last release', ->
     done = @async()
 
-    releaserange = grunt.template.process '<%= release.lasttag %>HEAD'
+    releaserange = grunt.template.process '<%= release.lasttag %>..HEAD'
 
     grunt.util.spawn {
       cmd: 'git'
@@ -225,6 +239,7 @@ module.exports = (grunt) ->
       done(err)
       return
     return
+
 
   @event.on 'watch', (action, filepath) =>
     @log.writeln('#{filepath} has #{action}')
