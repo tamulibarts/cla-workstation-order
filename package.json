@@ -42,6 +42,6 @@
   "homepage": "https://github.tamu.edu/liberalarts-web/cla-workstation-order#readme",
   "browserslist": [
     "last 2 versions",
-    "ie > 9"
+    "ie > 10"
   ]
 }
