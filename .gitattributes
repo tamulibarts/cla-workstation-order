@@ -1,0 +1,19 @@
+# Automatically normalize line endings for all text-based files
+# http://git-scm.com/docs/gitattributes#_end_of_line_conversion
+* text=auto
+
+# For the following file types, normalize line endings to LF on
+# checkin and prevent conversion to CRLF when they are checked out
+# (this is required in order to prevent newline related issues like,
+# for example, after the build script is run)
+.*      text eol=crlf
+*.css   text eol=crlf
+*.html  text eol=crlf
+*.js    text eol=crlf
+*.json  text eol=crlf
+*.less  text eol=crlf
+*.scss  text eol=crlf
+*.md    text eol=crlf
+*.sh    text eol=crlf
+*.txt   text eol=crlf
+*.xml   text eol=crlf
