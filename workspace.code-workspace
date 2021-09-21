@@ -1,0 +1,18 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"workbench.colorTheme": "Default High Contrast",
+		"phpcs.enable": true,
+		"phpcs.standard": "WordPress",
+		"phpcs.executablePath": "./vendor/bin/phpcs",
+		"phpcs.showWarnings": true,
+		"phpcs.composerJsonPath": "composer.json",
+		"files.eol": "\r\n",
+		"files.insertFinalNewline": true,
+		"files.trimTrailingWhitespace": true
+	}
+}
