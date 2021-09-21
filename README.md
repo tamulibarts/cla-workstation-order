@@ -1,5 +1,5 @@
-# cla-workstation-order
-WordPress plugin for ordering workstations
+# Workstation Ordering Application for WordPress
+For the Information Technology unit of the Dean's Office at the Texas A&M University College of Liberal Arts
 
 Features:
 1. AJAX form submission using nonces which WordPress uses to authenticate the call, for security
