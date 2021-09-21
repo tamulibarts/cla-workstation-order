@@ -11,9 +11,13 @@ Features:
 7. Custom user roles and permissions
 8. Custom post types
 9. Uses Advanced Custom Fields
+10. Affiliated business staff can view orders, will be CC'd on emails sent to the business staff responsible for approving an order.
 
 Todo:
 1. Allow Logistics user to change the order account number, office location, and current asset number from the public page during the confirmation process
 2. Custom icon
 3. SVG logo in header
 4. Add continuous deployment pipeline
+Notes:
+1. The application sends emails to users from the email address in the General Settings page's Administration Email Address field.
+
