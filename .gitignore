@@ -54,3 +54,4 @@ generate-programs-db.php
 convert-user-departments.php
 convert-products-db.php
 convert-posts-except-products-and-orders-db.php
+env.json
