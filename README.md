@@ -23,3 +23,24 @@ Notes:
 1. Download the latest release here: [https://github.tamu.edu/liberalarts-web/cla-workstation-order/releases/latest/](https://github.tamu.edu/liberalarts-web/cla-workstation-order/releases/)
 2. Upload the plugin to your site via the admin dashboard plugin upload panel.
 
+## Developer Notes
+Please refer to the [WordPress Coding Standards](https://developer.wordpress.org/coding-standards/wordpress-coding-standards/) when you have questions about how to format your code.
+(Installing a Version Control System)[https://make.wordpress.org/core/handbook/tutorials/installing-a-vcs/]
+
+### Github REST API
+Eventually Github will deprecate the REST API v2 used in Gruntfile.coffee to upload a Github Release for the repository. The next version is v3 and requires using the same access token in a different connection approach. These tokens are temporary and used in case they are compromised. Example: `curl -H "Authorization: token OAUTH-TOKEN" -H "Accept: application/vnd.github.v3+json" https://api.github.com`
+
+### Features
+This repository uses [PHP CodeSniffer](https://github.com/squizlabs/PHP_CodeSniffer/) with WordPress coding standards checks and a pre-commit hook. Pretty neat! I have made efforts to make this repository work between my Mac (terminal) and Windows (powershell) environments with the VSCode editor.
+
+### Conventions
+Line endings are enforced as WordPress-style CRLF "\r\n". This is what WordPress requires for its Subversion version control system, which is what developers must use to submit their WordPress plugins and themes to the official WordPress public extension library.
+
+The Github Release Key is stored in a file within this repository's root directory on my computer in a file named "env.json". The contents of that file are: {"RELEASE_KEY":"##########################"}
+
+### Lessons Learned
+To add an executable file to git version control, do this: `git add --chmod=+x hooks/pre-commit && git commit -m "Add pre-commit executable hook"`
+
+### Developer Potential Installation Issues
+#### Windows 10
+On Windows 10 I had to disable the Windows IIS service which was running on IP 0.0.0.0:80 and interfered with my local development environment application's router functionality. The application name is Local, by Flywheel, which is owned by WP Engine.
