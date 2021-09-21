@@ -66,7 +66,8 @@ module.exports = (grunt) ->
           {src: ['fields/*.json']},
           {src: ['src/*.php']},
           {src: ['*.php']},
-          {src: ['readme.md']},
+          {src: ['README.md']},
+          {src: ['LICENSE.txt']}
         ]
 
   @loadNpmTasks 'grunt-contrib-compress'
