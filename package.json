@@ -1,6 +1,6 @@
 {
   "name": "cla-workstation-order",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "A WordPress plugin for ordering workstations for the Texas A&M College of Liberal Arts.",
   "main": "cla-workstation-order.php",
   "private": true,
