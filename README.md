@@ -16,3 +16,10 @@ Features:
 Notes:
 1. The application sends emails to users from the email address in the General Settings page's Administration Email Address field.
 
+## WordPress Requirements
+1. Single site install support only at this time.
+
+## Installation
+1. Download the latest release here: [https://github.tamu.edu/liberalarts-web/cla-workstation-order/releases/latest/](https://github.tamu.edu/liberalarts-web/cla-workstation-order/releases/)
+2. Upload the plugin to your site via the admin dashboard plugin upload panel.
+
