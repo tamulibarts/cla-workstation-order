@@ -32,6 +32,76 @@ class User_Roles {
 	 * @return void
 	 */
 	public function __construct() {
+
+		// Load User_Scope class to apply additional modifications to website feature access.
+		require_once __DIR__ . '/class-user-scope.php';
+		$user_scope = new User_Scope();
+		// Logistics basic users.
+		$logistics_user_scope = array(
+			'capabilities' => array(
+				'delete_users'  => array(
+					'subscribers',
+				),
+				'delete_user'   => array(
+					'subscribers',
+				),
+				'remove_users'  => array(
+					'subscribers',
+				),
+				'remove_user'   => array(
+					'subscribers',
+				),
+				'edit_users'    => array(
+					'subscribers',
+				),
+				'edit_user'     => array(
+					'subscribers',
+				),
+				'promote_users' => array(
+					'subscribers',
+					'wso_business_admin',
+				),
+				'promote_user'  => array(
+					'subscribers',
+					'wso_business_admin',
+				),
+				'create_users'  => array(
+					'subscribers',
+					'wso_business_admin',
+					'wso_it_rep',
+				),
+				'create_user'   => array(
+					'subscribers',
+					'wso_business_admin',
+					'wso_it_rep',
+				),
+				'add_users'     => array(
+					'subscribers',
+					'wso_business_admin',
+					'wso_it_rep',
+				),
+				'add_user'      => array(
+					'subscribers',
+					'wso_business_admin',
+					'wso_it_rep',
+				),
+				'list_users'    => array(
+					'subscribers',
+					'wso_business_admin',
+					'wso_it_rep',
+				),
+				'list_user'     => array(
+					'subscribers',
+					'wso_business_admin',
+					'wso_it_rep',
+				),
+			),
+			'filters' => array(
+				'user_row_actions' => true,
+			),
+		);
+		$user_scope->register( 'wso_logistics', $logistics_user_scope );
+
 	}
 
 	/**
@@ -52,77 +122,78 @@ class User_Roles {
 
 		// WSO Admin role.
 		$wso_admin_caps = array(
-      'create_wsorders'              => true, // This is needed to edit others orders for some reason.
-      'read_wsorder'                 => true,
-      'read_private_wsorders'        => true,
-      'edit_wsorder'                 => true,
-      'edit_wsorders'                => true,
-      'edit_others_wsorders'         => true,
-      'edit_private_wsorders'        => true,
-      'edit_published_wsorders'      => true, // Required to read published wsorders.
-      'publish_wsorders'             => true, // Required for changing the post status.
-      'delete_wsorder'               => true,
-      'delete_wsorders'              => true,
-      'delete_others_wsorders'       => true,
-      'delete_private_wsorders'      => true,
-      'delete_published_wsorders'    => true,
-      'create_programs'              => true,
-      'read_program'                 => true,
-      'read_private_programs'        => true,
-      'edit_program'                 => true,
-      'edit_programs'                => true,
-      'edit_others_programs'         => true,
-      'edit_private_programs'        => true,
-      'edit_published_programs'      => true,
-      'publish_programs'             => true,
-      'delete_program'               => true,
-      'delete_programs'              => true,
-      'delete_others_programs'       => true,
-      'delete_private_programs'      => true,
-      'delete_published_programs'    => true,
-      'create_departments'           => true,
-      'read_department'              => true,
-      'read_private_departments'     => true,
-      'edit_department'              => true,
-      'edit_departments'             => true,
-      'edit_others_departments'      => true,
-      'edit_private_departments'     => true,
-      'edit_published_departments'   => true,
-      'publish_departments'          => true,
-      'delete_department'            => true,
-      'delete_departments'           => true,
-      'delete_others_departments'    => true,
-      'delete_private_departments'   => true,
-      'delete_published_departments' => true,
+			'level_9'                      => true, // Just below a true administrator.
+			'create_wsorders'              => true, // This is needed to edit others orders for some reason.
+			'read_wsorder'                 => true,
+			'read_private_wsorders'        => true,
+			'edit_wsorder'                 => true,
+			'edit_wsorders'                => true,
+			'edit_others_wsorders'         => true,
+			'edit_private_wsorders'        => true,
+			'edit_published_wsorders'      => true, // Required to read published wsorders.
+			'publish_wsorders'             => true, // Required for changing the post status.
+			'delete_wsorder'               => true,
+			'delete_wsorders'              => true,
+			'delete_others_wsorders'       => true,
+			'delete_private_wsorders'      => true,
+			'delete_published_wsorders'    => true,
+			'create_programs'              => true,
+			'read_program'                 => true,
+			'read_private_programs'        => true,
+			'edit_program'                 => true,
+			'edit_programs'                => true,
+			'edit_others_programs'         => true,
+			'edit_private_programs'        => true,
+			'edit_published_programs'      => true,
+			'publish_programs'             => true,
+			'delete_program'               => true,
+			'delete_programs'              => true,
+			'delete_others_programs'       => true,
+			'delete_private_programs'      => true,
+			'delete_published_programs'    => true,
+			'create_departments'           => true,
+			'read_department'              => true,
+			'read_private_departments'     => true,
+			'edit_department'              => true,
+			'edit_departments'             => true,
+			'edit_others_departments'      => true,
+			'edit_private_departments'     => true,
+			'edit_published_departments'   => true,
+			'publish_departments'          => true,
+			'delete_department'            => true,
+			'delete_departments'           => true,
+			'delete_others_departments'    => true,
+			'delete_private_departments'   => true,
+			'delete_published_departments' => true,
 			'manage_product_categories'    => true,
-      'create_products'              => true,
-      'read_product'                 => true,
-      'read_private_products'        => true,
-      'edit_product'                 => true,
-      'edit_products'                => true,
-      'edit_others_products'         => true,
-      'edit_private_products'        => true,
-      'edit_published_products'      => true,
-      'publish_products'             => true,
-      'delete_product'               => true,
-      'delete_products'              => true,
-      'delete_others_products'       => true,
-      'delete_private_products'      => true,
-      'delete_published_products'    => true,
-      'create_bundles'               => true,
-      'read_bundle'                  => true,
-      'read_private_bundles'         => true,
-      'edit_bundle'                  => true,
-      'edit_bundles'                 => true,
-      'edit_others_bundles'          => true,
-      'edit_private_bundles'         => true,
-      'edit_published_bundles'       => true,
-      'publish_bundles'              => true,
-      'delete_bundle'                => true,
-      'delete_bundles'               => true,
-      'delete_others_bundles'        => true,
-      'delete_private_bundles'       => true,
-      'delete_published_bundles'     => true,
+			'create_products'              => true,
+			'read_product'                 => true,
+			'read_private_products'        => true,
+			'edit_product'                 => true,
+			'edit_products'                => true,
+			'edit_others_products'         => true,
+			'edit_private_products'        => true,
+			'edit_published_products'      => true,
+			'publish_products'             => true,
+			'delete_product'               => true,
+			'delete_products'              => true,
+			'delete_others_products'       => true,
+			'delete_private_products'      => true,
+			'delete_published_products'    => true,
+			'create_bundles'               => true,
+			'read_bundle'                  => true,
+			'read_private_bundles'         => true,
+			'edit_bundle'                  => true,
+			'edit_bundles'                 => true,
+			'edit_others_bundles'          => true,
+			'edit_private_bundles'         => true,
+			'edit_published_bundles'       => true,
+			'publish_bundles'              => true,
+			'delete_bundle'                => true,
+			'delete_bundles'               => true,
+			'delete_others_bundles'        => true,
+			'delete_private_bundles'       => true,
+			'delete_published_bundles'     => true,
 			'manage_wso_options'           => true,
 			'upload_files'                 => true,
 			'unfiltered_html'              => true,
@@ -131,7 +202,7 @@ class User_Roles {
 			'remove_users'                 => true,
 			'promote_users'                => true,
 			'list_users'                   => true,
-      'switch_users'                 => true,
+			'switch_users'                 => true,
 			'manage_categories'            => false,
 			'create_posts'                 => false,
 			'read_post'                    => false,
@@ -152,77 +223,78 @@ class User_Roles {
 
 		// Logistics role.
 		$logistics_caps = array(
-      'create_wsorders'              => true, // This is needed to edit others orders for some reason.
-      'read_wsorder'                 => true,
-      'read_private_wsorders'        => true,
-      'edit_wsorder'                 => true,
-      'edit_wsorders'                => true,
-      'edit_others_wsorders'         => true,
-      'edit_private_wsorders'        => true,
-      'edit_published_wsorders'      => true, // Required to read published wsorders.
-      'publish_wsorders'             => true, // Required for changing the post status.
-      'delete_wsorder'               => true,
-      'delete_wsorders'              => true,
-      'delete_others_wsorders'       => true,
-      'delete_private_wsorders'      => true,
-      'delete_published_wsorders'    => true,
-      'create_programs'              => true,
-      'read_program'                 => true,
-      'read_private_programs'        => true,
-      'edit_program'                 => true,
-      'edit_programs'                => true,
-      'edit_others_programs'         => true,
-      'edit_private_programs'        => true,
-      'edit_published_programs'      => true,
-      'publish_programs'             => true,
-      'delete_program'               => true,
-      'delete_programs'              => true,
-      'delete_others_programs'       => true,
-      'delete_private_programs'      => true,
-      'delete_published_programs'    => true,
-      'create_departments'           => true,
-      'read_department'              => true,
-      'read_private_departments'     => true,
-      'edit_department'              => true,
-      'edit_departments'             => true,
-      'edit_others_departments'      => true,
-      'edit_private_departments'     => true,
-      'edit_published_departments'   => true,
-      'publish_departments'          => true,
-      'delete_department'            => true,
-      'delete_departments'           => true,
-      'delete_others_departments'    => true,
-      'delete_private_departments'   => true,
-      'delete_published_departments' => true,
+			'level_8'                      => true, // Just below a true administrator.
+			'create_wsorders'              => true, // This is needed to edit others orders for some reason.
+			'read_wsorder'                 => true,
+			'read_private_wsorders'        => true,
+			'edit_wsorder'                 => true,
+			'edit_wsorders'                => true,
+			'edit_others_wsorders'         => true,
+			'edit_private_wsorders'        => true,
+			'edit_published_wsorders'      => true, // Required to read published wsorders.
+			'publish_wsorders'             => true, // Required for changing the post status.
+			'delete_wsorder'               => true,
+			'delete_wsorders'              => true,
+			'delete_others_wsorders'       => true,
+			'delete_private_wsorders'      => true,
+			'delete_published_wsorders'    => true,
+			'create_programs'              => true,
+			'read_program'                 => true,
+			'read_private_programs'        => true,
+			'edit_program'                 => true,
+			'edit_programs'                => true,
+			'edit_others_programs'         => true,
+			'edit_private_programs'        => true,
+			'edit_published_programs'      => true,
+			'publish_programs'             => true,
+			'delete_program'               => true,
+			'delete_programs'              => true,
+			'delete_others_programs'       => true,
+			'delete_private_programs'      => true,
+			'delete_published_programs'    => true,
+			'create_departments'           => true,
+			'read_department'              => true,
+			'read_private_departments'     => true,
+			'edit_department'              => true,
+			'edit_departments'             => true,
+			'edit_others_departments'      => true,
+			'edit_private_departments'     => true,
+			'edit_published_departments'   => true,
+			'publish_departments'          => true,
+			'delete_department'            => true,
+			'delete_departments'           => true,
+			'delete_others_departments'    => true,
+			'delete_private_departments'   => true,
+			'delete_published_departments' => true,
 			'manage_product_categories'    => true,
-      'create_products'              => true,
-      'read_product'                 => true,
-      'read_private_products'        => true,
-      'edit_product'                 => true,
-      'edit_products'                => true,
-      'edit_others_products'         => true,
-      'edit_private_products'        => true,
-      'edit_published_products'      => true,
-      'publish_products'             => true,
-      'delete_product'               => true,
-      'delete_products'              => true,
-      'delete_others_products'       => true,
-      'delete_private_products'      => true,
-      'delete_published_products'    => true,
-      'create_bundles'               => true,
-      'read_bundle'                  => true,
-      'read_private_bundles'         => true,
-      'edit_bundle'                  => true,
-      'edit_bundles'                 => true,
-      'edit_others_bundles'          => true,
-      'edit_private_bundles'         => true,
-      'edit_published_bundles'       => true,
-      'publish_bundles'              => true,
-      'delete_bundle'                => true,
-      'delete_bundles'               => true,
-      'delete_others_bundles'        => true,
-      'delete_private_bundles'       => true,
-      'delete_published_bundles'     => true,
+			'create_products'              => true,
+			'read_product'                 => true,
+			'read_private_products'        => true,
+			'edit_product'                 => true,
+			'edit_products'                => true,
+			'edit_others_products'         => true,
+			'edit_private_products'        => true,
+			'edit_published_products'      => true,
+			'publish_products'             => true,
+			'delete_product'               => true,
+			'delete_products'              => true,
+			'delete_others_products'       => true,
+			'delete_private_products'      => true,
+			'delete_published_products'    => true,
+			'create_bundles'               => true,
+			'read_bundle'                  => true,
+			'read_private_bundles'         => true,
+			'edit_bundle'                  => true,
+			'edit_bundles'                 => true,
+			'edit_others_bundles'          => true,
+			'edit_private_bundles'         => true,
+			'edit_published_bundles'       => true,
+			'publish_bundles'              => true,
+			'delete_bundle'                => true,
+			'delete_bundles'               => true,
+			'delete_others_bundles'        => true,
+			'delete_private_bundles'       => true,
+			'delete_published_bundles'     => true,
 			'upload_files'                 => true,
 			'unfiltered_html'              => true,
 			'read'                         => true,
@@ -242,13 +314,6 @@ class User_Roles {
 			'delete_others_posts'          => false,
 			'delete_private_posts'         => false,
 			'delete_published_posts'       => false,
-		);
-		$this->add_role( 'wso_logistics', 'Logistics', false, $logistics_caps );
-
-		/**
-		 * Logistics Admin capabilities.
-		 */
-		$logistics_admin_caps = array(
 			'create_users'                 => true,
 			'delete_users'                 => true,
 			'add_users'                    => true,
@@ -256,16 +321,26 @@ class User_Roles {
 			'remove_users'                 => true,
 			'promote_users'                => true,
 			'list_users'                   => true,
+		);
+		$this->add_role( 'wso_logistics', 'Logistics', false, $logistics_caps );
+
+		/**
+		 * Logistics Admin capabilities.
+		 */
+		$logistics_admin_caps = array(
+			'level_9'                      => true, // Just below a true administrator.
 			'switch_users'                 => true,
 			'manage_wso_options'           => true,
-    );
-    $logistics_admin_caps = array_merge( $logistics_admin_caps, $logistics_caps );
+		);
+		$logistics_admin_caps = array_merge( $logistics_admin_caps, $logistics_caps );
+		unset( $logistics_admin_caps['level_5'] );
 		$this->add_role( 'wso_logistics_admin', 'Logistics Admin', false, $logistics_admin_caps );
 
 		/**
 		 * IT Rep capabilities.
 		 */
 		$it_rep_caps = array(
+			'level_7' => true,
 		);
 		$this->add_role( 'wso_it_rep', 'IT Rep', false, $it_rep_caps );
 
@@ -273,6 +348,7 @@ class User_Roles {
 		 * Admin capabilities.
 		 */
 		$business_admin_caps = array(
+			'level_5' => true,
 		);
 		$this->add_role( 'wso_business_admin', 'Business Admin', false, $business_admin_caps );
 
@@ -290,7 +366,7 @@ class User_Roles {
 	 */
 	private function add_role( $role, $display_name, $base_role, $caps ) {
 
-		$base_caps = $base_role === false ? array() : get_role( $base_role )->capabilities;
+		$base_caps = false === $base_role ? array() : get_role( $base_role )->capabilities;
 		$caps      = array_merge( $base_caps, $caps );
 		add_role( $role, $display_name, $caps );
 
@@ -313,13 +389,7 @@ class User_Roles {
 		remove_role( 'wso_logistics_admin' );
 		remove_role( 'wso_logistics' );
 		remove_role( 'wso_it_rep' );
-		remove_role( 'wso_primary_it_rep' );
-		remove_role( 'wso_department_it_rep' );
-		remove_role( 'wso_program_it_rep' );
 		remove_role( 'wso_business_admin' );
-		remove_role( 'wso_program_business_admin' );
-		remove_role( 'wso_department_business_admin' );
-		remove_role( 'wso_primary_business_admin' );
 
 	}
 }
