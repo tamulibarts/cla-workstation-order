@@ -29,14 +29,17 @@ remove_action( 'genesis_entry_header', 'genesis_post_info', 12 );
 /**
  * Modify post title.
  */
-add_filter( 'the_title', function( $title ) {
-	$post_id = get_the_ID();
-	$post_type = get_post_type( $post_id );
-	if ( 'wsorder' === $post_type ) {
-		$title = 'Order ' . $title . ' Details';
+add_filter(
+	'the_title',
+	function( $title ) {
+		$post_id   = get_the_ID();
+		$post_type = get_post_type( $post_id );
+		if ( 'wsorder' === $post_type ) {
+			$title = 'Order ' . $title . ' Details';
+		}
+		return $title;
 	}
-	return $title;
-});
+);
 
 /**
  * Registers and enqueues template styles.
@@ -82,48 +85,58 @@ function cla_workstation_order_form_scripts() {
 	wp_enqueue_script( 'jquery' );
 	wp_enqueue_script( 'cla-workstation-order-form-scripts' );
 	// Identify if the page is an order.
-	$post_id          = get_the_ID();
-	$post_type        = get_post_type( $post_id );
-	$is_order         = 'wsorder' === $post_type ? 'true' : 'false';
-	$script_variables = "var cla_is_order = $is_order;";
-	$script_variables .= "
-";
-	$script_variables .= 'var cla_status = "' . get_post_status( $post_id ) . '";';
-	$script_variables .= "
-";
+	$post_id   = get_the_ID();
+	$post_type = get_post_type( $post_id );
+	$is_order  = 'wsorder' === $post_type ? 'true' : 'false';
+	// The assumed type for the "current_program" field's return value is object WP_Post.
+	$current_program_post = get_field( 'current_program', 'option' );
+	$script_variables     = "var cla_is_order = $is_order;";
+	$script_variables    .= "\n";
+	$script_variables    .= 'var cla_status = "' . get_post_status( $post_id ) . '";';
+	$script_variables    .= "\n";
 	// Include admin ajax URL and nonce.
-	$script_variables .= 'var WSOAjax = {"ajaxurl":"'.admin_url('admin-ajax.php').'","nonce":"'.wp_create_nonce('make_order').'"};';
+	$script_variables .= 'var WSOAjax = {"ajaxurl":"' . admin_url( 'admin-ajax.php' ) . '","nonce":"' . wp_create_nonce( 'make_order' ) . '"};';
 	// Allocation data.
-	$maybe_program_post = get_post_meta( $post_id, 'program', true );
-	if ( ! empty( $maybe_program_post ) ) {
-		$program_id = (int) $maybe_program_post;
-	} else {
-		$program_post = get_field( 'current_program', 'option' );
-		$program_id   = $program_post->ID;
+	// Load this order's assigned program, if it has one.
+	$program_info = array(
+		'choice' => (int) get_post_meta( $post_id, 'program', true ),
+	);
+	// If the other does not have an assigned program then assume a default value.
+	// Default value is in the plugin's Settings page under Current Program.
+	if ( ! $program_info['choice'] ) {
+		$program_id = (int) $current_program_post->ID;
 	}
-	$current_program            = get_field( 'current_program', 'option' );
-	$current_program_id         = $current_program->ID;
-	$current_program_allocation = (float) get_post_meta( $current_program_id, 'allocation', true );
-	$current_program_threshold  = (float) get_post_meta( $current_program_id, 'threshold', true );
-	$unfunded_program            = get_field( 'unfunded_program', 'option' );
-	$unfunded_program_id         = $unfunded_program->ID;
-	$unfunded_program_allocation = (float) get_post_meta( $unfunded_program_id, 'allocation', true );
-	$unfunded_program_threshold  = (float) get_post_meta( $unfunded_program_id, 'threshold', true );
-	$script_variables .= "
-";
-	$script_variables .= "var cla_programs = {\"choice\":{$program_id},\"{$current_program_id}\":{allocation:{$current_program_allocation},threshold:{$current_program_threshold}},\"{$unfunded_program_id}\":{allocation:{$unfunded_program_allocation},threshold:{$unfunded_program_threshold}}};";
-	$script_variables .= "
-";
+	$current_program      = get_field( 'current_program', 'option' );
+	$current_program_json = '';
+	if ( $current_program ) {
+		$current_program_id         = $current_program->ID;
+		$current_program_allocation = (float) get_post_meta( $current_program_id, 'allocation', true );
+		$current_program_threshold  = (float) get_post_meta( $current_program_id, 'threshold', true );
+		$current_program_json       = ",\"{$current_program_id}\":{allocation:{$current_program_allocation},threshold:{$current_program_threshold}}";
+	}
+	$unfunded_program = get_field( 'unfunded_program', 'option' );
+	$unfunded_json    = '';
+	if ( $unfunded_program ) {
+		$unfunded_program_id         = $unfunded_program->ID;
+		$unfunded_program_allocation = (float) get_post_meta( $unfunded_program_id, 'allocation', true );
+		$unfunded_program_threshold  = (float) get_post_meta( $unfunded_program_id, 'threshold', true );
+		$unfunded_json               = ",\"{$unfunded_program_id}\":{allocation:{$unfunded_program_allocation},threshold:{$unfunded_program_threshold}}";
+	}
+	$script_variables .= '
+';
+	$script_variables .= "var cla_programs = {\"choice\":{$program_id}{$current_program_json}{$unfunded_json}};";
+	$script_variables .= '
+';
 	// Include products and prices.
 	require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-order-form-helper.php';
 	$cla_form_helper      = new \CLA_Workstation_Order\Order_Form_Helper();
-	$products_and_bundles = $cla_form_helper->get_product_post_objects_for_program_by_user_dept( $program_id );
+	$products_and_bundles = $cla_form_helper->get_product_post_objects_for_program_by_user_dept( $program_info['choice'] );
 	foreach ( $products_and_bundles as $post_id => $post_title ) {
-		$products_and_bundles[$post_id] = get_post_meta( $post_id, 'price', true );
+		$products_and_bundles[ $post_id ] = get_post_meta( $post_id, 'price', true );
 	}
-	$script_variables .= "
-";
-	$script_variables .= 'var cla_product_prices = ' . json_encode($products_and_bundles);
+	$script_variables .= '
+';
+	$script_variables .= 'var cla_product_prices = ' . json_encode( $products_and_bundles );
 
 	wp_add_inline_script( 'cla-workstation-order-form-scripts', $script_variables, 'before' );
 
@@ -165,9 +178,9 @@ function cla_render_order_form( $content ) {
 	} else {
 		// Limit users to 1 order per program.
 		// Determine if this is the order form and if a user has already placed an order for the program.
-		$current_program = get_field( 'current_program', 'option' );
-		$program_post    = $current_program;
-		$current_user    = wp_get_current_user();
+		$current_program  = get_field( 'current_program', 'option' );
+		$program_post     = $current_program;
+		$current_user     = wp_get_current_user();
 		$author_post_args = array(
 			'post_type'      => 'wsorder',
 			'author'         => $current_user->ID,
@@ -176,11 +189,11 @@ function cla_render_order_form( $content ) {
 			'meta_value'     => $current_program->ID,
 			'post_status'    => array( 'publish', 'action_required', 'returned' ),
 		);
-		$previous_order = get_posts( $author_post_args );
+		$previous_order   = get_posts( $author_post_args );
 		if ( $previous_order ) {
 			$program_post = get_field( 'unfunded_program', 'option' );
-			$permalink = get_permalink( $previous_order[0]->ID );
-			$pre = "<p class=\"notice-red\"><em>Notice: You have already placed an order for {$current_program->post_title} (<a href=\"$permalink\">$permalink</a>) but you may still place a self-funded order.</em></p>";
+			$permalink    = get_permalink( $previous_order[0]->ID );
+			$pre          = "<p class=\"notice-red\"><em>Notice: You have already placed an order for {$current_program->post_title} (<a href=\"$permalink\">$permalink</a>) but you may still place a self-funded order.</em></p>";
 		}
 	}
 	$program_id        = $program_post->ID;
@@ -239,14 +252,14 @@ function cla_render_order_form( $content ) {
 			'meta_value'     => $current_program->ID,
 			'post_status'    => array( 'publish', 'action_required', 'returned' ),
 		);
-		$previous_order = get_posts( $author_post_args );
+		$previous_order   = get_posts( $author_post_args );
 		if ( $previous_order ) {
 			$disable_current_program = ' disabled';
 		}
 	}
 	$active_program_post = get_field( 'current_program', 'option' );
 	if ( $active_program_post ) {
-		$active_program_id = $active_program_post->ID;
+		$active_program_id   = $active_program_post->ID;
 		$additional_funding .= "<option value=\"$active_program_id\"{$disable_current_program}>$active_program_post->post_title</option>";
 	}
 	$unfunded_program_post = get_field( 'unfunded_program', 'option' );
@@ -281,7 +294,7 @@ function cla_render_order_form( $content ) {
 	}
 
 	if ( $it_rep_ids ) {
-		$it_rep_args = array(
+		$it_rep_args  = array(
 			'echo'              => false,
 			'include'           => $it_rep_ids,
 			'name'              => 'cla_it_rep_id',
@@ -291,7 +304,7 @@ function cla_render_order_form( $content ) {
 		);
 		$selected_rep = (int) get_post_meta( $post->ID, 'it_rep_status_it_rep', true );
 		if ( ! empty( $selected_rep ) ) {
-			$it_rep_args['selected'] = $selected_rep;
+			$it_rep_args['selected']         = $selected_rep;
 			$it_rep_args['include_selected'] = true;
 		}
 		$it_rep_dropdown = wp_dropdown_users( $it_rep_args );
@@ -321,9 +334,9 @@ function cla_render_order_form( $content ) {
 	 * Get product categories.
 	 */
 	$selected_array = ! empty( $selected_products_and_bundles ) ? $selected_products_and_bundles : array();
-	$apple_list  = $cla_form_helper->cla_get_products( 'apple', $program_id, false, $selected_array );
-	$pc_list     = $cla_form_helper->cla_get_products( 'pc', $program_id, false, $selected_array );
-	$addons_list = $cla_form_helper->cla_get_products( 'add-on', $program_id, false, $selected_array );
+	$apple_list     = $cla_form_helper->cla_get_products( 'apple', $program_id, false, $selected_array );
+	$pc_list        = $cla_form_helper->cla_get_products( 'pc', $program_id, false, $selected_array );
+	$addons_list    = $cla_form_helper->cla_get_products( 'add-on', $program_id, false, $selected_array );
 
 	/**
 	 * Add advanced quote button.
@@ -339,20 +352,20 @@ function cla_render_order_form( $content ) {
 	 * Purchased product IDs field.
 	 */
 	$selected_pab_value = '';
-	if ( !empty( $selected_products_and_bundles ) ) {
+	if ( ! empty( $selected_products_and_bundles ) ) {
 		$selected_pab_value = implode( ',', $selected_products_and_bundles );
 		foreach ( $selected_products_and_bundles as $key => $pob_post_id ) {
-			$pob_price = get_field( 'price', $pob_post_id );
+			$pob_price  = get_field( 'price', $pob_post_id );
 			$cart_price = floatval( $pob_price );
 			$cart_price = '$' . number_format( $cart_price, 2, '.', ',' );
-			$pob_thumb = get_the_post_thumbnail_url( $pob_post_id );
-			$item = '<div class="cart-item product-item shopping-cart-'.$pob_post_id.' grid-x">';
+			$pob_thumb  = get_the_post_thumbnail_url( $pob_post_id );
+			$item       = '<div class="cart-item product-item shopping-cart-' . $pob_post_id . ' grid-x">';
 			if ( $pob_thumb ) {
 				$item .= '<div class="cell shrink"><img width="50" src="' . $pob_thumb . '"></div>';
 			}
-			$item .= '<div class="cell auto">' . get_the_title( $pob_post_id ) . '</div>';
-			$item .= '<div class="cell shrink align-right bold"><button class="trash trash-product" type="button" data-product-id="'.$pob_post_id.'">Remove product from cart</button>' . $cart_price . '</div>';
-			$item .= '</div>';
+			$item                .= '<div class="cell auto">' . get_the_title( $pob_post_id ) . '</div>';
+			$item                .= '<div class="cell shrink align-right bold"><button class="trash trash-product" type="button" data-product-id="' . $pob_post_id . '">Remove product from cart</button>' . $cart_price . '</div>';
+			$item                .= '</div>';
 			$purchase_list_items .= $item;
 		}
 	}
@@ -382,12 +395,12 @@ function cla_render_order_form( $content ) {
 			$quote_html .= '</div>';
 
 			// Shopping cart item.
-			$cart_price = floatval( $quote['price'] );
-			$cart_price = '$' . number_format( $cart_price, 2, '.', ',' );
-			$item = '<div class="cart-item quote-item quote-item-' . $key . ' grid-x">';
-			$item .= '<div class="cell auto">Advanced Teaching/Research Item</div>';
-			$item .= '<div class="cell shrink align-right bold"><button class="trash trash-quote" type="button" data-quote-index="' . $key . '">Remove product from cart</button><span class="price">' . $cart_price . '</span></div>';
-			$item .= '</div>';
+			$cart_price           = floatval( $quote['price'] );
+			$cart_price           = '$' . number_format( $cart_price, 2, '.', ',' );
+			$item                 = '<div class="cart-item quote-item quote-item-' . $key . ' grid-x">';
+			$item                .= '<div class="cell auto">Advanced Teaching/Research Item</div>';
+			$item                .= '<div class="cell shrink align-right bold"><button class="trash trash-quote" type="button" data-quote-index="' . $key . '">Remove product from cart</button><span class="price">' . $cart_price . '</span></div>';
+			$item                .= '</div>';
 			$purchase_list_items .= $item;
 		}
 	}
@@ -402,7 +415,7 @@ function cla_render_order_form( $content ) {
 	/**
 	 * Order subtotal.
 	 */
-	$subtotal = '$0.00';
+	$subtotal       = '$0.00';
 	$subtotal_field = get_field( 'products_subtotal', $post->ID );
 	if ( ! empty( $subtotal_field ) ) {
 		$subtotal_float = floatval( $subtotal_field );
@@ -478,7 +491,7 @@ function cla_render_order_form( $content ) {
 	/**
 	 * Form
 	 */
-	$permalink = get_permalink();
+	$permalink  = get_permalink();
 	$order_form = "{$pre}<div id=\"cla_order_form_wrap\">
 <form method=\"post\" enctype=\"multipart/form-data\" id=\"cla_order_form\" action=\"{$permalink}\">
 <div class=\"grid-x grid-margin-x\"><div class=\"cell medium-6\">{$order_info}</div><div class=\"cell medium-6\">{$additional_funding}</div></div><div class=\"grid-x grid-margin-x\"><div class=\"cell small-12\"><hr /></div></div>
@@ -533,9 +546,9 @@ function cla_render_order_form( $content ) {
 			'disabled' => array(),
 		),
 		'option'   => array(
-			'value' => array(),
-			'id'    => array(),
-			'name'  => array(),
+			'value'    => array(),
+			'id'       => array(),
+			'name'     => array(),
 			'selected' => array(),
 			'disabled' => array(),
 		),
@@ -567,13 +580,13 @@ function cla_render_order_form( $content ) {
 			'class' => array(),
 		),
 		'button'   => array(
-			'type'               => array(),
-			'id'                 => array(),
-			'class'              => array(),
-			'disabled'           => array(),
-			'data-product-id'    => array(),
-			'data-product-name'  => array(),
-			'data-quote-index'   => array(),
+			'type'              => array(),
+			'id'                => array(),
+			'class'             => array(),
+			'disabled'          => array(),
+			'data-product-id'   => array(),
+			'data-product-name' => array(),
+			'data-quote-index'  => array(),
 		),
 		'small'    => array(),
 		'dl'       => array(),

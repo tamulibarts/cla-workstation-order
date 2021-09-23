@@ -41,17 +41,17 @@ class CLA_Workstation_Order {
 	 */
 	public function __construct() {
 
-		// Handle GravityForms leads.
 		// Load user management hooks.
 		if ( ! class_exists( '\CLA_Workstation_Order\User_Roles' ) ) {
 			require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-user-roles.php';
 			$user_roles = new \CLA_Workstation_Order\User_Roles();
 		}
 
+		// Modify the Dashboard widgets.
 		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-dashboard.php';
 		new \CLA_Workstation_Order\Dashboard();
 
-		// Handle GravityForms leads.
+		// Load required JS and CSS.
 		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-assets.php';
 		new \CLA_Workstation_Order\Assets();
 
@@ -88,9 +88,6 @@ class CLA_Workstation_Order {
 
 		add_filter( 'admin_body_class', array( $this, 'identify_user_role' ) );
 
-		// Restrict access to user role promotion.
-		add_filter( 'editable_roles', array( $this, 'editable_roles' ) );
-
 	}
 
 	/**
@@ -104,9 +101,9 @@ class CLA_Workstation_Order {
 		// Create product category taxonomy.
 		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-taxonomy.php';
 		new \CLA_Workstation_Order\Taxonomy(
-			array('Product Category', 'Product Categories'),
+			array( 'Product Category', 'Product Categories' ),
 			'product-category',
-			array('product', 'bundle'),
+			array( 'product', 'bundle' ),
 			array(
 				'capabilities' => array(
 					'manage_terms' => 'manage_product_categories',
@@ -150,7 +147,14 @@ class CLA_Workstation_Order {
 
 	}
 
-	public function identify_user_role ( $classes ) {
+	/**
+	 * Identify the current user's user role in the admin page body class.
+	 *
+	 * @param string $classes The class list.
+	 *
+	 * @return string
+	 */
+	public function identify_user_role( $classes ) {
 
 		if ( current_user_can( 'wso_admin' ) ) {
 			$classes .= ' wso_admin';
@@ -164,50 +168,43 @@ class CLA_Workstation_Order {
 
 	}
 
+	/**
+	 * Add department column for users.
+	 *
+	 * @param string[] $column Column names in slug => label pairs.
+	 *
+	 * @return array
+	 */
 	public function add_user_admin_columns( $column ) {
 
-    $column['department'] = 'Department';
-    $midpoint = 4;
-    $arr_1 = array_slice( $column, 0, $midpoint );
-    $arr_2 = array_slice( $column, $midpoint, count( $column ) - $midpoint );
-    $arr_1['department'] = 'Department';
-    $column = array_merge($arr_1, $arr_2);
-    return $column;
+		$column['department'] = 'Department';
+		$midpoint             = 4;
+		$arr_1                = array_slice( $column, 0, $midpoint );
+		$arr_2                = array_slice( $column, $midpoint, count( $column ) - $midpoint );
+		$arr_1['department']  = 'Department';
+		$column               = array_merge( $arr_1, $arr_2 );
+		return $column;
 
 	}
 
+	/**
+	 * Render the user department names in admin columns.
+	 *
+	 * @param string $val         The column value.
+	 * @param string $column_name The column name.
+	 * @param int    $user_id     The user ID.
+	 *
+	 * @return string
+	 */
 	public function render_user_admin_columns( $val, $column_name, $user_id ) {
 
-    switch ($column_name) {
-      case 'department' :
-        return get_the_title( get_the_author_meta( 'department', $user_id ) );
-      default:
-    }
-    return $val;
-
-	}
-
-  /**
-   * Filters the list of editable roles.
-   *
-   * @param array[] $all_roles Array of arrays containing role information.
-   */
-	public function editable_roles( $all_roles ) {
-
-		if ( ! current_user_can( 'administrator' ) ) {
-			unset($all_roles['administrator']);
-			unset($all_roles['wso_admin']);
-			if ( isset( $all_roles['wso_logistics_admin'] ) ) {
-				unset($all_roles['wso_logistics_admin']);
-			}
+		switch ( $column_name ) {
+			case 'department':
+				return get_the_title( get_the_author_meta( 'department', $user_id ) );
+				break;
+			default:
 		}
-
-		// Remove default WordPress user role assignment since this application doesn't use it.
-		unset($all_roles['editor']);
-		unset($all_roles['author']);
-		unset($all_roles['contributor']);
-
-		return $all_roles;
+		return $val;
 
 	}
 

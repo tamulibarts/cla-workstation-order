@@ -31,7 +31,7 @@
                 "name": "unfunded_program",
                 "type": "post_object",
                 "instructions": "This is the program users can select when they want to submit an order their unit will fund 100% outside of any ordering program.",
-                "required": 1,
+                "required": 0,
                 "conditional_logic": 0,
                 "wrapper": {
                     "width": "",
