@@ -42,6 +42,12 @@ class CLA_Workstation_Order {
 	public function __construct() {
 
 		// Handle GravityForms leads.
+		// Load user management hooks.
+		if ( ! class_exists( '\CLA_Workstation_Order\User_Roles' ) ) {
+			require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-user-roles.php';
+			$user_roles = new \CLA_Workstation_Order\User_Roles();
+		}
+
 		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-dashboard.php';
 		new \CLA_Workstation_Order\Dashboard();
 

@@ -26,40 +26,51 @@ class User_Scope {
 	private static $file = __FILE__;
 
 	/**
-	 * User capabilities
-	 *
-	 * @var user_caps
-	 */
-	private $user_caps = array(
-		'create_users',
-		'delete_users',
-		'add_users',
-		'edit_users',
-		'remove_users',
-		'promote_users',
-		'list_users',
-		'create_user',
-		'delete_user',
-		'add_user',
-		'edit_user',
-		'remove_user',
-		'promote_user',
-		'list_user',
-	);
-
-	/**
-	 * User scope settings
+	 * Registered user scope settings.
+	 * This is a custom setting unique to this plugin.
 	 *
 	 * @var scopes
 	 */
 	private $scopes = array();
 
 	/**
-	 * Roles limited in scope
+	 * Registered user roles limited in scope.
+	 * https://wordpress.org/support/article/roles-and-capabilities/#summary-of-roles
 	 *
-	 * @var limited_roles
+	 * @var scoped_roles
 	 */
 	private $scoped_roles = array();
+
+	/**
+	 * Registers all scoped capabilities.
+	 * This is helpful to end the filter early if checking an unscoped capability.
+	 *
+	 * @var scoped_capabilities
+	 */
+	private $scoped_capabilities = array();
+
+	/**
+	 * Capability slugs that can target user IDs.
+	 * This is helpful to confirm tagless argument variables later.
+	 *
+	 * @var user_capabilities
+	 */
+	private $user_capabilities = array(
+		'delete_users',
+		'delete_user',
+		'remove_users',
+		'remove_user',
+		'edit_users',
+		'edit_user',
+		'promote_users',
+		'promote_user',
+		'create_users',
+		'create_user',
+		'add_users',
+		'add_user',
+		'list_users',
+		'list_user'
+	);
 
 	/**
 	 * Initialize the class.
@@ -74,6 +85,29 @@ class User_Scope {
 	}
 
 	/**
+	 * Register the settings for the user role to be given a scope.
+	 *
+	 * @param string $user_role The user role slug to register scope settings for.
+	 * @param array  $args      The settings for this user role scope.
+	 *
+	 * @return void
+	 */
+	public function register( $user_role, $args ) {
+
+		// Store the scoped user role settings.
+		$this->scopes[ $user_role ] = $args;
+
+		// Keep a list of all scoped user roles.
+		$this->scoped_roles[] = $user_role;
+
+		// Keep a list of all scoped capabilities.
+		if ( array_key_exists( 'capabilities', $args ) ) {
+			$this->scoped_capabilities = array_merge( $this->scoped_capabilities, array_keys( $args['capabilities'] ) );
+		}
+
+	}
+
+	/**
 	 * Initiate hooks if user scopes are registered.
 	 *
 	 * @return void
@@ -83,27 +117,14 @@ class User_Scope {
 		if ( $this->scopes ) {
 
 			// Restrict access to user role promotion.
-			add_filter( 'editable_roles', array( $this, 'editable_roles' ) );
+			// add_filter( 'editable_roles', array( $this, 'editable_roles' ) );
 			// Scope roles with user capabilities appropriately.
-			add_filter( 'map_meta_cap', array( $this, 'map_meta_cap' ), 11, 4 );
-			add_filter( 'user_has_cap', array( $this, 'logistics_has_capabilities' ), 11, 4 );
+			if ( $this->scoped_capabilities ) {
+				add_filter( 'map_meta_cap', array( $this, 'map_meta_cap' ), 11, 4 );
+				add_filter( 'user_has_cap', array( $this, 'user_has_cap' ), 11, 4 );
+			}
 
 		}
-
-	}
-
-	/**
-	 * * Register scope settings.
-	 *
-	 * @param string $user_role The user role to register scope settings for.
-	 * @param array  $args      The scope settings for this user role.
-	 *
-	 * @return void
-	 */
-	public function register( $user_role, $args ) {
-
-		$this->scopes[ $user_role ] = $args;
-		array_push( $this->scoped_roles, $user_role );
 
 	}
 
@@ -144,6 +165,90 @@ class User_Scope {
 	}
 
 	/**
+	 * Scope the user, capability, and optional arguments against the registered scopes.
+	 *
+	 * @param string[] $caps Primitive capabilities required of the user.
+	 * @param string   $cap  Capability being checked.
+	 * @param WP_User  $user The current user object.
+	 * @param array    $args {
+	 *     Arguments that accompany the requested capability check.
+	 *
+	 *     @type mixed ...$0 Optional Typically the target user object. WP_User if valid, false if the user data is not found.
+	 * }
+	 *
+	 * @return bool
+	 */
+	private function deny_user_cap( $caps, $cap, $user, $args ) {
+
+		$deny = false;
+
+		// End execution early if the capability is not scoped. Improves site performance.
+		if ( ! in_array( $cap, $this->scoped_capabilities, true ) ) {
+
+			return $deny;
+
+		}
+
+		// Only look at user roles that are scoped.
+		$user_roles = array_intersect( $user->roles, $this->scoped_roles );
+
+		// Check the scoped role or roles, if any, for capabilities.
+		foreach ( $user_roles as $role ) {
+
+			// Get the user's scope settings.
+			$scope = $this->scopes[ $role ];
+
+			// If the capability being checked is scoped, continue.
+			if ( array_key_exists( $cap, $scope['capabilities'] ) ) {
+
+				$cap_scope = $scope['capabilities'][ $cap ];
+
+				if ( false === $cap_scope ) {
+
+					// If the scope does not target a user role then return.
+					$deny = true;
+					break;
+
+				} elseif ( is_array( $cap_scope ) && in_array( $cap, $this->user_capabilities, true ) ) {
+
+					/**
+					 * Scope a capability against one or more user roles.
+					 * The running method is scoping it against a user ID. Example: current_user_can( 'edit_user', 12 ).
+					 * The User_Scope class scopes it between one user role and another.
+					 * We need to make sure the current user's scoped capability involves the target user's role(s).
+					 */
+					if ( $args && isset( $args[0] ) && is_object( $args[0] ) && 'WP_User' === get_class( $args[0] ) ) {
+
+						// Check the target user's roles to ensure all are scoped for the capability check.
+						$target_user       = $args[0];
+						$target_user_roles = $target_user->roles;
+						$untouchable_roles = array_diff( $target_user_roles, $cap_scope );
+
+						// If the target user has an untouchable role then limit the current user's capability.
+						if ( $untouchable_roles ) {
+
+							$deny = true;
+							break;
+
+						}
+
+					} else {
+
+						// The capability check is for a specific user action and role but
+						// this function was not given a target user object.
+						$deny = true;
+						break;
+
+					}
+				}
+			}
+		}
+
+		return $deny;
+
+	}
+
+	/**
 	 * Filters the primitive capabilities of the given user to satisfy the
 	 * capability being checked.
 	 *
@@ -155,60 +260,26 @@ class User_Scope {
 	 */
 	public function map_meta_cap( $caps, $cap, $user_id, $args ) {
 
-		// If the capability being checked is not important here, end execution early.
-		if ( ! in_array( $cap, $this->user_caps, true ) || ! $args || ! is_int( $args[0] ) ) {
-			return $caps;
-		}
-
 		/**
-		 * The current_user_can and get_userdata functions call this method's filter hook.
-		 * Therefore, we must remove it temporarily to prevent an infinite loop.
+		 * The get_userdata function calls the map_meta_cap filter this function is hooked to.
+		 * Therefore, we must remove this function temporarily to prevent an infinite loop.
 		 */
 		remove_filter( 'map_meta_cap', array( $this, 'map_meta_cap' ), 11, 4 );
-
-		$current_userdata = get_userdata( $user_id );
-		$target_userdata  = get_userdata( $args[0] );
-
-		/**
-		 * Restore this filter method.
-		 */
+		$user = get_userdata( $user_id );
+		// If we think the first argument is the target user ID, then attempt to get that user object.
+		$target_user = false;
+		if ( $args && $args[0] && is_int( $args[0] ) && $user_id !== $args[0] ) {
+			$target_user = get_userdata( $args[0] );
+		}
 		add_filter( 'map_meta_cap', array( $this, 'map_meta_cap' ), 11, 4 );
 
-		// Check each of the current user's roles against the scoped roles.
-		$current_user_roles  = $current_userdata->roles;
-		$user_role_is_scoped = false;
-		foreach ( $current_user_roles as $role ) {
-			if ( in_array( $role, $this->scoped_roles, true ) ) {
-				$user_role_is_scoped = true;
-				break;
-			}
-		}
+		// If the user capability is scoped then block it.
+		$args               = $target_user ? array( $target_user ) : array();
+		$user_cap_is_scoped = $this->deny_user_cap( $caps, $cap, $user, $args );
 
-		// If the current user does not need to be restricted by this method then end execution early.
-		if ( ! $user_role_is_scoped ) {
-			return $caps;
-		}
-
-		// Get target user information.
-		$target_user_roles = $target_userdata->roles;
-		$target_user_id    = $args[0];
-
-		// Reduce the target user's list of roles to only include those we are checking for.
-		$target_user_roles_to_check = array_intersect( $target_user_roles, $this->scoped_roles );
-		if ( ! $target_user_roles_to_check ) {
-			return $caps;
-		}
-
-		// Check each of the target user's roles.
-		// If the capability to check is not allowed for any one role then disallow the action.
-		$cap_arr = array( $cap );
-		foreach ( $target_user_roles_to_check as $role ) {
-			$role_cap_whitelist = $this->logistics_user_scope[ $role ];
-			if ( ! in_array( $cap, $role_cap_whitelist, true ) ) {
-				// Remove the checked capability from the user's list of capabilities.
-				$caps = array_diff( $caps, $cap_arr );
-				break;
-			}
+		if ( $user_cap_is_scoped ) {
+			$cap_arr = array( $cap );
+			$caps    = array_diff( $caps, $cap_arr );
 		}
 
 		return $caps;
@@ -233,47 +304,31 @@ class User_Scope {
 	 *
 	 * @return bool[]
 	 */
-	public function logistics_has_capabilities( $allcaps, $caps, $args, $user ) {
+	public function user_has_cap( $allcaps, $caps, $args, $user ) {
 
-		$cap            = $args[0];
-		$user_id        = $user->ID;
-		$target_user_id = isset( $args[1] ) && is_int( $args[1] ) ? $args[1] : 0;
+		$cap         = $args[0];
+		$user_id     = $user->ID;
+		$target_user = false;
 
-		// Detect if the capability check is irrelevant and should be ended early.
-		if (
-			$user_id === $target_user_id
-			|| ! in_array( $cap, $this->user_caps, true )
-			|| ! in_array( 'wso_logistics', $user->roles, true )
-			|| ! isset( $args[1] ) || ! is_int( $args[1] )
-		) {
-			return $allcaps;
+		if ( $user->ID !== $args[1] ) {
+
+			$target_user_id = $args[1];
+
+			// If the target user is not equal to the current user, temporarily remove this filter method.
+			// This prevents a self-calling infinite loop when calling get_userdata().
+			remove_filter( 'user_has_cap', array( $this, 'user_has_cap' ), 11, 4 );
+			$target_user = get_userdata( $target_user_id );
+			add_filter( 'user_has_cap', array( $this, 'user_has_cap' ), 11, 4 );
+
 		}
 
-		// If the target user is not equal to the current user, temporarily remove this filter method.
-		// This prevents a self-calling infinite loop when calling get_userdata().
-		remove_filter( 'user_has_cap', array( $this, 'logistics_has_capabilities' ), 11, 4 );
-		$target_user_data = get_userdata( $target_user_id );
-		add_filter( 'user_has_cap', array( $this, 'logistics_has_capabilities' ), 11, 4 );
+		// If the user capability is scoped then block it.
+		$args               = $target_user ? array( $target_user ) : array();
+		$user_cap_is_scoped = $this->deny_user_cap( $caps, $cap, $user, $args );
 
-		// If we cannot find the user this capability is checking against then we cannot validate the check.
-		if ( ! is_object( $target_user_data ) ) {
-			// End execution early.
-			return $allcaps;
-		}
-
-		// Get the target user's role.
-		$target_user_roles_checked = array();
-		if ( property_exists( $target_user_data, 'roles' ) && is_array( $target_user_data->roles ) ) {
-			$target_user_role = $target_user_data->roles;
-			// Reduce the target user's list of roles to only include those we are checking for.
-			$target_user_roles_checked = array_intersect( $target_user_role, $disallowed_roles );
-		}
-
-		// If we found one or more user roles in the target user's role list that the user is not allowed to affect,
-		// then remove this capability from the list.
-		if ( count( $target_user_roles_checked ) > 0 ) {
-			// Reduce the user capability array to those not found in the restricted list.
-			$caps = array_diff( $caps, $this->user_caps );
+		if ( $user_cap_is_scoped ) {
+			$cap_arr = array( $cap );
+			$allcaps = array_diff( $allcaps, $cap_arr );
 		}
 
 		return $allcaps;

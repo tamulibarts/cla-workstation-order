@@ -97,7 +97,13 @@ class User_Roles {
 				),
 			),
 			'filters' => array(
-				'user_row_actions' => true,
+				'user_row_actions' => array(
+					'edit'          => array(),
+					'delete'        => array(),
+					'remove'        => array(),
+					'view'          => array(),
+					'resetpassword' => array(),
+				),
 			),
 		);
 		$user_scope->register( 'wso_logistics', $logistics_user_scope );
