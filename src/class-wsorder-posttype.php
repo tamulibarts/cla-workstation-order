@@ -1961,12 +1961,12 @@ jQuery( 'select[name=\"post_status\"]' ).val('publish')";
 				'relation' => 'OR',
 				array(
 					'key'     => 'affiliated_it_reps',
-					'value'   => '\D' . $current_user_id . '\D',
+					'value'   => '[":]{1}' . $current_user_id . '[";]{1}',
 					'compare' => 'REGEXP',
 				),
 				array(
 					'key'     => 'affiliated_business_staff',
-					'value'   => '\D' . $current_user_id . '\D',
+					'value'   => '[":]{1}' . $current_user_id . '[";]{1}',
 					'compare' => 'REGEXP',
 				),
 				array(
