@@ -39,70 +39,29 @@ class User_Roles {
 		// Logistics basic users.
 		$logistics_user_scope = array(
 			'capabilities' => array(
-				'delete_users'  => array(
-					'subscribers',
+				'delete_user'  => array(
+					'subscriber',
 				),
-				'delete_user'   => array(
-					'subscribers',
+				'remove_user'  => array(
+					'subscriber',
 				),
-				'remove_users'  => array(
-					'subscribers',
+				'edit_user'    => array(
+					'subscriber',
 				),
-				'remove_user'   => array(
-					'subscribers',
-				),
-				'edit_users'    => array(
-					'subscribers',
-				),
-				'edit_user'     => array(
-					'subscribers',
-				),
-				'promote_users' => array(
-					'subscribers',
+				'promote_user' => array(
+					'subscriber',
 					'wso_business_admin',
-				),
-				'promote_user'  => array(
-					'subscribers',
-					'wso_business_admin',
-				),
-				'create_users'  => array(
-					'subscribers',
-					'wso_business_admin',
-					'wso_it_rep',
-				),
-				'create_user'   => array(
-					'subscribers',
-					'wso_business_admin',
-					'wso_it_rep',
-				),
-				'add_users'     => array(
-					'subscribers',
-					'wso_business_admin',
-					'wso_it_rep',
-				),
-				'add_user'      => array(
-					'subscribers',
-					'wso_business_admin',
-					'wso_it_rep',
-				),
-				'list_users'    => array(
-					'subscribers',
-					'wso_business_admin',
-					'wso_it_rep',
-				),
-				'list_user'     => array(
-					'subscribers',
-					'wso_business_admin',
-					'wso_it_rep',
 				),
 			),
 			'filters' => array(
 				'user_row_actions' => array(
-					'edit'          => array(),
-					'delete'        => array(),
-					'remove'        => array(),
-					'view'          => array(),
-					'resetpassword' => array(),
+					'count' => 2, // The maximum number of arguments the filter will accept.
+					'args'  => array(
+						'actions' => array(
+							'view'          => false,
+							'resetpassword' => false,
+						)
+					),
 				),
 			),
 		);
