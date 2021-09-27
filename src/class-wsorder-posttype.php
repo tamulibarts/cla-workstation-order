@@ -601,12 +601,12 @@ class WSOrder_PostType {
 
 			} else {
 
-		    $current_user_id = get_current_user_id();
-		    $customer_id     = (int) get_post_meta( $post->ID, 'order_author', true );
+				$current_user_id = get_current_user_id();
+				$customer_id     = (int) get_post_meta( $post->ID, 'order_author', true );
 
-		    if ( $customer_id === $current_user_id && 'returned' === get_post_status( $post->ID ) ) {
+				if ( $customer_id === $current_user_id && 'returned' === get_post_status( $post->ID ) ) {
 					$single_template = CLA_WORKSTATION_ORDER_TEMPLATE_PATH . '/order-form-template.php';
-		    } else {
+				} else {
 					$single_template = CLA_WORKSTATION_ORDER_TEMPLATE_PATH . '/order-approval-template.php';
 				}
 			}
