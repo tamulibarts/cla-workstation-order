@@ -1,0 +1,31 @@
+#!/bin/sh
+PATH="/usr/local/bin:$PATH"
+
+#
+# Run WordPress coding standards tasks.
+#
+# vendor/bin/phpcs --config-set installed_paths vendor/wp-coding-standards/wpcs
+WPFILES=`git diff --cached --name-only --diff-filter=AM | grep '.php' | tr '\n' ' '`
+if [[ -z $WPFILES ]]
+then
+	echo ""
+else
+	wplint=`vendor/bin/phpcs --standard=WordPress --ignore=*/vendor/*,*/node_modules/*,*/backup/*,*/.vscode/*, --filter="gitstaged" .`
+
+	echo "$wplint"
+
+	if [[ "$wplint" == *"FOUND"* ]]
+		then
+			hasLintErrors="true"
+	fi
+fi
+
+#
+# Report errors
+#
+if [ $hasLintErrors ]; then
+	echo "Fix all issues before commit."
+	exit 0
+fi
+
+exit 0
