@@ -1,6 +1,7 @@
 {
     "recommendations": [
         "felixfbecker.php-pack",
-        "ikappas.phpcs"
+        "ikappas.phpcs",
+        "wordpresstoolbox.wordpress-toolbox"
     ]
 }
