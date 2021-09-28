@@ -13,6 +13,8 @@
 		"phpcs.composerJsonPath": "composer.json",
 		"files.eol": "\n",
 		"files.insertFinalNewline": true,
-		"files.trimTrailingWhitespace": true
+		"files.trimTrailingWhitespace": true,
+        "editor.detectIndentation": false,
+        "editor.insertSpaces": false
 	}
 }
