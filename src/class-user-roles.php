@@ -2,7 +2,7 @@
 /**
  * The file that defines customizations to user roles for all custom post types.
  *
- * @link       https://github.com/zachwatkins/cla-workstation-order/blob/master/src/class-user-roles.php
+ * @link       https://github.tamu.edu/zachwatkins/cla-workstation-order/blob/master/src/class-user-roles.php
  * @since      1.0.0
  * @package    cla-workstation-order
  * @subpackage cla-workstation-order/src
@@ -33,20 +33,35 @@ class User_Roles {
 	 */
 	public function __construct() {
 
+		$this->register_user_scope();
+
+	}
+
+	/**
+	 * Register user scope.
+	 *
+	 * @return void
+	 */
+	public function register_user_scope() {
+
 		// Load User_Scope class to apply additional modifications to website feature access.
 		require_once __DIR__ . '/class-user-scope.php';
 		$user_scope = new User_Scope();
-		// Logistics basic users.
+
+		// Logistics basic user scope.
 		$logistics_user_scope = array(
 			'capabilities' => array(
 				'delete_user'  => array(
 					'subscriber',
+					'wso_business_admin',
 				),
 				'remove_user'  => array(
 					'subscriber',
+					'wso_business_admin',
 				),
 				'edit_user'    => array(
 					'subscriber',
+					'wso_business_admin',
 				),
 				'promote_user' => array(
 					'subscriber',
@@ -66,6 +81,44 @@ class User_Roles {
 			),
 		);
 		$user_scope->register( 'wso_logistics', $logistics_user_scope );
+
+		// Logistics admin user scope.
+		$logistics_admin_user_scope = array(
+			'capabilities' => array(
+				'delete_user'  => array(
+					'subscriber',
+					'wso_business_admin',
+					'wso_it_rep',
+				),
+				'remove_user'  => array(
+					'subscriber',
+					'wso_business_admin',
+					'wso_it_rep',
+				),
+				'edit_user'    => array(
+					'subscriber',
+					'wso_business_admin',
+					'wso_it_rep',
+				),
+				'promote_user' => array(
+					'subscriber',
+					'wso_business_admin',
+					'wso_it_rep',
+				),
+			),
+			'filters' => array(
+				'user_row_actions' => array(
+					'count' => 2, // The maximum number of arguments the filter will accept.
+					'args'  => array(
+						'actions' => array(
+							'view'          => false,
+							'resetpassword' => false,
+						)
+					),
+				),
+			),
+		);
+		$user_scope->register( 'wso_logistics_admin', $logistics_admin_user_scope );
 
 	}
 
@@ -297,8 +350,8 @@ class User_Roles {
 			'switch_users'                 => true,
 			'manage_wso_options'           => true,
 		);
+		unset( $logistics_caps['level_8'] );
 		$logistics_admin_caps = array_merge( $logistics_admin_caps, $logistics_caps );
-		unset( $logistics_admin_caps['level_5'] );
 		$this->add_role( 'wso_logistics_admin', 'Logistics Admin', false, $logistics_admin_caps );
 
 		/**
