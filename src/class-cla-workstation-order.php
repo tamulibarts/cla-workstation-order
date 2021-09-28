@@ -47,6 +47,9 @@ class CLA_Workstation_Order {
 			$user_roles = new \CLA_Workstation_Order\User_Roles();
 		}
 
+		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-legacy-support.php';
+		new \CLA_Workstation_Order\Legacy_Support();
+
 		// Modify the Dashboard widgets.
 		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-dashboard.php';
 		new \CLA_Workstation_Order\Dashboard();
