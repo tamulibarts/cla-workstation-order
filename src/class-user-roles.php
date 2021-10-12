@@ -35,6 +35,9 @@ class User_Roles {
 
 		$this->register_user_scope();
 
+		// Add filters for third party plugin user role management.
+		add_filter( 'acf/settings/show_admin', array( $this, 'manage_acf_options' ) );
+
 	}
 
 	/**
@@ -237,6 +240,7 @@ class User_Roles {
 			'delete_private_posts'         => false,
 			'delete_published_posts'       => false,
 			'manage_wso_options'           => true,
+			'manage_acf_options'           => true,
 		);
 		$this->add_role( 'wso_admin', 'WSO Admin', false, $wso_admin_caps );
 
@@ -387,6 +391,13 @@ class User_Roles {
 
 		$base_caps = false === $base_role ? array() : get_role( $base_role )->capabilities;
 		$caps      = array_merge( $base_caps, $caps );
+
+		// Apply Postman capabilities.
+		$caps = $this->postman_user_capabilities( $caps );
+
+		// Apply Duplicate Post capabilities.
+		$caps = $this->duplicate_post_user_capabilities( $caps );
+
 		add_role( $role, $display_name, $caps );
 
 	}
@@ -409,6 +420,91 @@ class User_Roles {
 		remove_role( 'wso_logistics' );
 		remove_role( 'wso_it_rep' );
 		remove_role( 'wso_business_admin' );
+
+	}
+
+	/**
+	 * Postman SMTP
+	 * Add Postman user capabilities.
+	 *
+	 * @param bool[] $caps      User capabilities.
+	 * @param string $user_role The user role slug.
+	 *
+	 * @return array
+	 */
+	public function postman_user_capabilities( $caps, $user_role ) {
+
+		$postman = array(
+			'active'  => class_exists( 'Postman' ) && is_plugin_active( 'post-smtp/postman-smtp.php' ),
+			'logs'    => array(
+				'wso_admin',
+				'wso_logistics_admin',
+			),
+			'options' => array(
+				'wso_admin',
+			),
+		);
+
+		if ( $postman['active'] ) {
+			if ( in_array( $user_role, $postman['logs'], true ) ) {
+				$caps[ Postman::MANAGE_POSTMAN_CAPABILITY_LOGS ] = true;
+			}
+			if ( in_array( $user_role, $postman['options'], true ) ) {
+				$caps[ Postman::MANAGE_POSTMAN_CAPABILITY_NAME ] = true;
+			}
+		}
+
+		return $caps;
+
+	}
+
+	/**
+	 * Yoast Duplicate Post
+	 * Add Duplicate Post plugin user capabilities.
+	 *
+	 * @param bool[] $caps      User capabilities.
+	 * @param string $user_role The user role slug.
+	 *
+	 * @return array
+	 */
+	public function duplicate_post_user_capabilities( $caps, $user_role ) {
+
+		$duplicate_post = array(
+			'active' => is_plugin_active( 'duplicate-post/duplicate-post.php' ),
+			'copy'   => array(
+				'wso_admin',
+				'wso_logistics_admin',
+				'wso_logistics',
+			),
+		);
+
+		if ( $duplicate_post['active'] ) {
+			if ( in_array( $user_role, $duplicate_post['copy'], true ) ) {
+				$caps[ 'copy_posts' ] = true;
+			}
+		}
+
+		return $caps;
+
+	}
+
+	/**
+	 * Advanced Custom Fields Pro
+	 * Show the Advanced Custom Fields admin menu if the user
+	 * is an administrator or they have the 'manage_acf_options'
+	 * capability. By default they need the 'manage_options'
+	 * capability.
+	 *
+	 * @param bool $show Whether or not to show the menu.
+	 *
+	 * @return bool
+	 */
+	public function manage_acf_options( $show ) {
+
+		$show = current_user_can( 'administrator' );
+		$show = current_user_can( 'manage_acf_options' );
+
+		return $show;
 
 	}
 }
