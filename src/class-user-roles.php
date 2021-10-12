@@ -379,10 +379,10 @@ class User_Roles {
 		$caps      = array_merge( $base_caps, $caps );
 
 		// Apply Postman capabilities.
-		$caps = $this->postman_user_capabilities( $caps );
+		$caps = $this->postman_user_capabilities( $caps, $role );
 
 		// Apply Duplicate Post capabilities.
-		$caps = $this->duplicate_post_user_capabilities( $caps );
+		$caps = $this->duplicate_post_user_capabilities( $caps, $role );
 
 		add_role( $role, $display_name, $caps );
 
@@ -433,10 +433,10 @@ class User_Roles {
 
 		if ( $postman['active'] ) {
 			if ( in_array( $user_role, $postman['logs'], true ) ) {
-				$caps[ Postman::MANAGE_POSTMAN_CAPABILITY_LOGS ] = true;
+				$caps[ \Postman::MANAGE_POSTMAN_CAPABILITY_LOGS ] = true;
 			}
 			if ( in_array( $user_role, $postman['options'], true ) ) {
-				$caps[ Postman::MANAGE_POSTMAN_CAPABILITY_NAME ] = true;
+				$caps[ \Postman::MANAGE_POSTMAN_CAPABILITY_NAME ] = true;
 			}
 		}
 
