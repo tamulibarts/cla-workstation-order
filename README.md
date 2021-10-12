@@ -1,7 +1,13 @@
 # Workstation Ordering Application for WordPress
-For the Information Technology unit of the Dean's Office at the Texas A&M University College of Liberal Arts
 
-Features:
+Created by Zachary Watkins, zwatkins2@tamu.edu
+
+A GPL-2.0+ WordPress Plugin that facilitates workstation ordering operations overseen by Information Technology Logistics with the Dean's Office at the Texas A&M University College of Liberal Arts.
+
+The original application was created by Joseph Rafferty using Ruby on Rails: [https://github.tamu.edu/liberalarts-web/workstation-order](https://github.tamu.edu/liberalarts-web/workstation-order)
+
+## Features
+
 1. AJAX form submission using nonces which WordPress uses to authenticate the call, for security
 2. AJAX file uploads to the WordPress media library converted to attachment post types
 3. PDF rendering using the FPDF library
@@ -10,37 +16,61 @@ Features:
 6. Has custom Dashboard widgets, which are nice to use sometimes to give users information
 7. Custom user roles and permissions
 8. Custom post types
-9. Uses Advanced Custom Fields
+9. Uses Advanced Custom Fields for order fields and the Settings page
 10. Affiliated business staff can view orders, will be CC'd on emails sent to the business staff responsible for approving an order.
 
-Notes:
-1. The application sends emails to users from the email address in the General Settings page's Administration Email Address field.
+## Custom User Capabilities
+
+1. manage_acf_options: Determines who can see the Advanced Custom Fields options page.
+2. manage_wso_options: Determines who can see the Workstation Ordering App options page.
+
+## Notes
+
+1. The application sends emails to users based on configurations in the SMTP settings page.
+
+## To Do
+
+1. Implement Active Directory user authentication, onboarding, and offboarding using either the WordPress SAML SSO plugin from OneLogin, the TAMU directory REST API [https://mqs.tamu.edu/rest/](https://mqs.tamu.edu/rest/), or both and one or more WordPress Cron tasks or manual functions.
 
 ## WordPress Requirements
+
 1. Single site install support only at this time.
+2. [https://github.tamu.edu/liberalarts-web/cla-wsorder](WSOrder Genesis Child Theme)
+3. TAMU CAS Authentication Plugin
+4. [https://www.advancedcustomfields.com/pro/](Advanced Custom Fields Pro) Plugin
+5. [https://wordpress.org/plugins/post-smtp/](Post SMTP) Plugin for secure email delivery with an email log and one-click resending of failed emails
+6. [https://github.com/johnbillion/user-switching](User Switching) Plugin (Github.com link, updated more frequently than WordPress repository plugin)
+7. [https://wordpress.org/plugins/duplicate-post/](Yoast Duplicate Post) Plugin
+8. [https://wordpress.org/plugins/simple-history/](Simple History) Plugin for debugging and user support
 
 ## Installation
+
 1. Download the latest release here: [https://github.tamu.edu/liberalarts-web/cla-workstation-order/releases/latest/](https://github.tamu.edu/liberalarts-web/cla-workstation-order/releases/)
 2. Upload the plugin to your site via the admin dashboard plugin upload panel.
 
 ## Developer Notes
-Please refer to the [WordPress Coding Standards](https://developer.wordpress.org/coding-standards/wordpress-coding-standards/) when you have questions about how to format your code.
-(Installing a Version Control System)[https://make.wordpress.org/core/handbook/tutorials/installing-a-vcs/]
 
-### Github REST API
-Eventually Github will deprecate the REST API v2 used in Gruntfile.coffee to upload a Github Release for the repository. The next version is v3 and requires using the same access token in a different connection approach. These tokens are temporary and used in case they are compromised. Example: `curl -H "Authorization: token OAUTH-TOKEN" -H "Accept: application/vnd.github.v3+json" https://api.github.com`
+Please refer to the [https://developer.wordpress.org/coding-standards/wordpress-coding-standards/](WordPress Coding Standards) when you have questions about how to format your code.
 
-### Features
-This repository uses [PHP CodeSniffer](https://github.com/squizlabs/PHP_CodeSniffer/) with WordPress coding standards checks and a pre-commit hook. Pretty neat! I have made efforts to make this repository work between my Mac (terminal) and Windows (powershell) environments with the VSCode editor.
+[https://make.wordpress.org/core/handbook/tutorials/installing-a-vcs/](Installing a Version Control System)
 
-### Conventions
-Line endings are enforced as WordPress-style CRLF "\r\n". This is what WordPress requires for its Subversion version control system, which is what developers must use to submit their WordPress plugins and themes to the official WordPress public extension library.
+### Developer Features
 
-The Github Release Key is stored in a file within this repository's root directory on my computer in a file named "env.json". The contents of that file are: {"RELEASE_KEY":"##########################"}
+This repository uses [PHP CodeSniffer](https://github.com/squizlabs/PHP_CodeSniffer/) with WordPress coding standards checks but is NOT fully compliant with that tool yet. A pre-commit hook file is included in this repository to enforce code commits to meet this standard. I have also configured Git and Visual Studio Code files in this repository to help improve compatibility between Mac (terminal) and Windows (powershell) environments.
 
-### Lessons Learned
+It also uses the FPDF library [https://packagist.org/packages/setasign/fpdf](https://packagist.org/packages/setasign/fpdf) to provide secure and data-driven PDF documents on demand without storing them on the server.
+
+### Code Conventions
+
+Line endings are enforced as LF "\n". This is what WordPress requires for its Subversion version control system, which is what developers must use to submit their WordPress plugins and themes to the official WordPress public extension library.
+
+### Tips Learned From This Project
+
 To add an executable file to git version control, do this: `git add --chmod=+x hooks/pre-commit && git commit -m "Add pre-commit executable hook"`
 
-### Developer Potential Installation Issues
-#### Windows 10
-On Windows 10 I had to disable the Windows IIS service which was running on IP 0.0.0.0:80 and interfered with my local development environment application's router functionality. The application name is Local, by Flywheel, which is owned by WP Engine.
+### Potential Installation Issues
+
+#### Windows 10 IIS Server Port 80 Conflict with "Local" application by Flywheel
+
+[https://localwp.com/help-docs/advanced/router-mode/](https://localwp.com/help-docs/advanced/router-mode/)
+On one (but not all) Dell Windows 10 machine I had to disable the Windows IIS service which was running on IP 0.0.0.0:80 and interfered with my local development environment application's router functionality. The application name is Local, by Flywheel, which is owned by WP Engine.
