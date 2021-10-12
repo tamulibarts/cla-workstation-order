@@ -236,6 +236,7 @@ class User_Roles {
 			'delete_others_posts'          => false,
 			'delete_private_posts'         => false,
 			'delete_published_posts'       => false,
+			'manage_wso_options'           => true,
 		);
 		$this->add_role( 'wso_admin', 'WSO Admin', false, $wso_admin_caps );
 
