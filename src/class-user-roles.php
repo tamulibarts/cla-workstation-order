@@ -1,6 +1,7 @@
 <?php
 /**
- * The file that defines customizations to user roles for all custom post types.
+ * The file that defines customizations to user roles and capabilities for WordPress functionality.
+ * https://wordpress.org/support/article/roles-and-capabilities/
  *
  * @link       https://github.tamu.edu/zachwatkins/cla-workstation-order/blob/master/src/class-user-roles.php
  * @since      1.0.0
@@ -33,6 +34,7 @@ class User_Roles {
 	 */
 	public function __construct() {
 
+		// Register custom user scopes.
 		$this->register_user_scope();
 
 		// Add filters for third party plugin user role management.
@@ -52,6 +54,7 @@ class User_Roles {
 		$user_scope = new User_Scope();
 
 		// Logistics basic user scope.
+		// This is a list of user roles the role capability has access to.
 		$logistics_user_scope = array(
 			'capabilities' => array(
 				'delete_user'  => array(
@@ -69,17 +72,6 @@ class User_Roles {
 				'promote_user' => array(
 					'subscriber',
 					'wso_business_admin',
-				),
-			),
-			'filters' => array(
-				'user_row_actions' => array(
-					'count' => 2, // The maximum number of arguments the filter will accept.
-					'args'  => array(
-						'actions' => array(
-							'view'          => false,
-							'resetpassword' => false,
-						)
-					),
 				),
 			),
 		);
@@ -107,17 +99,6 @@ class User_Roles {
 					'subscriber',
 					'wso_business_admin',
 					'wso_it_rep',
-				),
-			),
-			'filters' => array(
-				'user_row_actions' => array(
-					'count' => 2, // The maximum number of arguments the filter will accept.
-					'args'  => array(
-						'actions' => array(
-							'view'          => false,
-							'resetpassword' => false,
-						)
-					),
 				),
 			),
 		);
@@ -223,7 +204,6 @@ class User_Roles {
 			'remove_users'                 => true,
 			'promote_users'                => true,
 			'list_users'                   => true,
-			'switch_users'                 => true,
 			'manage_categories'            => false,
 			'create_posts'                 => false,
 			'read_post'                    => false,
@@ -242,6 +222,7 @@ class User_Roles {
 			'manage_wso_options'           => true,
 			'manage_acf_options'           => true,
 		);
+
 		$this->add_role( 'wso_admin', 'WSO Admin', false, $wso_admin_caps );
 
 		// Logistics role.
@@ -345,6 +326,7 @@ class User_Roles {
 			'promote_users'                => true,
 			'list_users'                   => true,
 		);
+
 		$this->add_role( 'wso_logistics', 'Logistics', false, $logistics_caps );
 
 		/**
@@ -352,11 +334,13 @@ class User_Roles {
 		 */
 		$logistics_admin_caps = array(
 			'level_9'                      => true, // Just below a true administrator.
-			'switch_users'                 => true,
 			'manage_wso_options'           => true,
 		);
-		unset( $logistics_caps['level_8'] );
+
 		$logistics_admin_caps = array_merge( $logistics_admin_caps, $logistics_caps );
+
+		unset( $logistics_admin_caps['level_8'] );
+
 		$this->add_role( 'wso_logistics_admin', 'Logistics Admin', false, $logistics_admin_caps );
 
 		/**
@@ -365,6 +349,7 @@ class User_Roles {
 		$it_rep_caps = array(
 			'level_7' => true,
 		);
+
 		$this->add_role( 'wso_it_rep', 'IT Rep', false, $it_rep_caps );
 
 		/**
@@ -373,6 +358,7 @@ class User_Roles {
 		$business_admin_caps = array(
 			'level_5' => true,
 		);
+
 		$this->add_role( 'wso_business_admin', 'Business Admin', false, $business_admin_caps );
 
 	}
@@ -383,7 +369,7 @@ class User_Roles {
 	 * @param string $role         Role name.
 	 * @param string $display_name Display name for role.
 	 * @param string $base_role    The base role name to extend.
-	 * @param array  $caps         The new capabilities applied to the base role capabilities.
+	 * @param bool[] $caps         The new capabilities applied to the base role capabilities.
 	 *
 	 * @return void
 	 */
