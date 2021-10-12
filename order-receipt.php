@@ -104,8 +104,8 @@ if ( ! isset( $meta['business_staff_status_business_staff'] ) || '' === $meta['b
 	$meta['business_staff_status_date'] = 'Not required';
 } else {
 	$meta['business_staff_status_date']           = 'Confirmed - ' . $business_staff_date;
-  $business_user                                = get_user_by('id', intval( $meta['business_staff_status_business_staff'] ) );
-  $meta['business_staff_status_business_staff'] = $business_user->data->display_name;
+	$business_user                                = get_user_by('id', intval( $meta['business_staff_status_business_staff'] ) );
+	$meta['business_staff_status_business_staff'] = $business_user->data->display_name;
 }
 // Extra Logistics data.\
 $meta['it_logistics_status_date'] = 'Confirmed - ' . $logistics_confirm_date;
@@ -129,37 +129,37 @@ class PDF extends FPDF
 {
 	// Page header
 	function Header() {
-    // Logo
-    global $meta;
-    $this->Image($meta['logo'],10,6,70);
-    // Arial bold 15
-    $this->SetFont('Arial','B',15);
-    // Move to the right
-    $this->setXY(-120,8);
-    // Title
-    $this->Cell(110,6,'Order #' . $meta['post_title'],0,0,'R');
-    $this->setXY(-120,14);
-    $this->SetFont('Arial','',10);
-    $this->Cell(110,4,$meta['publish_date_formatted'],0,0,'R');
-    $this->setXY(-120,18);
-    $this->Cell(110,4,$meta['program_name'],0,0,'R');
-    $this->setXY(-120,22);
-    $this->Cell(110,4,$meta['program_fiscal_year'],0,0,'R');
-    // Line break
-    $this->Ln(20);
+		// Logo
+		global $meta;
+		$this->Image($meta['logo'],10,6,70);
+		// Arial bold 15
+		$this->SetFont('Arial','B',15);
+		// Move to the right
+		$this->setXY(-120,8);
+		// Title
+		$this->Cell(110,6,'Order #' . $meta['post_title'],0,0,'R');
+		$this->setXY(-120,14);
+		$this->SetFont('Arial','',10);
+		$this->Cell(110,4,$meta['publish_date_formatted'],0,0,'R');
+		$this->setXY(-120,18);
+		$this->Cell(110,4,$meta['program_name'],0,0,'R');
+		$this->setXY(-120,22);
+		$this->Cell(110,4,$meta['program_fiscal_year'],0,0,'R');
+		// Line break
+		$this->Ln(20);
 	}
 
 	// Page footer
 	function Footer() {
-    global $meta;
-    // Position at 1.5 cm from bottom
-    $this->SetY(-15);
-    // Arial italic 8
-    $this->SetFont('Arial','',8);
-    // Draw line
-    $this->Line(10, 266, 206, 266);
-    // Page number
-    $this->MultiCell(196,10,$meta['program_name'] . '   |   ' . $meta['post_title'] . '   |   ' . $meta['first_name'] . ' ' . $meta['last_name'] . ' - ' . $meta['author_department'] . '   |   Generated at: ' . $meta['now'],0,'C');
+		global $meta;
+		// Position at 1.5 cm from bottom
+		$this->SetY(-15);
+		// Arial italic 8
+		$this->SetFont('Arial','',8);
+		// Draw line
+		$this->Line(10, 266, 206, 266);
+		// Page number
+		$this->MultiCell(196,10,$meta['program_name'] . '   |   ' . $meta['post_title'] . '   |   ' . $meta['first_name'] . ' ' . $meta['last_name'] . ' - ' . $meta['author_department'] . '   |   Generated at: ' . $meta['now'],0,'C');
 	}
 }
 
