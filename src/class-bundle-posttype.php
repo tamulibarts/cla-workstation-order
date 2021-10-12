@@ -2,7 +2,7 @@
 /**
  * The file that defines the Bundle post type
  *
- * @link       https://github.com/zachwatkins/cla-workstation-order/blob/master/src/class-bundle-posttype.php
+ * @link       https://github.tamu.edu/liberalarts-web/cla-workstation-order/blob/master/src/class-bundle-posttype.php
  * @since      1.0.0
  * @package    cla-workstation-order
  * @subpackage cla-workstation-order/src

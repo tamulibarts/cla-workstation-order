@@ -4,7 +4,7 @@
  *
  * A class definition that registers custom post types with their attributes
  *
- * @link       https://github.com/zachwatkins/cla-workstation-order/blob/master/src/class-posttype.php
+ * @link       https://github.tamu.edu/liberalarts-web/cla-workstation-order/blob/master/src/class-posttype.php
  * @since      1.0.0
  * @package    cla-workstation-order
  * @subpackage cla-workstation-order/src

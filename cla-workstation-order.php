@@ -12,8 +12,8 @@
  * Description:  A WordPress plugin for ordering workstations for the Texas A&M College of Liberal Arts
  * Version:      0.1.0
  * Author:       Zachary Watkins
- * Author URI:   https://github.com/ZachWatkins
- * Author Email: watkinza@gmail.com
+ * Author URI:   https://github.tamu.edu/liberalarts-web
+ * Author Email: zwatkins2@tamu.edu
  * Text Domain:  cla-workstation-order
  * License:      GPL-2.0+
  * License URI:  http://www.gnu.org/licenses/gpl-2.0.txt

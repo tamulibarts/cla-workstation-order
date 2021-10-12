@@ -2,7 +2,7 @@
 /**
  * The file that renders the catalog template
  *
- * @link       https://github.com/zachwatkins/cla-workstation-order/blob/master/templates/catalog.php
+ * @link       https://github.tamu.edu/liberalarts-web/cla-workstation-order/blob/master/templates/catalog.php
  * @since      1.0.0
  * @package    cla-workstation-order
  * @subpackage cla-workstation-order/templates

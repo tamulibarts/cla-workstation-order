@@ -1,4 +1,23 @@
 <?php
+/**
+ * Order Receipt Renderer
+ * Author:   Zachary Watkins, zwatkins2@tamu.edu
+ * README:   The FPDF library was chosen purely based on what is in this file.
+ *           If you are taking custody of this application you have freedom to
+ *           choose a different document rendering solution without searching
+ *           through the rest of the codebase. Just keep in mind other files
+ *           call this file.
+ *           The FPDF library seemed highly used, no dependencies, and therefore
+ *           a stable solution that would be supported by its developers for the
+ *           long term. However, the x/y/width/height system is do-it-yourself.
+ *           I have taken an incremental approach to this problem, which you
+ *           will see as the script progresses.
+ * License:  GPL-2.0+
+ * Requires: setasign/fpdf, WordPress 5.4+
+ * Mirrors:  https://packagist.org/packages/setasign/fpdf
+ *           https://github.com/Setasign/FPDF
+*            http://www.fpdf.org/en/download.php
+ */
 
 // Check if we should exit the file.
 if ( ! isset( $_GET['postid'] ) ) {

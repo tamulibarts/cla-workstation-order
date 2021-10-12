@@ -4,7 +4,7 @@
  *
  * A class definition that includes functions and filters which register a page template.
  *
- * @link       https://github.com/zachwatkins/wordpress-plugin/blob/master/src/class-pagetemplate.php
+ * @link       https://github.tamu.edu/liberalarts-web/wordpress-plugin/blob/master/src/class-pagetemplate.php
  * @since      1.0.0
  * @package    wordpress-plugin
  * @subpackage wordpress-plugin/src

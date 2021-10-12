@@ -2,7 +2,7 @@
 /**
  * The file that defines the Order post type
  *
- * @link       https://github.com/zachwatkins/cla-workstation-order/blob/master/src/class-wsorder-posttype-emails.php
+ * @link       https://github.tamu.edu/liberalarts-web/cla-workstation-order/blob/master/src/class-wsorder-posttype-emails.php
  * @since      1.0.0
  * @package    cla-workstation-order
  * @subpackage cla-workstation-order/src

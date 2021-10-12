@@ -2,7 +2,7 @@
 /**
  * The file that defines Advanced Custom Fields for non-subscriber editing the order post type.
  *
- * @link       https://github.com/zachwatkins/cla-workstation-order/blob/master/fields/wsorder-admin-fields.php
+ * @link       https://github.tamu.edu/liberalarts-web/cla-workstation-order/blob/master/fields/wsorder-admin-fields.php
  * @since      1.0.0
  * @package    cla-workstation-order
  * @subpackage cla-workstation-order/fields
