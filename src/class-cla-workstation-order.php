@@ -159,13 +159,9 @@ class CLA_Workstation_Order {
 	 */
 	public function identify_user_role( $classes ) {
 
-		if ( current_user_can( 'wso_admin' ) ) {
-			$classes .= ' wso_admin';
-		} elseif ( current_user_can( 'wso_logistics_admin' ) ) {
-			$classes .= ' wso_logistics_admin';
-		} elseif ( current_user_can( 'wso_logistics' ) ) {
-			$classes .= ' wso_logistics';
-		}
+		$user     = wp_get_current_user();
+		$roles    = ( array ) $user->roles;
+		$classes .= ' ' . implode( ' ', $roles );
 
 		return $classes;
 
