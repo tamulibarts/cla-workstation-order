@@ -41,6 +41,8 @@ class Legacy_Support {
 			true === is_user_logged_in()
 			&& true === method_exists( 'user_switching', 'maybe_switch_url' )
 			&& true === current_user_can( 'switch_users' )
+			&& class_exists( 'IUCASAuthentication' )
+			&& method_exists( 'IUCASAuthentication', 'casify_login_url' )
 		) {
 
 			remove_filter( 'login_url', array( 'IUCASAuthentication', 'casify_login_url' ) );
