@@ -2,7 +2,7 @@
 /**
  * The file that defines subjective user access customization based on their role.
  *
- * @link       https://github.tamu.edu/zachwatkins/cla-workstation-order/blob/master/src/class-user-scope.php
+ * @link       https://github.tamu.edu/liberalarts-web/cla-workstation-order/blob/master/src/class-user-scope.php
  * @since      1.0.0
  * @package    cla-workstation-order
  * @subpackage cla-workstation-order/src

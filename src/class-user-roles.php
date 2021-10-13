@@ -3,7 +3,7 @@
  * The file that defines customizations to user roles and capabilities for WordPress functionality.
  * https://wordpress.org/support/article/roles-and-capabilities/
  *
- * @link       https://github.tamu.edu/zachwatkins/cla-workstation-order/blob/master/src/class-user-roles.php
+ * @link       https://github.tamu.edu/liberalarts-web/cla-workstation-order/blob/master/src/class-user-roles.php
  * @since      1.0.0
  * @package    cla-workstation-order
  * @subpackage cla-workstation-order/src
