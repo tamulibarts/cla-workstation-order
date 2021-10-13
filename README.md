@@ -1,10 +1,13 @@
 # Workstation Ordering Application for WordPress
 
-Created by Zachary Watkins, zwatkins2@tamu.edu
+A GPL-2.0+ WordPress Plugin that provides a user-accessible interface for ordering workstations and accessories and a robust multi-role return / approve workflows and team-based settings. This application is developed, maintained, and operated by the Information Technology unit within the Dean's Office at the Texas A&M University College of Liberal Arts.
 
-A GPL-2.0+ WordPress Plugin that facilitates workstation ordering operations overseen by Information Technology Logistics with the Dean's Office at the Texas A&M University College of Liberal Arts.
-
-The original application was created by Joseph Rafferty using Ruby on Rails: [https://github.tamu.edu/liberalarts-web/workstation-order](https://github.tamu.edu/liberalarts-web/workstation-order)
+## Credits
+1. With the exception of third party software, this application was programmed by Mr. Zachary Kendall Watkins zwatkins2@tamu.edu. The only operable code that was copied for this version of the application was the email body copy from the original version of the application, and it was then modified for improvements.
+2. The original application was programmed by Joseph Rafferty using different technology, and its visual design and / or workflow specifications were decided by Joseph Rafferty and / or Pamela Luckenbill [https://github.tamu.edu/liberalarts-web/workstation-order](https://github.tamu.edu/liberalarts-web/workstation-order)
+3. The visual design at the start of the project was copied from the original application, and then the icons were replaced.
+4. The workflow requirements from the original application were preserved and not modified.
+5. The user interface for managing products, programs, departments, and several other aspects of the application are performed in the WordPress administrative interface.
 
 ## Features
 
