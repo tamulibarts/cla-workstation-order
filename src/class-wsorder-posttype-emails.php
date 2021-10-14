@@ -216,7 +216,7 @@ class WSOrder_PostType_Emails {
 
 		// Send email.
 		if ( ! empty( $to ) ) {
-			$title   = "[{$order_name}] Workstation Order Approval - {$department_abbreviation} - {$end_user_name}";
+			$title = "[{$order_name}] Workstation Order Approval - {$department_abbreviation} - {$end_user_name}";
 			wp_mail( $to, $title, $message, $headers );
 		}
 	}
