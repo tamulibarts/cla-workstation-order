@@ -208,7 +208,7 @@ class WSOrder_PostType_Emails {
 				$logistics_email = get_field( 'logistics_email', 'option' );
 
 				// Send email.
-				$to      = $logistics_email;
+				$to      = "IT Logistics <{$logistics_email}>";
 				$message = $this->email_body_to_logistics( $post_id );
 
 			}
@@ -267,7 +267,7 @@ class WSOrder_PostType_Emails {
 			// Get logistics email.
 			$logistics_email = get_field( 'logistics_email', 'option' );
 			// Send email.
-			$to      = $logistics_email;
+			$to      = "IT Logistics <{$logistics_email}>";
 			$title   = "[{$order_name}] Workstation Order Approval - {$department_abbreviation} - {$end_user_name}";
 			$message = $this->email_body_to_logistics( $post_id );
 			$headers = array( 'Content-Type: text/html; charset=UTF-8' );
