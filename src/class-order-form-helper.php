@@ -39,7 +39,7 @@ class Order_Form_Helper {
 	public function validate_file_field( $file, $index ) {
 
 		$return   = array(
-			'passed' => true,
+			'passed'  => true,
 			'message' => '',
 		);
 		$messages = array();
@@ -56,12 +56,12 @@ class Order_Form_Helper {
 		$file_extension     = $file_type['ext'];
 		if ( ! in_array( $file_extension, $allowed_extensions ) ) {
 			$return['passed'] = false;
-			$messages[]       = sprintf(  esc_html__( 'Invalid file extension, only allowed: %s.', 'cla-workstation-order-textdomain' ), implode( ', ', $allowed_extensions ) );
+			$messages[]       = sprintf( esc_html__( 'Invalid file extension, only allowed: %s.', 'cla-workstation-order-textdomain' ), implode( ', ', $allowed_extensions ) );
 		}
 
 		// Validate file size.
 		$file_size         = $file['size'];
-		$allowed_file_size = 1024000; // Here we are setting the file size limit
+		$allowed_file_size = 1024000; // Here we are setting the file size limit.
 		if ( $file_size >= $allowed_file_size ) {
 			$return['passed'] = false;
 			$messages[]       = esc_html__( 'File size limit exceeded, file size should be smaller than 1 MB.', 'cla-workstation-order-textdomain' );
