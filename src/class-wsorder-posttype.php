@@ -1913,7 +1913,7 @@ jQuery( 'select[name=\"post_status\"]' ).val('publish')";
 					$author_link_open  = "<a href=\"$author_link\">";
 					$author_link_close = '</a>';
 				}
-				echo "{$author_link_open}$author_name{$author_link_close}<br>$dept_name";
+				echo wp_kses_post( "{$author_link_open}$author_name{$author_link_close}<br>$dept_name" );
 				break;
 
 			default:
