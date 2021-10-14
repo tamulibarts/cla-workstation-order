@@ -158,6 +158,7 @@ function cla_render_order_form( $content ) {
 
 	global $post;
 
+	$hide_form = false;
 	$maybe_order_author_id = (int) get_post_meta( $post->ID, 'order_author', true );
 	if ( 'wsorder' === $post->post_type && ! empty( $maybe_order_author_id ) ) {
 		$user = get_user_by( 'id', $maybe_order_author_id );
@@ -191,11 +192,26 @@ function cla_render_order_form( $content ) {
 		);
 		$previous_order   = get_posts( $author_post_args );
 		if ( $previous_order ) {
-			$program_post = get_field( 'unfunded_program', 'option' );
-			$permalink    = get_permalink( $previous_order[0]->ID );
-			$pre          = "<p class=\"notice-red\"><em>Notice: You have already placed an order for {$current_program->post_title} (<a href=\"$permalink\">$permalink</a>) but you may still place a self-funded order.</em></p>";
+			$permalink        = get_permalink( $previous_order[0]->ID );
+			$unfunded_program = get_field( 'unfunded_program', 'option' );
+			$unfunded_notice  = ' and self-funded orders are not available at this time';
+			if ( $unfunded_program ) {
+				$unfunded_notice = ' but you may still place a self-funded order';
+			} else {
+				// Hide the form if the user has already placed an order for this program and self-funded orders are not allowed.
+				$hide_form = true;
+			}
+			$pre = "<p class=\"notice-red\"><em>Notice: You have already placed an order for {$current_program->post_title} (<a href=\"$permalink\">$permalink</a>){$unfunded_notice}.</em></p>";
 		}
 	}
+
+	// Hide the form but show the error message.
+	if ( $hide_form ) {
+
+		return wp_kses_post( $pre );
+
+	}
+
 	$program_id        = $program_post->ID;
 	$program_post_meta = get_post_meta( $program_id, '', true );
 
