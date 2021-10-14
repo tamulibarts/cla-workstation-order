@@ -1,7 +1,13 @@
 <?php
 /**
  * Order Receipt Renderer
- * Author:   Zachary Watkins, zwatkins2@tamu.edu
+ *
+ * @link       https://github.tamu.edu/liberalarts-web/cla-workstation-order/blob/master/order-receipt.php
+ * @since      1.0.0
+ * @package    cla-workstation-order
+ * @license    GPL-2.0+
+ * @author:    Zachary Watkins <zwatkins2@tamu.edu>
+ *
  * README:   The FPDF library was chosen purely based on what is in this file.
  *           If you are taking custody of this application you have freedom to
  *           choose a different document rendering solution without searching
@@ -12,7 +18,6 @@
  *           long term. However, the x/y/width/height system is do-it-yourself.
  *           I have taken an incremental approach to this problem, which you
  *           will see as the script progresses.
- * License:  GPL-2.0+
  * Requires: setasign/fpdf, WordPress 5.4+
  * Mirrors:  https://packagist.org/packages/setasign/fpdf
  *           https://github.com/Setasign/FPDF
