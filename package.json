@@ -14,11 +14,11 @@
     "windows-fixwp": "php ./vendor/bin/phpcbf --ignore=*/vendor/*,*/node_modules/* --standard=WordPress .",
     "windows-configphpcs": "php ./vendor/bin/phpcs --config-set installed_paths vendor/wp-coding-standards/wpcs"
   },
-  "author": "Zachary Watkins",
+  "author": "Zachary Kendall Watkins <watkinza@gmail.com> (https://github.com/zachwatkins)",
   "license": "GPL-2.0+",
   "bugs": {
     "url": "https://github.tamu.edu/liberalarts-web/cla-workstation-order/issues",
-    "email": "zwatkins2@tamu.edu"
+    "email": "liberalartsit@tamu.edu"
   },
   "dependencies": {
     "autoprefixer": "^9.2.1",
