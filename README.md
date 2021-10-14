@@ -22,19 +22,20 @@ A GPL-2.0+ WordPress Plugin that provides a user-accessible interface for orderi
 9. Uses Advanced Custom Fields for order fields and the Settings page
 10. Affiliated business staff can view orders, will be CC'd on emails sent to the business staff responsible for approving an order.
 
-## Custom User Capabilities
+## Custom User Capability Meta
 
 1. manage_acf_options: Determines who can see the Advanced Custom Fields options page.
 2. manage_wso_options: Determines who can see the Workstation Ordering App options page.
 3. All custom post types have each of their capabilities namespaced using their post type slug. Example: `create_wsorders`
 
-## Notes
-
-1. The application sends emails to users based on configurations in the SMTP settings page.
-
 ## To Do
 
 1. Implement Active Directory user authentication, onboarding, and offboarding using either the WordPress SAML SSO plugin from OneLogin, the TAMU directory REST API [https://mqs.tamu.edu/rest/](https://mqs.tamu.edu/rest/), or both and one or more WordPress Cron tasks or manual functions.
+2. Remove the following form fields from the `edit-user.php` administrative UI since they are not used: Visual Editor, Keyboard Shortcuts, Website, Biographical Info, Profile Picture, New Password, Password Reset.
+
+## Legacy Support
+
+Legacy support is and will continue to be an ever-present responsibility of Information Technology professionals and this subject should be discussed with respect and understanding. This plugin includes a file for keeping PHP code separated from the rest of the codebase that I consider to be dependent upon transient, external resources. Those resources may be other WordPress plugins, third party APIs, or other technologies not considered essential to the critical operations of the service this plugin provides. This file is located at `src/class-legacy-support.php`.
 
 ## WordPress Requirements
 
