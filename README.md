@@ -6,8 +6,8 @@ A GPL-2.0+ WordPress Plugin that provides a user-accessible interface for orderi
 1. With the exception of third party software, this application was programmed by Mr. Zachary Kendall Watkins zwatkins2@tamu.edu. The only operable code that was copied for this version of the application was the email body copy from the original version of the application, and it was then modified for improvements.
 2. The original application was programmed by Joseph Rafferty using different technology, and its visual design and / or workflow specifications were decided by Joseph Rafferty and / or Pamela Luckenbill [https://github.tamu.edu/liberalarts-web/workstation-order](https://github.tamu.edu/liberalarts-web/workstation-order)
 3. The visual design at the start of the project was copied from the original application, and then the icons were replaced.
-4. The workflow requirements from the original application were preserved and not modified.
-5. The user interface for managing products, programs, departments, and several other aspects of the application are performed in the WordPress administrative interface.
+4. The majority of the workflow requirements for this version were preserved from the original application. However, the product, bundle, program, and department data creation and management interface is superseded by this application as it is provided by WordPress Core.
+5. The user interface for managing products, programs, departments, and several other aspects of the application are performed in the WordPress administrative interface and therefore no claim is made regarding ownership.
 
 ## Features
 
@@ -26,6 +26,7 @@ A GPL-2.0+ WordPress Plugin that provides a user-accessible interface for orderi
 
 1. manage_acf_options: Determines who can see the Advanced Custom Fields options page.
 2. manage_wso_options: Determines who can see the Workstation Ordering App options page.
+3. All custom post types have each of their capabilities namespaced using their post type slug. Example: `create_wsorders`
 
 ## Notes
 
