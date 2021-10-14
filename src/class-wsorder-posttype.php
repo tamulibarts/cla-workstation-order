@@ -187,8 +187,8 @@ class WSOrder_PostType {
 		if ( ! is_array( $affiliated_business_staff ) ) {
 			$affiliated_business_staff = array();
 		}
-		$is_aff_it_rep         = in_array( $current_user_id, $affiliated_it_reps );
-		$is_aff_business_staff = in_array( $current_user_id, $affiliated_business_staff );
+		$is_aff_it_rep         = in_array( $current_user_id, $affiliated_it_reps, true );
+		$is_aff_business_staff = in_array( $current_user_id, $affiliated_business_staff, true );
 
 		// Decide what kind of user this is.
 		if ( $is_aff_it_rep && current_user_can( 'wso_it_rep' ) ) {
@@ -430,7 +430,7 @@ class WSOrder_PostType {
 		$post_type = get_post_type( $post_id );
 		$post_status = get_post_status( $post_id );
 
-		if ( 'wsorder' !== $post_type || ! in_array( $post_status, array( 'action_required', 'returned', 'publish' ) ) ) {
+		if ( 'wsorder' !== $post_type || ! in_array( $post_status, array( 'action_required', 'returned', 'publish' ), true ) ) {
 			return;
 		}
 
@@ -676,7 +676,7 @@ class WSOrder_PostType {
   			$can_update = true;
   		}
   	}
-	  } elseif ( in_array( $current_user_id, $affiliated_it_reps ) ) {
+	  } elseif ( in_array( $current_user_id, $affiliated_it_reps, true ) ) {
 			if ( 1 === $it_rep_confirmed ) {
 				// IT Rep already confirmed the order, so they cannot change it right now.
 				$can_update = false;
@@ -691,7 +691,7 @@ class WSOrder_PostType {
 				$can_update = false;
 				$message    = 'A business admin has not confirmed the order yet.';
 			}
-		} elseif ( in_array( $current_user_id, $affiliated_bus_staff ) ) {
+		} elseif ( in_array( $current_user_id, $affiliated_bus_staff, true ) ) {
 			if ( 0 === $it_rep_confirmed ) {
 				$can_update = false;
 				$message    = 'An IT Rep has not confirmed the order yet.';
@@ -1607,7 +1607,7 @@ class WSOrder_PostType {
 	 * @return array
 	 */
 	public function add_program_url_var( $vars ) {
-		if ( ! in_array( 'program', $vars ) ) {
+		if ( ! in_array( 'program', $vars, true ) ) {
 			$vars[] = 'program';
 		}
 		return $vars;

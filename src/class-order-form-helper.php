@@ -59,7 +59,7 @@ class Order_Form_Helper {
 		$allowed_extensions = array( 'pdf', 'doc', 'docx' );
 		$file_type          = wp_check_filetype( $file['name'] );
 		$file_extension     = $file_type['ext'];
-		if ( ! in_array( $file_extension, $allowed_extensions ) ) {
+		if ( ! in_array( $file_extension, $allowed_extensions, true ) ) {
 			$return['passed'] = false;
 			$messages[]       = sprintf( esc_html__( 'Invalid file extension, only allowed: %s.', 'cla-workstation-order-textdomain' ), implode( ', ', $allowed_extensions ) );
 		}
@@ -330,8 +330,8 @@ class Order_Form_Helper {
 			}
 			$output .= "<div class=\"cell auto align-right display-price\">\${$price}</div>";
 			if ( false === $preview ) {
-				$disabled    = in_array( $post_id, $selected ) ? ' disabled="disabled"' : '';
-				$button_text = in_array( $post_id, $selected ) ? 'In cart' : 'Add';
+				$disabled    = in_array( $post_id, $selected, true ) ? ' disabled="disabled"' : '';
+				$button_text = in_array( $post_id, $selected, true ) ? 'In cart' : 'Add';
 				$output      .= "<div class=\"cart-cell cell small-12 align-left\"><button id=\"cart-btn-{$post_id}\" data-product-id=\"{$post_id}\" type=\"button\" class=\"add-product\"{$disabled}>{$button_text}</button></div>";
 			}
 			$output .= "</div></div>";

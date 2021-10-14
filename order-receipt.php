@@ -40,8 +40,8 @@ $author_id                 = (int) get_post_field( 'post_author', $post_id );
 if (
 	! is_user_logged_in()
 	|| (
-		! in_array( $current_user_id, $affiliated_it_reps )
-		&& ! in_array( $current_user_id, $affiliated_business_staff )
+		! in_array( $current_user_id, $affiliated_it_reps, true )
+		&& ! in_array( $current_user_id, $affiliated_business_staff, true )
 		&& $current_user_id !== $author_id
 		&& ! current_user_can( 'wso_logistics' )
 		&& ! current_user_can( 'wso_logistics_admin' )

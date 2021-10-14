@@ -196,7 +196,7 @@ function can_current_user_update_order_public( $post_id ) {
   			$can_update = true;
   		}
   	}
-  } elseif ( in_array( $current_user_id, $affiliated_it_reps ) ) {
+  } elseif ( in_array( $current_user_id, $affiliated_it_reps, true ) ) {
 		if ( 1 === $it_rep_confirmed ) {
 			// IT Rep already confirmed the order, so they cannot change it right now.
 			$can_update = false;
@@ -211,7 +211,7 @@ function can_current_user_update_order_public( $post_id ) {
 			$can_update = false;
 			$message    = 'A business admin has not confirmed the order yet.';
 		}
-	} elseif ( in_array( $current_user_id, $affiliated_bus_staff ) ) {
+	} elseif ( in_array( $current_user_id, $affiliated_bus_staff, true ) ) {
 		if ( 0 === $it_rep_confirmed ) {
 			$can_update = false;
 			$message    = 'An IT Rep has not confirmed the order yet.';

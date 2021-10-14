@@ -146,7 +146,7 @@ function get_program_dropdown() {
 	$results = get_posts( $args );
 
 	// Determine the index of the default option.
-	if ( 0 === $selected || ! in_array( $selected, $results ) ) {
+	if ( 0 === $selected || ! in_array( $selected, $results, true ) ) {
 		$default_index = 0;
 	} else {
 		$default_index = 1 + array_search( $selected, $results );
@@ -333,7 +333,7 @@ function cla_my_orders() {
 	}
 
 	// Determine the post status.
-	if ( isset( $_REQUEST['status'] ) && in_array( $_REQUEST['status'], array( 'publish', 'returned', 'action_required' ) ) ) {
+	if ( isset( $_REQUEST['status'] ) && in_array( $_REQUEST['status'], array( 'publish', 'returned', 'action_required' ), true ) ) {
 		$order_args['post_status'] = $_REQUEST['status'];
 	} else {
 		$order_args['post_status'] = array( 'publish', 'returned', 'action_required' );

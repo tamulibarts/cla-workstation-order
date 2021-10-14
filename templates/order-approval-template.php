@@ -193,10 +193,10 @@ function cla_render_order( $content ) {
 	$last_name               = $order_author_name[2];
 	$affiliated_it_reps      = get_field( 'affiliated_it_reps', $post->ID );
 	$it_rep_id               = (int) get_post_meta( $post->ID, 'it_rep_status_it_rep', true );
-	$is_aff_it_rep           = in_array( $current_user_id, $affiliated_it_reps ) ? true : false;
+	$is_aff_it_rep           = in_array( $current_user_id, $affiliated_it_reps, true ) ? true : false;
 	$it_rep_approved         = (int) get_post_meta( $post->ID, 'it_rep_status_confirmed', true );
 	$affiliated_bus_staff    = get_field( 'affiliated_business_staff', $post->ID );
-	$is_aff_business_staff   = in_array( $current_user_id, $affiliated_bus_staff ) ? true : false;
+	$is_aff_business_staff   = in_array( $current_user_id, $affiliated_bus_staff, true ) ? true : false;
 	$business_admin_id       = (int) get_post_meta( $post->ID, 'business_staff_status_business_staff', true );
 	$business_admin_approved = (int) get_post_meta( $post->ID, 'business_staff_status_confirmed', true );
 	$order_items             = get_field( 'order_items', $post_id );

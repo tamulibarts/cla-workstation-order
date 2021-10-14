@@ -158,7 +158,7 @@ class Product_PostType {
 	 * @return array
 	 */
 	public function add_program_url_var( $vars ) {
-		if ( ! in_array( 'program', $vars ) ) {
+		if ( ! in_array( 'program', $vars, true ) ) {
 			$vars[] = 'program';
 		}
 		return $vars;
