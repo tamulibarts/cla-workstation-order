@@ -34,7 +34,12 @@ class Order_Form_Helper {
 	public function __construct() {}
 
 	/**
-	 * Validate file upload.
+	 * Validate a Custom Quote file upload.
+	 *
+	 * @param array $file  The file upload data set from AJAX.
+	 * @param int   $index The index of the Custom Quote Item that this file is being uploaded for.
+	 *
+	 * @return array
 	 */
 	public function validate_file_field( $file, $index ) {
 
