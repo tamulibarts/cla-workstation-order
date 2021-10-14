@@ -173,12 +173,12 @@ class Product_PostType {
 	 */
 	public function add_admin_post_program_filter( $post_type ) {
 
-		if ( 'product' !== $post_type ){
-		  return; //filter your post
+		if ( 'product' !== $post_type ) {
+			return; // Filter your post.
 		}
-		$selected = '';
+		$selected     = '';
 		$request_attr = 'program';
-		if ( isset( $_REQUEST[$request_attr] ) ) {
+		if ( isset( $_REQUEST[ $request_attr ] ) ) {
 		  $selected = $_REQUEST[$request_attr];
 		}
 		//get unique values of the meta field to filer by.

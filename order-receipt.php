@@ -16,7 +16,7 @@
  * Requires: setasign/fpdf, WordPress 5.4+
  * Mirrors:  https://packagist.org/packages/setasign/fpdf
  *           https://github.com/Setasign/FPDF
-*            http://www.fpdf.org/en/download.php
+ *           http://www.fpdf.org/en/download.php
  */
 
 // Check if we should exit the file.
@@ -52,7 +52,7 @@ if (
 }
 
 // Validate nonce.
-check_admin_referer( 'auth-post_'.$post_id, 'token' );
+check_admin_referer( 'auth-post_' . $order_post_id, 'token' );
 
 // Load PDF library.
 require CLA_WORKSTATION_ORDER_DIR_PATH . 'vendor/setasign/fpdf/fpdf.php';
@@ -61,26 +61,26 @@ require CLA_WORKSTATION_ORDER_DIR_PATH . 'vendor/setasign/fpdf/fpdf.php';
 $post         = get_post( $post_id );
 $meta         = get_post_meta( $post_id );
 foreach ( $meta as $key => $value ) {
-	if ( strpos($key, '_') === 0 ) {
-		unset($meta[$key]);
+	if ( strpos( $key, '_' ) === 0 ) {
+		unset( $meta[ $key ] );
 	} elseif ( count( $value ) === 1 ) {
-		$meta[$key] = $value[0];
+		$meta[ $key ] = $value[0];
 	}
 }
 $meta['logo'] = CLA_WORKSTATION_ORDER_DIR_URL . 'images/logo-support-center.png';
 // Get timestamps.
-date_default_timezone_set('America/Chicago');
-$publish_time        = strtotime( $post->post_modified_gmt.' UTC' );
+date_default_timezone_set( 'America/Chicago' );
+$publish_time        = strtotime( $order_post->post_modified_gmt . ' UTC' );
 $publish_date        = date( 'M j, Y \a\t g:i a', $publish_time );
 $now_date            = date( 'M j, Y \a\t g:i a' );
-$it_rep_confirm_time = strtotime( $meta['it_rep_status_date'].' UTC' );
+$it_rep_confirm_time = strtotime( $meta['it_rep_status_date'] . ' UTC' );
 $it_rep_confirm_date = date( 'M j, Y \a\t g:i a', $it_rep_confirm_time );
 $business_staff_date = '';
 if ( isset( $meta['business_staff_status_date'] ) && ! empty( $meta['business_staff_status_date'] ) ) {
-	$business_staff_time = strtotime( $meta['business_staff_status_date'].' UTC' );
+	$business_staff_time = strtotime( $meta['business_staff_status_date'] . ' UTC' );
 	$business_staff_date = date( 'M j, Y \a\t g:i a', $business_staff_time );
 }
-$logistics_confirm_time = strtotime( $meta['it_logistics_status_date'].' UTC' );
+$logistics_confirm_time = strtotime( $meta['it_logistics_status_date'] . ' UTC' );
 $logistics_confirm_date = date( 'M j, Y \a\t g:i a', $logistics_confirm_time );
 // Extra basic order data.
 $meta['publish_date_formatted'] = $publish_date;
@@ -124,53 +124,58 @@ if ( isset( $meta['quotes'] ) ) {
 	}
 }
 
-// Generate the PDF.
-class PDF extends FPDF
-{
-	// Page header
-	function Header() {
-		// Logo
+/**
+ * Generate the PDF.
+ */
+class PDF extends FPDF {
+	/**
+	 * Page header.
+	 */
+	public function Header() {
+		// Logo.
 		global $meta;
-		$this->Image($meta['logo'],10,6,70);
-		// Arial bold 15
-		$this->SetFont('Arial','B',15);
-		// Move to the right
-		$this->setXY(-120,8);
-		// Title
-		$this->Cell(110,6,'Order #' . $meta['post_title'],0,0,'R');
-		$this->setXY(-120,14);
-		$this->SetFont('Arial','',10);
-		$this->Cell(110,4,$meta['publish_date_formatted'],0,0,'R');
-		$this->setXY(-120,18);
-		$this->Cell(110,4,$meta['program_name'],0,0,'R');
-		$this->setXY(-120,22);
-		$this->Cell(110,4,$meta['program_fiscal_year'],0,0,'R');
-		// Line break
-		$this->Ln(20);
+		$this->Image( $meta['logo'], 10, 6, 70 );
+		// Arial bold 15.
+		$this->SetFont( 'Arial', 'B', 15 );
+		// Move to the right.
+		$this->setXY( -120, 8 );
+		// Title.
+		$this->Cell( 110, 6, 'Order #' . $meta['post_title'], 0, 0, 'R' );
+		$this->setXY( -120, 14 );
+		$this->SetFont( 'Arial', '', 10 );
+		$this->Cell( 110, 4, $meta['publish_date_formatted'], 0, 0, 'R' );
+		$this->setXY( -120, 18 );
+		$this->Cell( 110, 4, $meta['program_name'], 0, 0, 'R' );
+		$this->setXY( -120, 22 );
+		$this->Cell( 110, 4, $meta['program_fiscal_year'], 0, 0, 'R' );
+		// Line break.
+		$this->Ln( 20 );
 	}
 
-	// Page footer
-	function Footer() {
+	/**
+	 * Page footer
+	 */
+	public function Footer() {
 		global $meta;
-		// Position at 1.5 cm from bottom
-		$this->SetY(-15);
-		// Arial italic 8
-		$this->SetFont('Arial','',8);
-		// Draw line
-		$this->Line(10, 266, 206, 266);
-		// Page number
-		$this->MultiCell(196,10,$meta['program_name'] . '   |   ' . $meta['post_title'] . '   |   ' . $meta['first_name'] . ' ' . $meta['last_name'] . ' - ' . $meta['author_department'] . '   |   Generated at: ' . $meta['now'],0,'C');
+		// Position at 1.5 cm from bottom.
+		$this->SetY( -15 );
+		// Arial italic 8.
+		$this->SetFont( 'Arial', '', 8 );
+		// Draw line.
+		$this->Line( 10, 266, 206, 266 );
+		// Page number.
+		$this->MultiCell( 196, 10, $meta['program_name'] . '   |   ' . $meta['post_title'] . '   |   ' . $meta['first_name'] . ' ' . $meta['last_name'] . ' - ' . $meta['author_department'] . '   |   Generated at: ' . $meta['now'], 0, 'C' );
 	}
 }
 
-// Instanciation of inherited class
+// Instanciation of inherited class.
 $pdf = new PDF( 'P', 'mm', 'Letter' );
 $pdf->AliasNbPages();
 $pdf->AddPage();
-// Program Title
-$pdf->SetFont('Arial','B',18);
-$pdf->setXY(10,30);
-$pdf->Write(10, $meta['program_name'] . ' Order');
+// Program Title.
+$pdf->SetFont( 'Arial', 'B', 18 );
+$pdf->setXY( 10, 30 );
+$pdf->Write( 10, $meta['program_name'] . ' Order');
 // Details.
 $columns_width = 91;
 $left_margin_x = 11;
