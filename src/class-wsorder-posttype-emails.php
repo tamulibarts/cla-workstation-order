@@ -136,11 +136,10 @@ class WSOrder_PostType_Emails {
 	 * Once IT Rep has confirmed, if business approval is needed then
 	 * send an email to the business admin.
 	 *
-	 * @param string $new_status The new status of the post.
-	 * @param string $old_status The old status of the post.
-	 * @param object $post       The WP_Post object.
+	 * @param string $value   The new value of the field.
+	 * @param int    $post_id The post ID.
 	 *
-	 * @return void
+	 * @return string
 	 */
 	public function it_rep_confirmed( $value, $post_id ) {
 
@@ -226,11 +225,10 @@ class WSOrder_PostType_Emails {
 	 * Once Business Staff has confirmed, then
 	 * send an email to the logistics address.
 	 *
-	 * @param string $new_status The new status of the post.
-	 * @param string $old_status The old status of the post.
-	 * @param object $post       The WP_Post object.
+	 * @param string $value   The new value of the field.
+	 * @param int    $post_id The post ID.
 	 *
-	 * @return void
+	 * @return string
 	 */
 	public function bus_staff_confirmed( $value, $post_id ) {
 
@@ -282,11 +280,10 @@ class WSOrder_PostType_Emails {
 	 * IT Logistics checks their "Confirmed" checkbox, then
 	 * end user is emailed with "order approval completed email".
 	 *
-	 * @param string $new_status The new status of the post.
-	 * @param string $old_status The old status of the post.
-	 * @param object $post       The WP_Post object.
+	 * @param string $value   The new value of the field.
+	 * @param int    $post_id The post ID.
 	 *
-	 * @return void
+	 * @return string
 	 */
 	public function logistics_confirmed( $value, $post_id ) {
 
@@ -327,6 +324,13 @@ class WSOrder_PostType_Emails {
 
 	}
 
+	/**
+	 * Email generated for returned workstation orders.
+	 *
+	 * @param int $post_id The post ID.
+	 *
+	 * return void
+	 */
 	public function order_returned_email( $post_id ) {
 
 		$headers                 = array( 'Content-Type: text/html; charset=UTF-8' );
@@ -344,15 +348,15 @@ class WSOrder_PostType_Emails {
 		$department_abbreviation = get_field( 'abbreviation', $user_department_post->ID );
 
 		/**
-		 * If status changed to "Returned" ->
+		 * If status changed to "Returned" then do this.
 		 * subject: [{$order_name}] Returned Workstation Order - {$department_abbreviation} - {$end_user_name}
 		 * to: end user
 		 * cc: whoever set it to return
 		 * body: email_body_return_to_user( $post->ID, $_POST['acf'] );
 		 */
-		$to      = "{$end_user_name} <{$end_user_email}>";
-		$title   = "[{$order_name}] Returned Workstation Order - {$department_abbreviation} - {$end_user_name}";
-		$message = $this->email_body_return_to_user( $post_id, $returned_comments );
+		$to        = "{$end_user_name} <{$end_user_email}>";
+		$title     = "[{$order_name}] Returned Workstation Order - {$department_abbreviation} - {$end_user_name}";
+		$message   = $this->email_body_return_to_user( $post_id, $returned_comments );
 		$headers[] = "Cc: {$returning_user_name} <{$returning_user_email}>";
 		wp_mail( $to, $title, $message, $headers );
 
@@ -361,8 +365,7 @@ class WSOrder_PostType_Emails {
 	/**
 	 * The email body which is sent to the business admin when the IT rep confirms the order.
 	 *
-	 * @param int    $order_post_id The order post ID.
-	 * @param array  $acf_data      The array of Advanced Custom Field data.
+	 * @param int    $post_id The order post ID.
 	 * @param string $end_user_name The name of the end user who created the order.
 	 *
 	 * @return string
@@ -397,8 +400,7 @@ class WSOrder_PostType_Emails {
 	/**
 	 * The email body which is sent to logistics.
 	 *
-	 * @param int   $order_post_id The order post ID.
-	 * @param array $acf_data      The array of Advanced Custom Field data.
+	 * @param int $post_id The order post ID.
 	 *
 	 * @return string
 	 */
@@ -427,8 +429,8 @@ class WSOrder_PostType_Emails {
 	/**
 	 * The email body which is sent to the end user when the order is returned.
 	 *
-	 * @param int   $order_post_id The order post ID.
-	 * @param array $acf_data      The array of Advanced Custom Field data.
+	 * @param int   $post_id          The order post ID.
+	 * @param array $returned_comment The comment text provided by the user who returned the order.
 	 *
 	 * @return string
 	 */
@@ -466,9 +468,9 @@ class WSOrder_PostType_Emails {
 	/**
 	 * The email body which is sent to the IT rep and business admin when the order is returned to the end user.
 	 *
-	 * @param int    $order_post_id The order post ID.
-	 * @param array  $acf_data      The array of Advanced Custom Field data.
-	 * @param string $end_user_name The name of the end user who created the order.
+	 * @param int    $post_id          The order post ID.
+	 * @param array  $returned_comment The comment text provided by the user who returned the order.
+	 * @param string $end_user_name    The name of the end user who created the order.
 	 *
 	 * @return string
 	 */
@@ -504,6 +506,13 @@ class WSOrder_PostType_Emails {
 
 	}
 
+	/**
+	 * The email body content for an approved order.
+	 *
+	 * @param int $post_id The post ID.
+	 *
+	 * @return string
+	 */
 	private function email_body_order_approved( $post_id ) {
 
 		$program_id   = get_field( 'program', $post_id );
