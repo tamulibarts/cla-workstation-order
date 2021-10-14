@@ -316,7 +316,7 @@ class WSOrder_PostType_Emails {
 		$user_department_post    = get_field( 'department', "user_{$user_id}" );
 		$department_abbreviation = get_field( 'abbreviation', $user_department_post->ID );
 		// Send email.
-		$to      = $end_user_email;
+		$to      = "{$end_user_name} <{$end_user_email}>";
 		$title   = "[{$order_name}] Workstation Order Approval - {$department_abbreviation} - {$end_user_name}";
 		$message = $this->email_body_order_approved( $post_id );
 		$headers = array( 'Content-Type: text/html; charset=UTF-8' );
