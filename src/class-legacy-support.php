@@ -11,7 +11,7 @@
 namespace CLA_Workstation_Order;
 
 /**
- * Builds and registers a custom taxonomy.
+ * Provides legacy support hooks for the plugin.
  *
  * @package cla-workstation-order
  * @since 1.1.0
@@ -32,6 +32,14 @@ class Legacy_Support {
 
 	/**
 	 * Remove the filter that reroutes logins through CAS authentication if the current user can switch users.
+	 *
+	 * Comments from Zachary Kendall Watkins:
+	 * When this plugin was created we used a Texas A&M University user authentication system called the Central
+	 * Authentication Service. This validated a student's NetID and password through the external service portal
+	 * and then redirected them back to the site. This feature was facilitated within the WordPress version of
+	 * the plugin by Joseph Rafferty's "tamuwpcas-master" plugin. I, Zachary Watkins, implemented this for
+	 * expediency and will attempt to migrate authentication to use Azure Active Directory during Fall 2021 if
+	 * possible.
 	 *
 	 * @return void
 	 */
