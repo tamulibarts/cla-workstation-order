@@ -77,7 +77,7 @@ dl.horizontal {
 	transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 
 	&:not(:disabled):not(.disabled) {
-    cursor: pointer;
+		cursor: pointer;
 	}
 
 	+ .btn {
@@ -92,22 +92,22 @@ dl.horizontal {
 }
 
 .btn-sm {
-  padding: 0.25rem 0.5rem;
-  font-size: 0.875rem;
-  line-height: 1.5;
-  border-radius: 0.2rem;
+	padding: 0.25rem 0.5rem;
+	font-size: 0.875rem;
+	line-height: 1.5;
+	border-radius: 0.2rem;
 
-  .dashicons {
-  	width: 16px;
-  	height: 16px;
-  }
+	.dashicons {
+		width: 16px;
+		height: 16px;
+	}
 }
 
 .btn-yellow,
 .btn-warning {
-  color: #212529;
-  background-color: #FFC107;
-  border-color: #FFC107;
+	color: #212529;
+	background-color: #FFC107;
+	border-color: #FFC107;
 }
 
 .btn-outline-dark {
@@ -134,24 +134,24 @@ dl.horizontal {
 	border-color: #28A745;
 
 	&:hover {
-    color: #FFF;
-    background-color: #28A745;
-    border-color: #28A745;
+		color: #FFF;
+		background-color: #28A745;
+		border-color: #28A745;
 	}
 }
 
 .btn-outline-warning,
 .btn-outline-yellow {
-  color: #FFC107;
-  background-color: transparent;
-  background-image: none;
-  border-color: #FFC107;
+	color: #FFC107;
+	background-color: transparent;
+	background-image: none;
+	border-color: #FFC107;
 
-  &:hover {
-    color: #212529;
-    background-color: #FFC107;
-    border-color: #FFC107;
-  }
+	&:hover {
+		color: #212529;
+		background-color: #FFC107;
+		border-color: #FFC107;
+	}
 }
 
 .btn-outline-red {
@@ -231,10 +231,10 @@ input#cla_submit[type="submit"],
 	&:focus,
 	&:active,
 	&:hover {
-    color: #FFF;
-    background-color: #5A6268;
-    border-color: #545B62;
-  }
+		color: #FFF;
+		background-color: #5A6268;
+		border-color: #545B62;
+	}
 }
 
 .button-submit {
@@ -335,30 +335,30 @@ input.flagged {
 }
 
 .container {
-  width: 100%;
-  padding-right: 15px;
-  padding-left: 15px;
-  margin-right: auto;
-  margin-left: auto;
+	width: 100%;
+	padding-right: 15px;
+	padding-left: 15px;
+	margin-right: auto;
+	margin-left: auto;
 }
 @media (min-width: 576px) {
 	.container {
-    max-width: 540px;
+		max-width: 540px;
 	}
 }
 @media (min-width: 768px) {
 	.container {
-    max-width: 720px;
+		max-width: 720px;
 	}
 }
 @media (min-width: 992px) {
 	.container {
-    max-width: 960px;
+		max-width: 960px;
 	}
 }
 @media (min-width: 1200px) {
 	.container {
-    max-width: 1140px;
+		max-width: 1140px;
 	}
 }
 
