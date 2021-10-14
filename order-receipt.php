@@ -90,14 +90,14 @@ $logistics_confirm_date = date( 'M j, Y \a\t g:i a', $logistics_confirm_time );
 // Extra basic order data.
 $meta['publish_date_formatted'] = $publish_date;
 $meta['now']                    = $now_date;
-$meta['post_title']             = $post->post_title;
+$meta['post_title']             = $order_post->post_title;
 $meta['program_name']           = get_the_title( $meta['program'] );
 $meta['program_fiscal_year']    = get_post_meta( $meta['program'], 'fiscal_year', true );
 // Extra author data.
-$author                    = get_userdata( $post->post_author );
+$author                    = get_userdata( $order_post->post_author );
 $meta['author']            = $author->data->display_name;
-$meta['first_name']        = get_user_meta( $post->post_author, 'first_name', true );
-$meta['last_name']         = get_user_meta( $post->post_author, 'last_name', true );
+$meta['first_name']        = get_user_meta( $order_post->post_author, 'first_name', true );
+$meta['last_name']         = get_user_meta( $order_post->post_author, 'last_name', true );
 $meta['author_email']      = $author->data->user_email;
 $meta['author_department'] = get_the_title( $meta['author_department'] );
 // Extra IT Rep data.
