@@ -3,7 +3,7 @@
  * The file that helps support legacy code from many sources.
  *
  * @link       https://github.tamu.edu/liberalarts-web/cla-workstation-order/blob/master/src/class-legacy-support.php
- * @since      1.0.0
+ * @since      1.1.0
  * @package    cla-workstation-order
  * @subpackage cla-workstation-order/src
  */
@@ -14,7 +14,7 @@ namespace CLA_Workstation_Order;
  * Builds and registers a custom taxonomy.
  *
  * @package cla-workstation-order
- * @since 1.0.0
+ * @since 1.1.0
  */
 class Legacy_Support {
 
