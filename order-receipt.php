@@ -33,14 +33,14 @@ if ( ! isset( $_GET['postid'] ) ) {
 require dirname( dirname( dirname( dirname( __FILE__ ) ) ) ) . '/wp-load.php';
 wp();
 
-$post_id = $_GET['postid'];
+$order_post_id = $_GET['postid'];
 
 // Authenticate user-based access permission
 $current_user              = wp_get_current_user();
 $current_user_id           = (int) $current_user->ID;
-$affiliated_it_reps        = get_field( 'affiliated_it_reps', $post_id );
-$affiliated_business_staff = get_field( 'affiliated_business_staff', $post_id );
-$author_id                 = (int) get_post_field( 'post_author', $post_id );
+$affiliated_it_reps        = get_field( 'affiliated_it_reps', $order_post_id );
+$affiliated_business_staff = get_field( 'affiliated_business_staff', $order_post_id );
+$author_id                 = (int) get_post_field( 'post_author', $order_post_id );
 
 if (
 	! is_user_logged_in()
@@ -63,8 +63,8 @@ check_admin_referer( 'auth-post_' . $order_post_id, 'token' );
 require CLA_WORKSTATION_ORDER_DIR_PATH . 'vendor/setasign/fpdf/fpdf.php';
 
 // Gather post meta.
-$post         = get_post( $post_id );
-$meta         = get_post_meta( $post_id );
+$order_post = get_post( $order_post_id );
+$meta = get_post_meta( $order_post_id );
 foreach ( $meta as $key => $value ) {
 	if ( strpos( $key, '_' ) === 0 ) {
 		unset( $meta[ $key ] );
