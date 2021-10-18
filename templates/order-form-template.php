@@ -136,7 +136,7 @@ function cla_workstation_order_form_scripts() {
 	}
 	$script_variables .= '
 ';
-	$script_variables .= 'var cla_product_prices = ' . json_encode( $products_and_bundles );
+	$script_variables .= 'var cla_product_prices = ' . wp_json_encode( $products_and_bundles );
 
 	wp_add_inline_script( 'cla-workstation-order-form-scripts', $script_variables, 'before' );
 

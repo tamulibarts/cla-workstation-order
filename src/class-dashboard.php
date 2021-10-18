@@ -167,7 +167,7 @@ class Dashboard {
 			$json_out['errors'][] = 'No changes were made.';
 		}
 
-		echo json_encode( $json_out );
+		echo wp_json_encode( $json_out );
 		die();
 
 	}

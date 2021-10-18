@@ -203,7 +203,7 @@ class WSOrder_PostType {
 			$json_out['status'] = 'success';
 		}
 
-		echo json_encode( $json_out );
+		echo wp_json_encode( $json_out );
 		die();
 
 	}
@@ -305,7 +305,7 @@ class WSOrder_PostType {
 			}
 		}
 
-		echo json_encode( $json_out );
+		echo wp_json_encode( $json_out );
 		die();
 
 	}
@@ -357,7 +357,7 @@ class WSOrder_PostType {
 			}
 		}
 
-		echo json_encode( $json_out );
+		echo wp_json_encode( $json_out );
 		die();
 
 	}
@@ -401,7 +401,7 @@ class WSOrder_PostType {
 			}
 		}
 
-		echo json_encode( $json_out );
+		echo wp_json_encode( $json_out );
 		die();
 
 	}
@@ -446,7 +446,7 @@ class WSOrder_PostType {
 			$json_out['status'] = 'You do not have permission.';
 		}
 
-		echo json_encode( $json_out );
+		echo wp_json_encode( $json_out );
 		die();
 
 	}
@@ -502,7 +502,7 @@ class WSOrder_PostType {
 			$json_out['output'] = $output;
 		}
 
-		echo json_encode( $json_out );
+		echo wp_json_encode( $json_out );
 		die();
 
 	}
@@ -940,7 +940,7 @@ class WSOrder_PostType {
 					}
 				}
 				if ( count( $json_out['errors'] ) > 0 ) {
-					echo json_encode( $json_out );
+					echo wp_json_encode( $json_out );
 					die();
 				}
 			}
@@ -972,7 +972,7 @@ class WSOrder_PostType {
 					$previous_order = get_posts( $author_post_args );
 					if ( $previous_order ) {
 						$json_out['errors'][] = 'You have already placed an order for that program: ' . get_permalink( $previous_order[0] );
-						echo json_encode( $json_out );
+						echo wp_json_encode( $json_out );
 						die();
 					}
 				}
@@ -1017,7 +1017,7 @@ class WSOrder_PostType {
 				wp_mail( 'zwatkins2@tamu.edu', 'Failed to create order.', $message, array( 'Content-Type: text/html; charset=UTF-8' ) );
 
 				$json_out['errors'][] = 'Failed to create the order. The webmaster has been notified.';
-				echo json_encode( $json_out );
+				echo wp_json_encode( $json_out );
 				die();
 
 			}
@@ -1297,7 +1297,7 @@ class WSOrder_PostType {
 		// Do custom action.
 		do_action( 'wsorder_submitted', $post_id );
 
-		echo json_encode( $json_out );
+		echo wp_json_encode( $json_out );
 		die();
 
 	}
@@ -1368,7 +1368,7 @@ class WSOrder_PostType {
 
 		}
 
-		echo json_encode( $json_out );
+		echo wp_json_encode( $json_out );
 		die();
 
 	}
@@ -1392,12 +1392,12 @@ class WSOrder_PostType {
 		$json_out  = array( 'status' => 'failed' );
 
 		if ( 'wsorder' === $post_type && 'publish' === get_post_status( $post_id ) ) {
-			echo json_encode( $json_out );
+			echo wp_json_encode( $json_out );
 			die();
 		}
 
 		if ( ! isset( $_POST['program_id'] ) || ! isset( $_POST['selected_products'] ) ) {
-			echo json_encode( $json_out );
+			echo wp_json_encode( $json_out );
 			die();
 		}
 
@@ -1438,7 +1438,7 @@ class WSOrder_PostType {
 		$json_out['prices'] = $products_and_bundles;
 
 		$json_out['status'] = 'success';
-		echo json_encode( $json_out );
+		echo wp_json_encode( $json_out );
 		die();
 
 	}
