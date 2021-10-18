@@ -118,7 +118,7 @@ class Dashboard {
 			// Update user data.
 			if ( $first_name || $last_name || $email ) {
 				$user_data_params = array(
-					'ID' => $current_user_id
+					'ID' => $current_user_id,
 				);
 				// Add first name.
 				if ( $first_name ) {
