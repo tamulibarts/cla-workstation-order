@@ -154,11 +154,11 @@ function cla_render_order_form( $content ) {
 		return $content;
 	}
 
-	$pre = '';
-
 	global $post;
 
 	$hide_form = false;
+	$pre       = '';
+
 	$maybe_order_author_id = (int) get_post_meta( $post->ID, 'order_author', true );
 	if ( 'wsorder' === $post->post_type && ! empty( $maybe_order_author_id ) ) {
 		$user = get_user_by( 'id', $maybe_order_author_id );

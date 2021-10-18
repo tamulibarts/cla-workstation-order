@@ -163,7 +163,7 @@ class Dashboard {
 				}
 			}
 		} else {
-			$json_out['status'] = 'No changes were made.';
+			$json_out['status']   = 'No changes were made.';
 			$json_out['errors'][] = 'No changes were made.';
 		}
 
