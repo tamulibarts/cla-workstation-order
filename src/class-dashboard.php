@@ -29,6 +29,13 @@ class Dashboard {
 
 	}
 
+	/**
+	 * AJAX action to update User data from a front-end page template.
+	 *
+	 * @since 0.1.0
+	 *
+	 * @return void
+	 */
 	public function update_acount() {
 
 		// Ensure nonce is valid.
