@@ -40,24 +40,19 @@ Legacy support is and will continue to be an ever-present responsibility of Info
 ## WordPress Requirements
 
 1. Single site install support only at this time.
-2. [https://github.tamu.edu/liberalarts-web/cla-wsorder](WSOrder Genesis Child Theme)
+2. [WSOrder Genesis Child Theme](https://github.tamu.edu/liberalarts-web/cla-wsorder)
 3. TAMU CAS Authentication Plugin
-4. [https://www.advancedcustomfields.com/pro/](Advanced Custom Fields Pro) Plugin
-5. [https://wordpress.org/plugins/post-smtp/](Post SMTP) Plugin for secure email delivery with an email log and one-click resending of failed emails
-6. [https://github.com/johnbillion/user-switching](User Switching) Plugin (Github.com link, updated more frequently than WordPress repository plugin)
-7. [https://wordpress.org/plugins/duplicate-post/](Yoast Duplicate Post) Plugin
-8. [https://wordpress.org/plugins/simple-history/](Simple History) Plugin for debugging and user support
-
-## Installation
-
-1. Download the latest release here: [https://github.tamu.edu/liberalarts-web/cla-workstation-order/releases/latest/](https://github.tamu.edu/liberalarts-web/cla-workstation-order/releases/)
-2. Upload the plugin to your site via the admin dashboard plugin upload panel.
+4. [Advanced Custom Fields Pro](https://www.advancedcustomfields.com/pro/) Plugin
+5. [Post SMTP](https://wordpress.org/plugins/post-smtp/) Plugin for secure email delivery with an email log and one-click resending of failed emails
+6. [User Switching](https://github.com/johnbillion/user-switching) Plugin (Github.com link, updated more frequently than WordPress repository plugin)
+7. [Yoast Duplicate Post](https://wordpress.org/plugins/duplicate-post/) Plugin
+8. [Simple History](https://wordpress.org/plugins/simple-history/) Plugin for debugging and user support
 
 ## Developer Notes
 
-Please refer to the [https://developer.wordpress.org/coding-standards/wordpress-coding-standards/](WordPress Coding Standards) when you have questions about how to format your code.
+Please refer to the [WordPress Coding Standards](https://developer.wordpress.org/coding-standards/wordpress-coding-standards/) when you have questions about how to format your code.
 
-[https://make.wordpress.org/core/handbook/tutorials/installing-a-vcs/](Installing a Version Control System)
+[Installing a Version Control System](https://make.wordpress.org/core/handbook/tutorials/installing-a-vcs/)
 
 ### Developer Features
 
@@ -78,4 +73,4 @@ To add an executable file to git version control, do this: `git add --chmod=+x h
 #### Windows 10 IIS Server Port 80 Conflict with "Local" application by Flywheel
 
 [https://localwp.com/help-docs/advanced/router-mode/](https://localwp.com/help-docs/advanced/router-mode/)
-On one (but not all) Dell Windows 10 machine I had to disable the Windows IIS service which was running on IP 0.0.0.0:80 and interfered with my local development environment application's router functionality. The application name is Local, by Flywheel, which is owned by WP Engine.
+On one (but not all) Dell Windows 10 machines I had to disable the Windows IIS service which was running on IP 0.0.0.0:80 and interfered with my local development environment application's router functionality. The application name is Local, by Flywheel, which is owned by WP Engine. NOTE: I DO NOT RECOMMEND THIS FOR TAMU WINDOWS DEVICES AND HAVE NOT DONE THIS.
