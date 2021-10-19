@@ -1,7 +1,7 @@
 {
   "name": "cla-workstation-order",
   "version": "1.1.0",
-  "description": "A WordPress plugin for ordering workstations for the Texas A&M College of Liberal Arts.",
+  "description": "A WordPress plugin for ordering workstations at the Texas A&M College of Liberal Arts.",
   "main": "cla-workstation-order.php",
   "private": true,
   "scripts": {
@@ -14,7 +14,18 @@
     "windows-fixwp": "php ./vendor/bin/phpcbf --ignore=*/vendor/*,*/node_modules/* --standard=WordPress .",
     "windows-configphpcs": "php ./vendor/bin/phpcs --config-set installed_paths vendor/wp-coding-standards/wpcs"
   },
-  "author": "Zachary Kendall Watkins <watkinza@gmail.com> (https://github.com/zachwatkins)",
+  "author": "Zachary Watkins <zwatkins2@tamu.edu> (https://github.com/zachwatkins/)",
+  "contributors": [
+    {
+      "name": "Pamela Luckenbill",
+      "email": "luckenbill@tamu.edu"
+    },
+    {
+      "name": "Joseph Rafferty",
+      "email": "jrafferty@tamu.edu",
+      "url": "https://github.tamu.edu/liberalarts-web/workstation-order"
+    }
+  ],
   "license": "GPL-2.0+",
   "bugs": {
     "url": "https://github.tamu.edu/liberalarts-web/cla-workstation-order/issues",
