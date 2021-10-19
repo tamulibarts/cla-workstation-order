@@ -64,7 +64,10 @@ module.exports = (grunt) ->
           {src: ['css/*.css']},
           {src: ['fields/*.php']},
           {src: ['fields/*.json']},
+          {src: ['js/*.js']},
           {src: ['src/*.php']},
+          {src: ['templates/*.php']},
+          {src: ['vendor/setasign/fpdf']},
           {src: ['*.php']},
           {src: ['README.md']},
           {src: ['LICENSE.txt']}
