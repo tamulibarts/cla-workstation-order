@@ -1,4 +1,14 @@
 <?php
+/**
+ * The file that renders the My Orders page template.
+ *
+ * @link       https://github.tamu.edu/liberalarts-web/cla-workstation-order/blob/master/templates/my-orders.php
+ * @author     Zachary Watkins <zwatkins2@tamu.edu>
+ * @since      1.0.0
+ * @package    cla-workstation-order
+ * @subpackage cla-workstation-order/templates
+ * @license    https://www.gnu.org/licenses/old-licenses/gpl-2.0.html GNU General Public License v2.0 or later
+ */
 
 add_action( 'genesis_before_loop', 'cla_before_loop' );
 function cla_before_loop(){

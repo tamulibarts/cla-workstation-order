@@ -1,22 +1,24 @@
 <?php
 /**
- * Workstation Ordering System
+ * Workstation Ordering Application
  *
- * @package      Workstation Ordering System
- * @author       Zachary Watkins
- * @license      GPL-2.0+
+ * @package      Workstation Ordering Application
+ * @since        0.1.0
+ * @author       Zachary Watkins <zwatkins2@tamu.edu>
+ * @link         https://github.tamu.edu/liberalarts-web/cla-workstation-order
+ * @license      https://www.gnu.org/licenses/old-licenses/gpl-2.0.html GNU General Public License v2.0 or later
  *
  * @cla-workstation-order
- * Plugin Name:  Workstation Ordering System
+ * Plugin Name:  Workstation Ordering Application
  * Plugin URI:   https://github.tamu.edu/liberalarts-web/cla-workstation-order
  * Description:  A WordPress plugin for ordering workstations for the Texas A&M College of Liberal Arts
  * Version:      0.1.0
  * Author:       Zachary Watkins
- * Author URI:   https://github.tamu.edu/liberalarts-web
  * Author Email: zwatkins2@tamu.edu
+ * Author URI:   https://github.com/zachwatkins
  * Text Domain:  cla-workstation-order
  * License:      GPL-2.0+
- * License URI:  http://www.gnu.org/licenses/gpl-2.0.txt
+ * License URI:  https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
  */
 
 // If this file is called directly, abort.

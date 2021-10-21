@@ -143,6 +143,49 @@
                 ]
             },
             {
+                "key": "field_616dbd8b65666",
+                "label": "Product Category Order",
+                "name": "product_category_order",
+                "type": "repeater",
+                "instructions": "Click & drag each Category's handle to change the display order",
+                "required": 0,
+                "conditional_logic": 0,
+                "wrapper": {
+                    "width": "",
+                    "class": "",
+                    "id": ""
+                },
+                "collapsed": "",
+                "min": 0,
+                "max": 0,
+                "layout": "table",
+                "button_label": "",
+                "sub_fields": [
+                    {
+                        "key": "field_616dc0bd65667",
+                        "label": "Product Category",
+                        "name": "product_category_term",
+                        "type": "taxonomy",
+                        "instructions": "Select a Product Category",
+                        "required": 1,
+                        "conditional_logic": 0,
+                        "wrapper": {
+                            "width": "",
+                            "class": "",
+                            "id": ""
+                        },
+                        "taxonomy": "product-category",
+                        "field_type": "select",
+                        "allow_null": 0,
+                        "add_term": 0,
+                        "save_terms": 0,
+                        "load_terms": 0,
+                        "return_format": "id",
+                        "multiple": 0
+                    }
+                ]
+            },
+            {
                 "key": "field_6009c1879d09b",
                 "label": "Assignments",
                 "name": "assign",

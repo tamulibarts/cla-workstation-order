@@ -1,13 +1,28 @@
 {
     "name": "liberalarts-web/cla-workstation-order",
-    "description": "A WordPress plugin for ordering workstations for the Texas A&M College of Liberal Arts.",
-    "license": "GPL-2.0+",
+    "version": "1.1.0",
+    "type": "wordpress-plugin",
+    "homepage": "https://github.tamu.edu/liberalarts-web/cla-workstation-order",
+    "description": "A GNU GPL 2.0 (or later) WordPress Plugin to facilitate product ordering within a robust, multi-role return / approve workflow using team-based settings.",
+    "license": "GPL-2.0-or-later",
     "authors": [
         {
             "name": "Zachary Watkins",
-            "email": "zwatkins2@tamu.edu"
+            "email": "zwatkins2@tamu.edu",
+            "homepage": "https://github.com/zachwatkins",
+            "role": "Software Developer"
+        },
+        {
+            "name": "Pamela Luckenbill",
+            "email": "luckenbill@tamu.edu",
+            "role": "Administrator"
         }
     ],
+    "support": {
+        "email": "liberalartsit@tamu.edu",
+        "source": "https://github.tamu.edu/liberalarts-web/cla-workstation-order",
+        "docs": "https://github.tamu.edu/liberalarts-web/cla-workstation-order/blob/master/README.md"
+    },
     "minimum-stability": "stable",
     "require": {
         "setasign/fpdf": "^1.8"

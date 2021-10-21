@@ -3,10 +3,10 @@
  * Order Receipt Renderer
  *
  * @link       https://github.tamu.edu/liberalarts-web/cla-workstation-order/blob/master/order-receipt.php
+ * @author:    Zachary Watkins <zwatkins2@tamu.edu>
  * @since      1.0.0
  * @package    cla-workstation-order
- * @license    GPL-2.0+
- * @author:    Zachary Watkins <zwatkins2@tamu.edu>
+ * @license    https://www.gnu.org/licenses/old-licenses/gpl-2.0.html GNU General Public License v2.0 or later
  *
  * README:   The FPDF library was chosen purely based on what is in this file.
  *           If you are taking custody of this application you have freedom to

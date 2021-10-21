@@ -3,9 +3,11 @@
  * The file that defines Advanced Custom Fields for the bundle post type.
  *
  * @link       https://github.tamu.edu/liberalarts-web/cla-workstation-order/blob/master/fields/bundle-fields.php
+ * @author:    Zachary Watkins <zwatkins2@tamu.edu>
  * @since      1.0.0
  * @package    cla-workstation-order
  * @subpackage cla-workstation-order/fields
+ * @license    https://www.gnu.org/licenses/old-licenses/gpl-2.0.html GNU General Public License v2.0 or later
  */
 
 if( function_exists('acf_add_local_field_group') ):

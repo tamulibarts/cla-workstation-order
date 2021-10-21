@@ -4,10 +4,12 @@
  *
  * A class definition that includes functions and filters which register a page template.
  *
- * @link       https://github.tamu.edu/liberalarts-web/wordpress-plugin/blob/master/src/class-pagetemplate.php
+ * @author     Zachary Watkins <zwatkins2@tamu.edu>
+ * @license    https://www.gnu.org/licenses/old-licenses/gpl-2.0.html GNU General Public License v2.0 or later
  * @since      1.0.0
- * @package    wordpress-plugin
- * @subpackage wordpress-plugin/src
+ * @package    cla-workstation-order
+ * @subpackage cla-workstation-order/src
+ * @link       https://github.tamu.edu/liberalarts-web/cla-workstation-order/blob/master/src/class-pagetemplate.php
  */
 
 namespace CLA_Workstation_Order;

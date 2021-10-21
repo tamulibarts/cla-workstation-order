@@ -1,4 +1,15 @@
 <?php
+/**
+ * The template file that shows the public searchable Order list page.
+ *
+ * @link       https://github.tamu.edu/liberalarts-web/cla-workstation-order/blob/master/templates/catalog.php
+ * @author     Zachary Watkins <zwatkins2@tamu.edu>
+ * @since      1.0.0
+ * @package    cla-workstation-order
+ * @subpackage cla-workstation-order/templates
+ * @license    https://www.gnu.org/licenses/old-licenses/gpl-2.0.html GNU General Public License v2.0 or later
+ */
+
 if ( ! current_user_can( 'administrator' ) && ! current_user_can( 'wso_admin' ) && ! current_user_can( 'wso_logistics' ) && ! current_user_can( 'wso_logistics_admin' ) && ! current_user_can( 'wso_business_admin' ) && ! current_user_can( 'wso_it_rep' ) ) {
 	$blog_id = get_current_blog_id();
 	$url     = get_site_url( $blog_id, '/my-orders/' );

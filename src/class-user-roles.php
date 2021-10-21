@@ -4,9 +4,11 @@
  * https://wordpress.org/support/article/roles-and-capabilities/
  *
  * @link       https://github.tamu.edu/liberalarts-web/cla-workstation-order/blob/master/src/class-user-roles.php
+ * @author     Zachary Watkins <zwatkins2@tamu.edu>
  * @since      1.0.0
  * @package    cla-workstation-order
  * @subpackage cla-workstation-order/src
+ * @license    https://www.gnu.org/licenses/old-licenses/gpl-2.0.html GNU General Public License v2.0 or later
  */
 
 namespace CLA_Workstation_Order;

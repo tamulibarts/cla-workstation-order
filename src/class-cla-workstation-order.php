@@ -6,9 +6,11 @@
  * public-facing side of the site and the admin area.
  *
  * @link       https://github.tamu.edu/liberalarts-web/cla-workstation-order/blob/master/src/class-cla-workstation-order.php
+ * @author     Zachary Watkins <zwatkins2@tamu.edu>
  * @since      1.0.0
  * @package    cla-workstation-order
  * @subpackage cla-workstation-order/src
+ * @license    https://www.gnu.org/licenses/old-licenses/gpl-2.0.html GNU General Public License v2.0 or later
  */
 
 /**
@@ -46,6 +48,9 @@ class CLA_Workstation_Order {
 			require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-user-roles.php';
 			$user_roles = new \CLA_Workstation_Order\User_Roles();
 		}
+
+		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-user-tamu.php';
+		new \CLA_Workstation_Order\User_Tamu();
 
 		require_once CLA_WORKSTATION_ORDER_DIR_PATH . 'src/class-legacy-support.php';
 		new \CLA_Workstation_Order\Legacy_Support();

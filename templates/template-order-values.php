@@ -1,11 +1,13 @@
 <?php
 /**
- * Tempalte file for displaying wsorder post type fields.
+ * Tempalate file for displaying wsorder post type fields.
  *
  * @link       https://github.tamu.edu/liberalarts-web/cla-workstation-order/blob/master/templates/template-order-values.php
+ * @author     Zachary Watkins <zwatkins2@tamu.edu>
  * @since      1.0.0
  * @package    cla-workstation-order
  * @subpackage cla-workstation-order/templates
+ * @license    https://www.gnu.org/licenses/old-licenses/gpl-2.0.html GNU General Public License v2.0 or later
  */
 
 $template_order_values = "<div class=\"col\">

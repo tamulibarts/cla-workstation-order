@@ -1,4 +1,14 @@
-(function($){
+/**
+ * Order search page template functionality.
+ *  
+ * @link       https://github.tamu.edu/liberalarts-web/cla-workstation-order/blob/master/js/order-search.js
+ * @author:    Zachary Watkins <zwatkins2@tamu.edu>
+ * @since      1.0.0
+ * @package    cla-workstation-order
+ * @subpackage cla-workstation-order/js
+ * @license    https://www.gnu.org/licenses/old-licenses/gpl-2.0.html GNU General Public License v2.0 or later
+ */
+ (function($){
 	var admin_ajax = WSOSearchOrderAJAX;
 	var $form      = $('#cla_search_order_form');
 	var $view      = $('#ajax-results');

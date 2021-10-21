@@ -3,9 +3,11 @@
  * The file that defines Advanced Custom Fields for the program post type.
  *
  * @link       https://github.tamu.edu/liberalarts-web/cla-workstation-order/blob/master/fields/program-fields.php
+ * @author:    Zachary Watkins <zwatkins2@tamu.edu>
  * @since      1.0.0
  * @package    cla-workstation-order
  * @subpackage cla-workstation-order/src
+ * @license    https://www.gnu.org/licenses/old-licenses/gpl-2.0.html GNU General Public License v2.0 or later
  */
 
 if( function_exists('acf_add_local_field_group') ):
@@ -150,6 +152,49 @@ acf_add_local_field_group(array(
 					'maxlength' => 500,
 					'rows' => '',
 					'new_lines' => '',
+				),
+			),
+		),
+		array(
+			'key' => 'field_616dbd8b65666',
+			'label' => 'Product Category Order',
+			'name' => 'product_category_order',
+			'type' => 'repeater',
+			'instructions' => 'Click & drag each Category\'s handle to change the display order',
+			'required' => 0,
+			'conditional_logic' => 0,
+			'wrapper' => array(
+				'width' => '',
+				'class' => '',
+				'id' => '',
+			),
+			'collapsed' => '',
+			'min' => 0,
+			'max' => 0,
+			'layout' => 'table',
+			'button_label' => '',
+			'sub_fields' => array(
+				array(
+					'key' => 'field_616dc0bd65667',
+					'label' => 'Product Category',
+					'name' => 'product_category_term',
+					'type' => 'taxonomy',
+					'instructions' => 'Select a Product Category',
+					'required' => 1,
+					'conditional_logic' => 0,
+					'wrapper' => array(
+						'width' => '',
+						'class' => '',
+						'id' => '',
+					),
+					'taxonomy' => 'product-category',
+					'field_type' => 'select',
+					'allow_null' => 0,
+					'add_term' => 0,
+					'save_terms' => 0,
+					'load_terms' => 0,
+					'return_format' => 'id',
+					'multiple' => 0,
 				),
 			),
 		),

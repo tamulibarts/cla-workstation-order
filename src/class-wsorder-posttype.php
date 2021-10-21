@@ -3,9 +3,11 @@
  * The file that defines the Order post type
  *
  * @link       https://github.tamu.edu/liberalarts-web/cla-workstation-order/blob/master/src/class-wsorder-posttype.php
+ * @author     Zachary Watkins <zwatkins2@tamu.edu>
  * @since      1.0.0
  * @package    cla-workstation-order
  * @subpackage cla-workstation-order/src
+ * @license    https://www.gnu.org/licenses/old-licenses/gpl-2.0.html GNU General Public License v2.0 or later
  */
 
 namespace CLA_Workstation_Order;
@@ -1326,14 +1328,14 @@ class WSOrder_PostType {
 			$was_checked = false;
 			// Update products.
 			$products = get_field( 'order_items', $post_id );
-			foreach ($products as $key => $product) {
-				$was_checked = true;
-				$req_number   = sanitize_text_field( wp_unslash( $_POST[ "cla_item_{$key}_req_number" ] ) );
-				$req_date     = sanitize_text_field( wp_unslash( $_POST[ "cla_item_{$key}_req_date" ] ) );
-				$asset_number = sanitize_text_field( wp_unslash( $_POST[ "cla_item_{$key}_asset_number" ] ) );
-				$products[$key]['requisition_number'] = $req_number;
-				$products[$key]['requisition_date']   = $req_date;
-				$products[$key]['asset_number']       = $asset_number;
+			foreach ( $products as $key => $product ) {
+				$was_checked                            = true;
+				$req_number                             = sanitize_text_field( wp_unslash( $_POST["cla_item_{$key}_req_number"] ) );
+				$req_date                               = sanitize_text_field( wp_unslash( $_POST["cla_item_{$key}_req_date"] ) );
+				$asset_number                           = sanitize_text_field( wp_unslash( $_POST["cla_item_{$key}_asset_number"] ) );
+				$products[ $key ]['requisition_number'] = $req_number;
+				$products[ $key ]['requisition_date']   = $req_date;
+				$products[ $key ]['asset_number']       = $asset_number;
 				if ( empty( $req_date ) || empty( $req_number ) ) {
 					$ordered_all = false;
 				}
@@ -1341,14 +1343,14 @@ class WSOrder_PostType {
 			update_field( 'order_items', $products, $post_id );
 			// Update quotes.
 			$quotes = get_field( 'quotes', $post_id );
-			foreach ($quotes as $key => $quote) {
-				$was_checked = true;
-				$req_number   = sanitize_text_field( wp_unslash( $_POST[ "cla_quote_{$key}_req_number" ] ) );
-				$req_date     = sanitize_text_field( wp_unslash( $_POST[ "cla_quote_{$key}_req_date" ] ) );
-				$asset_number = sanitize_text_field( wp_unslash( $_POST[ "cla_quote_{$key}_asset_number" ] ) );
-				$quotes[$key]['requisition_number'] = $req_number;
-				$quotes[$key]['requisition_date']   = $req_date;
-				$quotes[$key]['asset_number']       = $asset_number;
+			foreach ( $quotes as $key => $quote ) {
+				$was_checked                          = true;
+				$req_number                           = sanitize_text_field( wp_unslash( $_POST["cla_quote_{$key}_req_number"] ) );
+				$req_date                             = sanitize_text_field( wp_unslash( $_POST["cla_quote_{$key}_req_date"] ) );
+				$asset_number                         = sanitize_text_field( wp_unslash( $_POST["cla_quote_{$key}_asset_number"] ) );
+				$quotes[ $key ]['requisition_number'] = $req_number;
+				$quotes[ $key ]['requisition_date']   = $req_date;
+				$quotes[ $key ]['asset_number']       = $asset_number;
 				if ( empty( $req_date ) || empty( $req_number ) ) {
 					$ordered_all = false;
 				}
@@ -1361,7 +1363,7 @@ class WSOrder_PostType {
 				$logistics_fields = get_field( 'it_logistics_status', $post_id );
 				$logistics_fields['ordered'] = true;
 				update_field( 'it_logistics_status', $logistics_fields, $post_id );
-				update_post_meta( $post_id, 'it_logistics_status_ordered_at', date('Y-m-d H:i:s') );
+				update_post_meta( $post_id, 'it_logistics_status_ordered_at', date( 'Y-m-d H:i:s' ) );
 			}
 
 			$json_out['status'] = 'success';
@@ -1401,9 +1403,11 @@ class WSOrder_PostType {
 			die();
 		}
 
-		$program_id = (int) sanitize_text_field( wp_unslash( $_POST[ 'program_id' ] ) );
+		// The Program post to retrieve products for.
+		$program_id = (int) sanitize_text_field( wp_unslash( $_POST['program_id'] ) );
+
 		// Build an array of ints for selected products.
-		$selected_products = sanitize_text_field( wp_unslash( $_POST[ 'selected_products' ] ) );
+		$selected_products = sanitize_text_field( wp_unslash( $_POST['selected_products'] ) );
 		if ( strpos( $selected_products, ',' ) ) {
 			$selected_products = explode( ',', $selected_products );
 		} elseif ( $selected_products ) {
@@ -1424,6 +1428,7 @@ class WSOrder_PostType {
 		/**
 		 * Get product categories.
 		 */
+		// Retrieve product categories used by products in the Program.
 		$json_out['apple']  = $cla_form_helper->cla_get_products( 'apple', $program_id, false, $selected_products );
 		$json_out['pc']     = $cla_form_helper->cla_get_products( 'pc', $program_id, false, $selected_products );
 		$json_out['addons'] = $cla_form_helper->cla_get_products( 'add-on', $program_id, false, $selected_products );
