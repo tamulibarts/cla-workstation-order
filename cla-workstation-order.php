@@ -11,8 +11,8 @@
  * @cla-workstation-order
  * Plugin Name:  Workstation Ordering Application
  * Plugin URI:   https://github.tamu.edu/liberalarts-web/cla-workstation-order
- * Description:  A WordPress plugin for ordering workstations for the Texas A&M College of Liberal Arts
- * Version:      0.1.0
+ * Description:  A GNU GPL 2.0 (or later) WordPress Plugin to facilitate product ordering within a robust, multi-role return / approve workflow using team-based settings.
+ * Version:      1.1.0
  * Author:       Zachary Watkins
  * Author Email: zwatkins2@tamu.edu
  * Author URI:   https://github.com/zachwatkins
