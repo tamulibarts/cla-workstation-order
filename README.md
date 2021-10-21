@@ -60,6 +60,7 @@ Links to resources:
 
 * WordPress Coding Standards - <https://developer.wordpress.org/coding-standards/>
 * PHPDoc Reference - <https://docs.phpdoc.org/3.0/guide/references/phpdoc/index.html>
+* Sass Lint Reference - <https://github.com/sasstools/sass-lint> (abandoned but stable)
 * PHP CodeSniffer Wiki - <https://github.com/squizlabs/PHP_CodeSniffer/wiki/Usage>
 * NPM package schema - <https://docs.npmjs.com/cli/v7/configuring-npm/package-json>
 * Composer package schema - <https://getcomposer.org/doc/04-schema.md>
@@ -93,6 +94,7 @@ Links to resources:
 2. Remove the following form fields from the `edit-user.php` administrative UI since they are not used: Visual Editor, Keyboard Shortcuts, Website, Biographical Info, Profile Picture, New Password, Password Reset.
 3. Change the NPM scripts for Windows
 4. Consider implementing a custom XML ruleset file for PHP CodeSniffer
+5. Replace NPM package `grunt-sass-lint` with something that isn't abandoned
 
 ## Legacy Support
 
