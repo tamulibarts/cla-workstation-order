@@ -67,10 +67,11 @@ module.exports = (grunt) ->
           {src: ['js/*.js']},
           {src: ['src/*.php']},
           {src: ['templates/*.php']},
-          {src: ['vendor/setasign/fpdf']},
+          {src: ['vendor/setasign/fpdf/**/*']},
           {src: ['*.php']},
           {src: ['README.md']},
-          {src: ['LICENSE.txt']}
+          {src: ['package.json']},
+          {src: ['composer.json']}
         ]
 
   @loadNpmTasks 'grunt-contrib-compress'
