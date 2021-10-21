@@ -21,7 +21,12 @@ A GNU GPL 2.0 (or later) WordPress Plugin to facilitate product ordering within 
 
 1. Single site install
 2. [Genesis Framework - WordPress Theme](https://www.studiopress.com/themes/genesis/)
-3. [WSOrder WordPress Child Theme](https://github.tamu.edu/liberalarts-web/cla-wsorder)
+3. Workstation Ordering Application Plugin
+    a. <https://github.tamu.edu/liberalarts-web/cla-workstation-order>
+    b. <https://github.com/tamulibarts/cla-workstation-order>
+4. WSOrder WordPress Child Theme
+    a. <https://github.tamu.edu/liberalarts-web/cla-wsorder>
+    b. <https://github.com/tamulibarts/cla-wsorder>
 4. [Advanced Custom Fields Pro Plugin](https://www.advancedcustomfields.com/pro/)
 
 ## WordPress Recommendations
@@ -109,8 +114,8 @@ On two different models of Dell Windows 10 machines (Inspiron and Latitude) a Wi
 
 ## Credits
 
-1. The WordPress theme was programmed by Zachary Watkins <zwatkins2@tamu.edu> <https://github.com/zachwatkins>.
-2. The WordPress plugin was programmed by Zachary Watkins.
+1. The WordPress plugin was programmed by Zachary Watkins <zwatkins2@tamu.edu> <https://github.com/zachwatkins>.
+2. The WordPress theme was programmed by Zachary Watkins.
 3. The business process workflow and a portion of the UI specifications were designed by Pamela Luckenbill <luckenbill@tamu.edu>.
 4. The original application used very different technology, was programmed by Joseph Rafferty <jrafferty@tamu.edu>, and was authored by Joseph Rafferty and Pamela Luckenbill: [https://github.tamu.edu/liberalarts-web/workstation-order](https://github.tamu.edu/liberalarts-web/workstation-order).
 5. The majority of the workflow requirements for this version were preserved from the original application. However, the product, bundle, program, and department data creation and management interface is superseded by this application as it is provided by WordPress Core.
