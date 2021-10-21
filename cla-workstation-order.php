@@ -16,7 +16,7 @@
  * Author:       Zachary Watkins
  * Author Email: zwatkins2@tamu.edu
  * Author URI:   https://github.com/zachwatkins
- * Text Domain:  cla-workstation-order
+ * Text Domain:  cla-wso-textdomain
  * License:      GPL-2.0+
  * License URI:  https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
  */
@@ -28,7 +28,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 /* Define some useful constants */
 define( 'CLA_WORKSTATION_ORDER_DIRNAME', 'cla-workstation-order' );
-define( 'CLA_WORKSTATION_ORDER_TEXTDOMAIN', 'cla-workstation-order-textdomain' );
+define( 'CLA_WORKSTATION_ORDER_TEXTDOMAIN', 'cla-wso-textdomain' );
 define( 'CLA_WORKSTATION_ORDER_DIR_PATH', plugin_dir_path( __FILE__ ) );
 define( 'CLA_WORKSTATION_ORDER_DIR_FILE', __FILE__ );
 define( 'CLA_WORKSTATION_ORDER_DIR_URL', plugin_dir_url( __FILE__ ) );

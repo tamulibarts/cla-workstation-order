@@ -65,16 +65,16 @@ class PostType {
 		$labels = array(
 			'name'               => $plural,
 			'singular_name'      => $singular,
-			'add_new'            => __( 'Add New', 'cla-workstation-order-textdomain' ),
-			'add_new_item'       => __( 'Add New', 'cla-workstation-order-textdomain' ) . " $singular",
-			'edit_item'          => __( 'Edit', 'cla-workstation-order-textdomain' ) . " $singular",
-			'new_item'           => __( 'New', 'cla-workstation-order-textdomain' ) . " $singular",
-			'view_item'          => __( 'View', 'cla-workstation-order-textdomain' ) . " $singular",
-			'search_items'       => __( 'Search', 'cla-workstation-order-textdomain' ) . " $plural",
+			'add_new'            => __( 'Add New', 'cla-wso-textdomain' ),
+			'add_new_item'       => __( 'Add New', 'cla-wso-textdomain' ) . " $singular",
+			'edit_item'          => __( 'Edit', 'cla-wso-textdomain' ) . " $singular",
+			'new_item'           => __( 'New', 'cla-wso-textdomain' ) . " $singular",
+			'view_item'          => __( 'View', 'cla-wso-textdomain' ) . " $singular",
+			'search_items'       => __( 'Search', 'cla-wso-textdomain' ) . " $plural",
 			/* translators: placeholder is the plural taxonomy name */
-			'not_found'          => sprintf( esc_html__( 'No %d Found', 'cla-workstation-order-textdomain' ), $plural ),
+			'not_found'          => sprintf( esc_html__( 'No %d Found', 'cla-wso-textdomain' ), $plural ),
 			/* translators: placeholder is the plural taxonomy name */
-			'not_found_in_trash' => sprintf( esc_html__( 'No %d found in trash', 'cla-workstation-order-textdomain' ), $plural ),
+			'not_found_in_trash' => sprintf( esc_html__( 'No %d found in trash', 'cla-wso-textdomain' ), $plural ),
 			'parent_item_colon'  => '',
 			'menu_name'          => $plural,
 		);

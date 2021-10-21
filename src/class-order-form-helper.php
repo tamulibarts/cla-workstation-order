@@ -54,7 +54,7 @@ class Order_Form_Helper {
 		// No files to validate.
 		if ( empty( $file ) || ! $file['name'] ) {
 			$return['passed'] = false;
-			$messages[]       = esc_html__( 'Please choose a file.', 'cla-workstation-order-textdomain' );
+			$messages[]       = esc_html__( 'Please choose a file.', 'cla-wso-textdomain' );
 		}
 
 		// Validate file extension.
@@ -63,7 +63,7 @@ class Order_Form_Helper {
 		$file_extension     = $file_type['ext'];
 		if ( ! in_array( $file_extension, $allowed_extensions, true ) ) {
 			$return['passed'] = false;
-			$messages[]       = sprintf( esc_html__( 'Invalid file extension, only allowed: %s.', 'cla-workstation-order-textdomain' ), implode( ', ', $allowed_extensions ) );
+			$messages[]       = sprintf( esc_html__( 'Invalid file extension, only allowed: %s.', 'cla-wso-textdomain' ), implode( ', ', $allowed_extensions ) );
 		}
 
 		// Validate file size.
@@ -71,7 +71,7 @@ class Order_Form_Helper {
 		$allowed_file_size = 1024000; // Here we are setting the file size limit.
 		if ( $file_size >= $allowed_file_size ) {
 			$return['passed'] = false;
-			$messages[]       = esc_html__( 'File size limit exceeded, file size should be smaller than 1 MB.', 'cla-workstation-order-textdomain' );
+			$messages[]       = esc_html__( 'File size limit exceeded, file size should be smaller than 1 MB.', 'cla-wso-textdomain' );
 		}
 
 		if ( $messages ) {
